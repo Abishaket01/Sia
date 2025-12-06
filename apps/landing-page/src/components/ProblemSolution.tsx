@@ -26,7 +26,9 @@ export default function ProblemSolution() {
                   <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
                     <X className="w-6 h-6 text-red-400" />
                   </div>
-                  <h3 className="text-subheading md:text-subheading-md lg:text-subheading-lg font-medium text-text">Without Sia</h3>
+                  <h3 className="text-subheading md:text-subheading-md lg:text-subheading-lg font-medium text-text">
+                    Without Sia
+                  </h3>
                 </div>
                 <ul className="space-y-4">
                   {[
@@ -35,9 +37,12 @@ export default function ProblemSolution() {
                     'Losing track when you step away',
                     'Wasted idle hours overnight',
                     'Constant context switching',
-                    'No visibility for your team'
+                    'No visibility for your team',
                   ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3 text-base font-extralight text-text/70">
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-base font-extralight text-text/70"
+                    >
                       <X className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
@@ -53,7 +58,9 @@ export default function ProblemSolution() {
                   <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
                     <Check className="w-6 h-6 text-text" />
                   </div>
-                  <h3 className="text-subheading md:text-subheading-md lg:text-subheading-lg font-medium text-text">With Sia</h3>
+                  <h3 className="text-subheading md:text-subheading-md lg:text-subheading-lg font-medium text-text">
+                    With Sia
+                  </h3>
                 </div>
                 <ul className="space-y-4">
                   {[
@@ -62,9 +69,12 @@ export default function ProblemSolution() {
                     'Wake up to ready-to-review PRs',
                     'Turn idle time into dev time',
                     'Stay in flow, let Sia orchestrate',
-                    'Full team visibility via Slack/Discord'
+                    'Full team visibility via Slack/Discord',
                   ].map((item, index) => (
-                    <li key={index} className="flex items-start gap-3 text-base font-extralight text-text/70">
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-base font-extralight text-text/70"
+                    >
                       <Check className="w-5 h-5 text-text flex-shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>

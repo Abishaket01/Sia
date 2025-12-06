@@ -3,4 +3,3 @@ export interface SecretManager {
   retrieveSecret(secretId: string): Promise<string>;
   deleteSecret(secretId: string): Promise<void>;
 }
-

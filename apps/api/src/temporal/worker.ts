@@ -26,7 +26,7 @@ export async function createTemporalWorker() {
 
   // Resolve workflows directory - now that we have an index.ts file, this should work
   const workflowsPath = require.resolve('./workflows');
-  
+
   const worker = await Worker.create({
     connection,
     namespace,
@@ -69,4 +69,3 @@ export async function startTemporalWorker() {
     throw error;
   }
 }
-

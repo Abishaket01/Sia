@@ -41,18 +41,23 @@ export default class JobExecute extends Command {
         jobId: args['job-id'],
         prompt: flags.prompt,
         repoId: flags['repo-id'],
-        onLog: (log) => {
+        onLog: log => {
           const timestamp = new Date(log.timestamp).toLocaleTimeString();
-          const prefix = `[${timestamp}] [${log.level.toUpperCase()}] [${log.stage}]`;
+          const prefix = `[${timestamp}] [${log.level.toUpperCase()}] [${
+            log.stage
+          }]`;
           this.log(`${prefix} ${log.message}`);
         },
       });
       this.log('Job execution completed');
     } catch (error) {
-      this.error(`Failed to execute job: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.error(
+        `Failed to execute job: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     } finally {
       client.close();
     }
   }
 }
-

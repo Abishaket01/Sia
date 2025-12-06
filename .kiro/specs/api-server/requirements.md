@@ -3,6 +3,7 @@
 ## Introduction
 
 This document specifies the requirements for the SIA Backend API Server (`apps/api`). The API server is the central hub of the SIA platform, responsible for:
+
 - Exposing REST APIs for web and CLI clients
 - Managing gRPC connections with SIA Agents
 - Orchestrating job execution via Temporal workflows

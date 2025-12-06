@@ -15,12 +15,13 @@ const EngineeringBlogCard: React.FC<EngineeringBlogCardProps> = ({ post }) => {
             src={post.image}
             alt={post.title}
             className="w-full h-full object-cover bg-white"
-            onError={(e) => {
+            onError={e => {
               // Fallback if image fails to load
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
               if (target.parentElement) {
-                target.parentElement.innerHTML = '<div class="text-4xl font-bold text-gray-700">E</div>';
+                target.parentElement.innerHTML =
+                  '<div class="text-4xl font-bold text-gray-700">E</div>';
               }
             }}
           />

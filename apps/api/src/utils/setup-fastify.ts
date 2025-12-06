@@ -36,31 +36,38 @@ export async function setupFastify(
   fastify.addHook('onRequest', async (request, _reply) => {
     // Fastify's genReqId should have set request.id, but ensure it exists
     // If not, generate one (this should rarely happen)
-    const reqId = request.id || `req-${Math.random().toString(36).substring(2, 9)}`;
+    const reqId =
+      request.id || `req-${Math.random().toString(36).substring(2, 9)}`;
     if (!request.id) {
       request.id = reqId;
     }
-    
+
     // Create a child logger with reqId that will be used for all logs in this request
     // This ensures all logs within this request context have the reqId
     request.log = request.log.child({ reqId });
-    
-    request.log.info({
-      method: request.method,
-      url: request.url,
-      headers: request.headers,
-      query: request.query,
-      body: request.body,
-    }, 'Incoming request');
+
+    request.log.info(
+      {
+        method: request.method,
+        url: request.url,
+        headers: request.headers,
+        query: request.query,
+        body: request.body,
+      },
+      'Incoming request'
+    );
   });
 
   fastify.addHook('onResponse', async (request, reply) => {
-    request.log.info({
-      method: request.method,
-      url: request.url,
-      statusCode: reply.statusCode,
-      responseTime: reply.elapsedTime,
-    }, `Request completed - ${reply.statusCode}`);
+    request.log.info(
+      {
+        method: request.method,
+        url: request.url,
+        statusCode: reply.statusCode,
+        responseTime: reply.elapsedTime,
+      },
+      `Request completed - ${reply.statusCode}`
+    );
   });
 
   // Register CORS support (only if enabled)
@@ -69,7 +76,7 @@ export async function setupFastify(
       origin: (origin, cb) => {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return cb(null, true);
-        
+
         // Get allowed origins from environment or default to localhost and common ngrok patterns
         const allowedOrigins = process.env.ALLOWED_ORIGINS
           ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
@@ -84,9 +91,9 @@ export async function setupFastify(
               /^https:\/\/.*\.ngrok-free\.app$/,
               /^https:\/\/.*\.ngrok\.io$/,
               /^https:\/\/.*\.ngrok-app\.com$/,
-              /^https:\/\/.*\.ngrok-free\.dev$/
+              /^https:\/\/.*\.ngrok-free\.dev$/,
             ];
-        
+
         // Check if origin matches any allowed pattern
         const isAllowed = allowedOrigins.some(allowed => {
           if (typeof allowed === 'string') {
@@ -97,7 +104,7 @@ export async function setupFastify(
           }
           return false;
         });
-        
+
         if (isAllowed) {
           cb(null, true);
         } else {
@@ -110,26 +117,30 @@ export async function setupFastify(
       exposedHeaders: ['Location'], // Expose Location header for redirects
     });
   }
-  
+
   // Register WebSocket support (only if enabled)
   if (enableWebSocket) {
     await fastify.register(websocket);
   }
-  
+
   // Register cookie support
   await fastify.register(cookie);
 
   // Add raw body parser for Slack signature verification
-  fastify.addContentTypeParser('application/json', { parseAs: 'string' }, async (req: FastifyRequest, body: string) => {
-    // Store raw body for signature verification
-    (req as FastifyRequest & { rawBody?: string }).rawBody = body;
-    // Parse and return JSON
-    try {
-      return JSON.parse(body);
-    } catch {
-      throw new Error('Invalid JSON');
+  fastify.addContentTypeParser(
+    'application/json',
+    { parseAs: 'string' },
+    async (req: FastifyRequest, body: string) => {
+      // Store raw body for signature verification
+      (req as FastifyRequest & { rawBody?: string }).rawBody = body;
+      // Parse and return JSON
+      try {
+        return JSON.parse(body);
+      } catch {
+        throw new Error('Invalid JSON');
+      }
     }
-  });
+  );
 
   // Register schemas globally (like FastAPI - define once, use everywhere)
   // Fastify will automatically generate OpenAPI components.schemas from these
@@ -142,7 +153,8 @@ export async function setupFastify(
       openapi: '3.1.0',
       info: {
         title: 'Sia - Agent Orchestration API',
-        description: 'Sia connects with code generation agents and receives your requests from Slack, Discord, or through Sia mobile app. It picks up the task, schedules it, and gets it done like your personal dev assistant.',
+        description:
+          'Sia connects with code generation agents and receives your requests from Slack, Discord, or through Sia mobile app. It picks up the task, schedules it, and gets it done like your personal dev assistant.',
         version: '1.0.0',
       },
       servers: [
@@ -155,7 +167,10 @@ export async function setupFastify(
         { name: 'jobs', description: 'Job management endpoints' },
         { name: 'job-logs', description: 'Job logs endpoints' },
         { name: 'repos', description: 'Repository management endpoints' },
-        { name: 'integrations', description: 'Integration management endpoints' },
+        {
+          name: 'integrations',
+          description: 'Integration management endpoints',
+        },
         { name: 'activities', description: 'Activity management endpoints' },
         { name: 'agents', description: 'Agent management endpoints' },
         { name: 'queues', description: 'Queue management endpoints' },
@@ -179,7 +194,7 @@ export async function setupFastify(
         deepLinking: false,
       },
       staticCSP: true,
-      transformStaticCSP: (header) => header,
+      transformStaticCSP: header => header,
     });
   }
 

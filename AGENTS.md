@@ -13,4 +13,5 @@
 <!-- nx configuration end-->
 
 # Workspace specific guidelines
+
 - Never update any code inside "generated" folder because those are auto generated classes and models. Any subsequent code generation run will wipe out those changes.

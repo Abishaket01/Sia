@@ -20,8 +20,12 @@ export class BackendGrpcClient {
   private backendUrl: string;
   private apiKey: string;
   private port: number;
-  private stream: grpc.ClientDuplexStream<AgentStreamRequest, AgentStreamMessage> | null = null;
-  private streamListeners: Map<string, (message: AgentStreamMessage) => void> = new Map();
+  private stream: grpc.ClientDuplexStream<
+    AgentStreamRequest,
+    AgentStreamMessage
+  > | null = null;
+  private streamListeners: Map<string, (message: AgentStreamMessage) => void> =
+    new Map();
 
   constructor(options: BackendGrpcClientOptions) {
     this.backendUrl = options.backendUrl;
@@ -70,7 +74,10 @@ export class BackendGrpcClient {
     });
   }
 
-  startStream(agentId: string, onMessage: (message: AgentStreamMessage) => void): void {
+  startStream(
+    agentId: string,
+    onMessage: (message: AgentStreamMessage) => void
+  ): void {
     if (this.stream) {
       this.stream.end();
     }
@@ -85,7 +92,7 @@ export class BackendGrpcClient {
       }
     });
 
-    this.stream.on('error', (error) => {
+    this.stream.on('error', error => {
       console.error('Stream error:', error);
       this.stream = null;
     });
@@ -104,7 +111,12 @@ export class BackendGrpcClient {
     this.stream.write(initialRequest);
   }
 
-  sendLogMessage(jobId: string, level: string, message: string, stage: string): void {
+  sendLogMessage(
+    jobId: string,
+    level: string,
+    message: string,
+    stage: string
+  ): void {
     if (!this.stream) {
       console.warn('Stream not connected, cannot send log message');
       return;
@@ -149,4 +161,3 @@ export class BackendGrpcClient {
     this.client.close();
   }
 }
-

@@ -94,7 +94,10 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Body: CreateApiKeyRequestType }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Body: CreateApiKeyRequestType }>,
+      reply: FastifyReply
+    ) => {
       try {
         if (!request.user) {
           return reply.code(401).send({ error: 'Unauthorized' });
@@ -113,7 +116,8 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
         const keyHash = hashApiKey(apiKey);
         const apiKeyId = uuidv4();
 
-        const { storedValue, storageType } = await secretStorageService.storeSecret(apiKeyId, apiKey);
+        const { storedValue, storageType } =
+          await secretStorageService.storeSecret(apiKeyId, apiKey);
 
         const newApiKey: NewApiKey = {
           id: apiKeyId,
@@ -131,7 +135,9 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
           .values(newApiKey)
           .returning();
 
-        fastify.log.info(`Created API key ${createdApiKey.id} for user ${user.id}`);
+        fastify.log.info(
+          `Created API key ${createdApiKey.id} for user ${user.id}`
+        );
 
         const response: CreateApiKeyResponseType = {
           id: createdApiKey.id,
@@ -145,7 +151,8 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error creating API key');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to create API key',
+          error:
+            error instanceof Error ? error.message : 'Failed to create API key',
         });
       }
     }
@@ -206,14 +213,11 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
           .select()
           .from(apiKeys)
           .where(
-            and(
-              eq(apiKeys.orgId, user.orgId),
-              eq(apiKeys.userId, user.id)
-            )
+            and(eq(apiKeys.orgId, user.orgId), eq(apiKeys.userId, user.id))
           )
           .orderBy(apiKeys.createdAt);
 
-        const response: GetApiKeysResponseType = userApiKeys.map((key) => ({
+        const response: GetApiKeysResponseType = userApiKeys.map(key => ({
           id: key.id,
           name: key.name,
           keyPrefix: key.keyPrefix,
@@ -226,7 +230,8 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error fetching API keys');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to fetch API keys',
+          error:
+            error instanceof Error ? error.message : 'Failed to fetch API keys',
         });
       }
     }
@@ -289,7 +294,10 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         if (!request.user) {
           return reply.code(401).send({ error: 'Unauthorized' });
@@ -315,11 +323,12 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
           });
         }
 
-        await secretStorageService.deleteSecret(apiKey.secretValue, apiKey.storageType as 'gcp' | 'encrypted_local');
+        await secretStorageService.deleteSecret(
+          apiKey.secretValue,
+          apiKey.storageType as 'gcp' | 'encrypted_local'
+        );
 
-        await db
-          .delete(apiKeys)
-          .where(eq(apiKeys.id, id));
+        await db.delete(apiKeys).where(eq(apiKeys.id, id));
 
         fastify.log.info(`Deleted API key ${id} for user ${user.id}`);
 
@@ -327,7 +336,8 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error deleting API key');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to delete API key',
+          error:
+            error instanceof Error ? error.message : 'Failed to delete API key',
         });
       }
     }
@@ -335,4 +345,3 @@ async function apiKeysRoutes(fastify: FastifyInstance) {
 }
 
 export default apiKeysRoutes;
-

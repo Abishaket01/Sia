@@ -6,7 +6,22 @@
     "build:web": "nx build @sia/web",
     "build:api": "nx build @sia/api",
     "build:landing-page": "nx build @sia/landing-page",
-    "build:all": "nx run-many --target=build --all"
+    "build:all": "nx run-many --target=build --all",
+    "prepare": "husky",
+    "commit": "git-cz",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:patch": "standard-version --release-as patch",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,html,css,scss,sass,less}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,html,css,scss,sass,less}\"",
+    "lint:fix": "nx run-many --target=lint --all --fix",
+    "style:fix": "npm run format && npm run lint:fix"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   },
   "private": true,
   "dependencies": {
@@ -16,6 +31,8 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
     "@eslint/compat": "^1.1.1",
     "@eslint/eslintrc": "^2.1.1",
     "@eslint/js": "^9.8.0",
@@ -43,6 +60,8 @@
     "@vitest/ui": "^3.0.0",
     "autoprefixer": "10.4.13",
     "babel-jest": "^30.0.2",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9.8.0",
     "eslint-config-next": "^15.2.4",
     "eslint-config-prettier": "^10.0.0",
@@ -50,15 +69,19 @@
     "eslint-plugin-jsx-a11y": "6.10.1",
     "eslint-plugin-react": "7.35.0",
     "eslint-plugin-react-hooks": "5.0.0",
+    "git-cz": "^4.9.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",
     "jest-util": "^30.0.2",
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
     "jsonc-eslint-parser": "^2.1.0",
+    "lint-staged": "^16.2.7",
     "nx": "22.0.3",
     "postcss": "8.4.38",
     "prettier": "^2.6.2",
+    "standard-version": "^9.5.0",
     "tailwindcss": "3.4.3",
     "ts-jest": "^29.4.0",
     "ts-node": "10.9.1",
@@ -71,5 +94,17 @@
   "workspaces": [
     "apps/*",
     "libs/*"
-  ]
+  ],
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,sass,less}": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,html}": [
+      "prettier --write"
+    ]
+  }
 }

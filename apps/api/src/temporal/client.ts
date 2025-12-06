@@ -26,4 +26,3 @@ export async function createTemporalClient() {
     namespace: process.env.TEMPORAL_NAMESPACE || 'default',
   });
 }
-

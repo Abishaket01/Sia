@@ -13,12 +13,16 @@ import {
 // TODO: These types will be available after proto regeneration
 // For now, use type assertions
 type VerificationRequest = { jobId: string };
-type PRRequest = { jobId: string; repoId: string; branchName: string; title: string; body: string };
+type PRRequest = {
+  jobId: string;
+  repoId: string;
+  branchName: string;
+  title: string;
+  body: string;
+};
 type CleanupRequest = { jobId: string };
 import type { VibeCodingPlatform } from './vibe/vibe-coding-platform.js';
 import { JobVibePlatform } from './vibe/job-vibe-platform.js';
-
-
 
 class AgentServer {
   private server: grpc.Server;
@@ -31,9 +35,12 @@ class AgentServer {
   }
 
   private setupService(): void {
-    const executeJob: grpc.handleServerStreamingCall<ExecuteJobRequest, LogMessage> = async (call) => {
+    const executeJob: grpc.handleServerStreamingCall<
+      ExecuteJobRequest,
+      LogMessage
+    > = async call => {
       const request = call.request;
-      
+
       try {
         const logStream = this.vibePlatform.executeJob(
           request.jobId,
@@ -50,7 +57,9 @@ class AgentServer {
       } catch (error) {
         call.write({
           level: 'error',
-          message: `Error executing job: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          message: `Error executing job: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
           timestamp: new Date().toISOString(),
           jobId: request.jobId,
           stage: 'error',
@@ -59,10 +68,16 @@ class AgentServer {
       }
     };
 
-    const hintJob: grpc.handleUnaryCall<HintJobRequest, HintJobResponse> = async (call, callback) => {
+    const hintJob: grpc.handleUnaryCall<
+      HintJobRequest,
+      HintJobResponse
+    > = async (call, callback) => {
       try {
         const request = call.request;
-        const result = await this.vibePlatform.hintJob(request.jobId, request.hint);
+        const result = await this.vibePlatform.hintJob(
+          request.jobId,
+          request.hint
+        );
         callback(null, result);
       } catch (error) {
         callback({
@@ -72,7 +87,10 @@ class AgentServer {
       }
     };
 
-    const cancelJob: grpc.handleUnaryCall<CancelJobRequest, CancelJobResponse> = async (call, callback) => {
+    const cancelJob: grpc.handleUnaryCall<
+      CancelJobRequest,
+      CancelJobResponse
+    > = async (call, callback) => {
       try {
         const request = call.request;
         const result = await this.vibePlatform.cancelJob(request.jobId);
@@ -85,7 +103,10 @@ class AgentServer {
       }
     };
 
-    const runVerification: grpc.handleUnaryCall<any, any> = async (call, callback) => {
+    const runVerification: grpc.handleUnaryCall<any, any> = async (
+      call,
+      callback
+    ) => {
       try {
         const request = call.request as VerificationRequest;
         const result = await this.vibePlatform.runVerification(request.jobId);
@@ -117,7 +138,10 @@ class AgentServer {
       }
     };
 
-    const cleanupWorkspace: grpc.handleUnaryCall<any, any> = async (call, callback) => {
+    const cleanupWorkspace: grpc.handleUnaryCall<any, any> = async (
+      call,
+      callback
+    ) => {
       try {
         const request = call.request as CleanupRequest;
         const result = await this.vibePlatform.cleanupWorkspace(request.jobId);
@@ -147,7 +171,7 @@ class AgentServer {
     this.server.bindAsync(
       address,
       grpc.ServerCredentials.createInsecure(),
-      (error) => {
+      error => {
         if (error) {
           console.error(`Failed to start server: ${error.message}`);
           return;
@@ -159,7 +183,7 @@ class AgentServer {
   }
 
   stop(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.server.tryShutdown(() => {
         console.log('Agent server stopped');
         resolve();

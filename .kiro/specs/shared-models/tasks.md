@@ -1,6 +1,7 @@
 # Implementation Plan: Shared Models Library
 
 - [x] 1. Project Setup
+
   - [x] 1.1 Initialize library
     - Configure TypeScript
     - _Requirements: 3.1_
@@ -9,6 +10,7 @@
     - _Requirements: 3.2_
 
 - [x] 2. Protobuf Definitions
+
   - [x] 2.1 Define agent service proto
     - ExecuteJob, CancelJob, etc.
     - _Requirements: 1.1_
@@ -20,6 +22,7 @@
     - _Requirements: 1.3_
 
 - [x] 3. OpenAPI Client
+
   - [x] 3.1 Set up @hey-api/openapi-ts
     - Configure generation
     - _Requirements: 2.1_
@@ -31,6 +34,7 @@
     - _Requirements: 2.2_
 
 - [x] 4. Shared Types
+
   - [x] 4.1 Define job types
     - Job, JobStatus, etc.
     - _Requirements: 3.1_

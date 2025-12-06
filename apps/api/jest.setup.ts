@@ -25,4 +25,3 @@ Object.defineProperty(global, 'localStorage', {
   writable: true,
   configurable: true,
 });
-

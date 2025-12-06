@@ -1,12 +1,9 @@
-"use client"
+'use client';
 
-import {
-  useAuthInfo,
-  useHostedPageUrls,
-} from "@propelauth/react"
-import React from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { useAuthInfo, useHostedPageUrls } from '@propelauth/react';
+import React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,42 +11,42 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { LogoutIndicationModal } from "./logout-modal";
-import { User, LogOut, Key } from "lucide-react"
-import { useRouter } from "next/navigation"
+} from '@/components/ui/dropdown-menu';
+import { LogoutIndicationModal } from './logout-modal';
+import { User, LogOut, Key } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export const ProfileAvatar = () => {
-  const { user } = useAuthInfo()
-  const { getAccountPageUrl } = useHostedPageUrls()
-  const router = useRouter()
+  const { user } = useAuthInfo();
+  const { getAccountPageUrl } = useHostedPageUrls();
+  const router = useRouter();
   const [isLogoutIndicationModalOpen, setIsLogoutIndicationModalOpen] =
-    React.useState(false)
+    React.useState(false);
 
   const handleProfileClick = () => {
-    const currentUrl = window.location.origin
+    const currentUrl = window.location.origin;
     const accountsUrl = getAccountPageUrl({
       redirectBackToUrl: currentUrl,
-    })
-    window.location.href = accountsUrl
-  }
+    });
+    window.location.href = accountsUrl;
+  };
 
   const getFallbackText = (user: any) => {
-    if (!user) return "?"
-    const firstInitial = user.firstName?.[0]?.toUpperCase() || ""
-    const lastInitial = user.lastName?.[0]?.toUpperCase() || ""
-    if (firstInitial && lastInitial) return `${firstInitial}${lastInitial}`
-    return user.email?.[0]?.toUpperCase() || "?"
-  }
+    if (!user) return '?';
+    const firstInitial = user.firstName?.[0]?.toUpperCase() || '';
+    const lastInitial = user.lastName?.[0]?.toUpperCase() || '';
+    if (firstInitial && lastInitial) return `${firstInitial}${lastInitial}`;
+    return user.email?.[0]?.toUpperCase() || '?';
+  };
 
   const getDisplayName = () => {
-    if (!user) return "Guest"
+    if (!user) return 'Guest';
     if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`
+      return `${user.firstName} ${user.lastName}`;
     }
-    if (user.firstName) return user.firstName
-    return user.email?.split("@")[0] || "User"
-  }
+    if (user.firstName) return user.firstName;
+    return user.email?.split('@')[0] || 'User';
+  };
 
   return (
     <>
@@ -116,5 +113,5 @@ export const ProfileAvatar = () => {
         onClose={() => setIsLogoutIndicationModalOpen(false)}
       />
     </>
-  )
-}
+  );
+};

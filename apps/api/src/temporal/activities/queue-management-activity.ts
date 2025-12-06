@@ -14,10 +14,9 @@ export async function removeJobFromQueue(params: {
       orderInQueue: -1,
       updatedAt: new Date(),
     })
-    .where(and(
-      eq(schema.jobs.id, params.jobId),
-      eq(schema.jobs.orgId, params.orgId)
-    ));
+    .where(
+      and(eq(schema.jobs.id, params.jobId), eq(schema.jobs.orgId, params.orgId))
+    );
 }
 
 export async function reprioritizeQueueAfterRemoval(params: {
@@ -31,12 +30,12 @@ export async function reprioritizeQueueAfterRemoval(params: {
       orderInQueue: sql`${schema.jobs.orderInQueue} - 1`,
       updatedAt: new Date(),
     })
-    .where(and(
-      eq(schema.jobs.orgId, params.orgId),
-      eq(schema.jobs.status, 'queued'),
-      eq(schema.jobs.queueType, params.queueType),
-      sql`${schema.jobs.orderInQueue} > ${params.removedPosition}`
-    ));
+    .where(
+      and(
+        eq(schema.jobs.orgId, params.orgId),
+        eq(schema.jobs.status, 'queued'),
+        eq(schema.jobs.queueType, params.queueType),
+        sql`${schema.jobs.orderInQueue} > ${params.removedPosition}`
+      )
+    );
 }
-
-

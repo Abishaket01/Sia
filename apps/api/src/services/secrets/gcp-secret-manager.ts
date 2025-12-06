@@ -7,10 +7,13 @@ export class GCPSecretManager implements SecretManager {
 
   constructor() {
     this.client = new SecretManagerServiceClient();
-    this.projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || '';
-    
+    this.projectId =
+      process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || '';
+
     if (!this.projectId) {
-      throw new Error('GCP_PROJECT_ID or GOOGLE_CLOUD_PROJECT environment variable is not set');
+      throw new Error(
+        'GCP_PROJECT_ID or GOOGLE_CLOUD_PROJECT environment variable is not set'
+      );
     }
   }
 
@@ -32,7 +35,8 @@ export class GCPSecretManager implements SecretManager {
         await this.client.getSecret({ name: fullSecretName });
       } catch (error: any) {
         // Secret doesn't exist, create it
-        if (error.code === 5) { // NOT_FOUND
+        if (error.code === 5) {
+          // NOT_FOUND
           await this.client.createSecret({
             parent,
             secretId: secretName,
@@ -59,7 +63,11 @@ export class GCPSecretManager implements SecretManager {
       return fullSecretName;
     } catch (error) {
       console.error('Error storing secret in GCP Secret Manager:', error);
-      throw new Error(`Failed to store secret in GCP Secret Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to store secret in GCP Secret Manager: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 
@@ -78,7 +86,11 @@ export class GCPSecretManager implements SecretManager {
       return secretValue;
     } catch (error) {
       console.error('Error retrieving secret from GCP Secret Manager:', error);
-      throw new Error(`Failed to retrieve secret from GCP Secret Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to retrieve secret from GCP Secret Manager: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 
@@ -91,9 +103,12 @@ export class GCPSecretManager implements SecretManager {
       // Ignore NOT_FOUND errors
       if (error.code !== 5) {
         console.error('Error deleting secret from GCP Secret Manager:', error);
-        throw new Error(`Failed to delete secret from GCP Secret Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+          `Failed to delete secret from GCP Secret Manager: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`
+        );
       }
     }
   }
 }
-

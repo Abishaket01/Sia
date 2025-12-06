@@ -20,10 +20,12 @@ export default function WaitlistForm() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': '*/*',
+            Accept: '*/*',
           },
           body: JSON.stringify({
-            text: `🎉 New Waitlist Signup!\n\nName: ${name || 'Not provided'}\nEmail: ${email}`,
+            text: `🎉 New Waitlist Signup!\n\nName: ${
+              name || 'Not provided'
+            }\nEmail: ${email}`,
           }),
         }
       );
@@ -49,7 +51,9 @@ export default function WaitlistForm() {
           <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-emerald-400" />
           </div>
-          <h3 className="text-2xl font-bold text-text mb-2">You're on the list!</h3>
+          <h3 className="text-2xl font-bold text-text mb-2">
+            You're on the list!
+          </h3>
           <p className="text-text/70 mb-6">
             We'll notify you when Sia is ready to transform your workflow.
           </p>
@@ -68,26 +72,34 @@ export default function WaitlistForm() {
     <div className="bg-black/50 backdrop-blur-xl rounded-2xl p-8 border border-white/10/50 shadow-2xl">
       <div className="mb-6">
         <h3 className="text-2xl font-bold text-text mb-2">Join the Waitlist</h3>
-        <p className="text-text/70">Be among the first to experience async development.</p>
+        <p className="text-text/70">
+          Be among the first to experience async development.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-text/70 mb-2">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-text/70 mb-2"
+          >
             Name
           </label>
           <input
             type="text"
             id="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-text placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
             placeholder="Jane Developer"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-text/70 mb-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-text/70 mb-2"
+          >
             Work Email <span className="text-red-400">*</span>
           </label>
           <div className="relative">
@@ -97,7 +109,7 @@ export default function WaitlistForm() {
               id="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-black/50 border border-white/10 rounded-lg text-text placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
               placeholder="jane@company.com"
             />

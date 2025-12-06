@@ -53,7 +53,10 @@ export class BackendGrpcServer {
           await queueWorkflowService.startAgentSchedules(result.agentId);
           await initializeScheduleForAgent(result.agentId, result.orgId);
         } catch (error) {
-          console.warn(`Failed to start schedule for agent ${result.agentId}:`, error);
+          console.warn(
+            `Failed to start schedule for agent ${result.agentId}:`,
+            error
+          );
         }
 
         const response: RegisterAgentResponse = {
@@ -68,7 +71,8 @@ export class BackendGrpcServer {
         console.error('Registration error:', error);
         callback({
           code: grpc.status.INTERNAL,
-          message: error instanceof Error ? error.message : 'Registration failed',
+          message:
+            error instanceof Error ? error.message : 'Registration failed',
         } as grpc.ServiceError);
       }
     };
@@ -113,7 +117,8 @@ export class BackendGrpcServer {
         console.error('Health check error:', error);
         callback({
           code: grpc.status.INTERNAL,
-          message: error instanceof Error ? error.message : 'Health check failed',
+          message:
+            error instanceof Error ? error.message : 'Health check failed',
         } as grpc.ServiceError);
       }
     };
@@ -121,7 +126,7 @@ export class BackendGrpcServer {
     const agentStreamHandler: grpc.handleBidiStreamingCall<
       AgentStreamRequest,
       AgentStreamMessage
-    > = async (call) => {
+    > = async call => {
       let agentId: string | undefined;
       let orgId: string | undefined;
 
@@ -207,7 +212,7 @@ export class BackendGrpcServer {
         }
       });
 
-      call.on('error', (error) => {
+      call.on('error', error => {
         console.error('Stream error:', error);
         if (agentId) {
           agentStreamManager.unregisterStream(agentId);
@@ -229,7 +234,7 @@ export class BackendGrpcServer {
     this.server.bindAsync(
       address,
       grpc.ServerCredentials.createInsecure(),
-      (error) => {
+      error => {
         if (error) {
           console.error(`Failed to start gRPC server: ${error.message}`);
           return;
@@ -241,7 +246,7 @@ export class BackendGrpcServer {
   }
 
   stop(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.server.tryShutdown(() => {
         console.log('gRPC server stopped');
         resolve();
@@ -249,4 +254,3 @@ export class BackendGrpcServer {
     });
   }
 }
-

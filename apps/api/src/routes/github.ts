@@ -1,5 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { db, schema, type Repo, type NewRepo, type RepoProvider, type NewRepoProvider } from '../db/index';
+import {
+  db,
+  schema,
+  type Repo,
+  type NewRepo,
+  type RepoProvider,
+  type NewRepoProvider,
+} from '../db/index';
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
@@ -65,20 +72,26 @@ function generateGitHubAppJWT(): string {
     iss: appId,
   };
 
-  return jwt.sign(payload, privateKey.replace(/\\n/g, '\n'), { algorithm: 'RS256' });
+  return jwt.sign(payload, privateKey.replace(/\\n/g, '\n'), {
+    algorithm: 'RS256',
+  });
 }
 
-
-export async function getInstallationToken(installationId: string): Promise<{ token: string; expiresAt: Date }> {
+export async function getInstallationToken(
+  installationId: string
+): Promise<{ token: string; expiresAt: Date }> {
   const jwtToken = generateGitHubAppJWT();
 
-  const response = await fetch(`https://api.github.com/app/installations/${installationId}/access_tokens`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${jwtToken}`,
-      Accept: 'application/vnd.github+json',
-    },
-  });
+  const response = await fetch(
+    `https://api.github.com/app/installations/${installationId}/access_tokens`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+        Accept: 'application/vnd.github+json',
+      },
+    }
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -107,11 +120,17 @@ async function paginateApi(url: string, token: string): Promise<unknown[]> {
       const txt = await res.text();
       throw new Error(`GitHub API error ${res.status} ${txt}`);
     }
-    const page = await res.json() as unknown;
+    const page = (await res.json()) as unknown;
     // some endpoints return wrapper object with repositories
     if (Array.isArray(page)) {
       out.push(...page);
-    } else if (page && typeof page === 'object' && page !== null && 'repositories' in page && Array.isArray(page.repositories)) {
+    } else if (
+      page &&
+      typeof page === 'object' &&
+      page !== null &&
+      'repositories' in page &&
+      Array.isArray(page.repositories)
+    ) {
       out.push(...(page.repositories as unknown[]));
     } else {
       // single page with non array body return as single item
@@ -132,7 +151,9 @@ function transformProviderResponse(provider: RepoProvider) {
     access_token: provider.access_token,
     refresh_token: provider.refresh_token,
     expires_in: provider.expires_in,
-    token_created_at: provider.token_created_at ? provider.token_created_at.toISOString() : undefined,
+    token_created_at: provider.token_created_at
+      ? provider.token_created_at.toISOString()
+      : undefined,
     metadata: provider.metadata,
     repo_provider_app_name: provider.repo_provider_app_name,
     created_at: provider.createdAt.toISOString(),
@@ -162,12 +183,17 @@ async function getValidAccessToken(provider: RepoProvider): Promise<string> {
 
   // installation flow
   const tokenMissing = !provider.access_token;
-  const createdAt = provider.token_created_at ? new Date(provider.token_created_at) : new Date(provider.createdAt);
+  const createdAt = provider.token_created_at
+    ? new Date(provider.token_created_at)
+    : new Date(provider.createdAt);
   const expiresIn = provider.expires_in || 0;
   const expiresAt = new Date(createdAt.getTime() + expiresIn * 1000);
   const now = new Date();
   const bufferSeconds = 300;
-  const needsRefresh = tokenMissing || expiresIn === 0 || expiresAt.getTime() - now.getTime() < bufferSeconds * 1000;
+  const needsRefresh =
+    tokenMissing ||
+    expiresIn === 0 ||
+    expiresAt.getTime() - now.getTime() < bufferSeconds * 1000;
 
   if (needsRefresh) {
     const tokenData = await getInstallationToken(installationId);
@@ -176,7 +202,9 @@ async function getValidAccessToken(provider: RepoProvider): Promise<string> {
       .update(repoProviders)
       .set({
         access_token: tokenData.token,
-        expires_in: Math.floor((tokenData.expiresAt.getTime() - Date.now()) / 1000),
+        expires_in: Math.floor(
+          (tokenData.expiresAt.getTime() - Date.now()) / 1000
+        ),
         token_created_at: new Date(),
         updatedAt: new Date(),
       })
@@ -189,7 +217,9 @@ async function getValidAccessToken(provider: RepoProvider): Promise<string> {
 }
 
 async function reposRoutes(fastify: FastifyInstance) {
-  fastify.get<{ Querystring: { name?: string; description?: string; use_pat?: string } }>(
+  fastify.get<{
+    Querystring: { name?: string; description?: string; use_pat?: string };
+  }>(
     '/repos/github/connect',
     {
       schema: {
@@ -200,7 +230,8 @@ async function reposRoutes(fastify: FastifyInstance) {
         },
         response: {
           200: {
-            description: 'Redirect URL in JSON format (when Accept: application/json)',
+            description:
+              'Redirect URL in JSON format (when Accept: application/json)',
             content: {
               'application/json': {
                 schema: {
@@ -208,7 +239,8 @@ async function reposRoutes(fastify: FastifyInstance) {
                   properties: {
                     redirectUrl: {
                       type: 'string',
-                      description: 'URL to redirect to for GitHub App installation',
+                      description:
+                        'URL to redirect to for GitHub App installation',
                     },
                   },
                   required: ['redirectUrl'],
@@ -217,7 +249,8 @@ async function reposRoutes(fastify: FastifyInstance) {
             },
           },
           302: {
-            description: 'Redirect to GitHub App installation or PAT page (when not requesting JSON)',
+            description:
+              'Redirect to GitHub App installation or PAT page (when not requesting JSON)',
           },
           401: {
             description: 'Unauthorized',
@@ -256,7 +289,12 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Querystring: { name?: string; description?: string; use_pat?: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{
+        Querystring: { name?: string; description?: string; use_pat?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         const githubAppId = process.env.GITHUB_APP_ID;
         const state = uuidv4();
@@ -265,11 +303,27 @@ async function reposRoutes(fastify: FastifyInstance) {
         const wantsJson = request.headers.accept?.includes('application/json');
 
         if (request.query.use_pat === 'true') {
-          reply.setCookie('use_pat', 'true', { path: '/', httpOnly: true, maxAge: 600 });
-          reply.setCookie('oauth_state', state, { path: '/', httpOnly: true, maxAge: 600 });
+          reply.setCookie('use_pat', 'true', {
+            path: '/',
+            httpOnly: true,
+            maxAge: 600,
+          });
+          reply.setCookie('oauth_state', state, {
+            path: '/',
+            httpOnly: true,
+            maxAge: 600,
+          });
           if (request.query.name || request.query.description) {
-            reply.setCookie('repo_provider_name', request.query.name || '', { path: '/', httpOnly: true, maxAge: 600 });
-            reply.setCookie('repo_provider_description', request.query.description || '', { path: '/', httpOnly: true, maxAge: 600 });
+            reply.setCookie('repo_provider_name', request.query.name || '', {
+              path: '/',
+              httpOnly: true,
+              maxAge: 600,
+            });
+            reply.setCookie(
+              'repo_provider_description',
+              request.query.description || '',
+              { path: '/', httpOnly: true, maxAge: 600 }
+            );
           }
           const patUrl = `${request.protocol}://${request.hostname}/repos/github/connect/pat?state=${state}`;
           if (wantsJson) {
@@ -279,17 +333,33 @@ async function reposRoutes(fastify: FastifyInstance) {
         }
 
         if (!githubAppId) {
-          return reply.code(400).send({ error: 'GitHub App ID not configured' });
+          return reply
+            .code(400)
+            .send({ error: 'GitHub App ID not configured' });
         }
 
-        const installUrl = `https://github.com/apps/${process.env.GITHUB_APP_SLUG || 'sia'}/installations/new?state=${state}`;
+        const installUrl = `https://github.com/apps/${
+          process.env.GITHUB_APP_SLUG || 'sia'
+        }/installations/new?state=${state}`;
 
         if (request.query.name || request.query.description) {
-          reply.setCookie('repo_provider_name', request.query.name || '', { path: '/', httpOnly: true, maxAge: 600 });
-          reply.setCookie('repo_provider_description', request.query.description || '', { path: '/', httpOnly: true, maxAge: 600 });
+          reply.setCookie('repo_provider_name', request.query.name || '', {
+            path: '/',
+            httpOnly: true,
+            maxAge: 600,
+          });
+          reply.setCookie(
+            'repo_provider_description',
+            request.query.description || '',
+            { path: '/', httpOnly: true, maxAge: 600 }
+          );
         }
 
-        reply.setCookie('oauth_state', state, { path: '/', httpOnly: true, maxAge: 600 });
+        reply.setCookie('oauth_state', state, {
+          path: '/',
+          httpOnly: true,
+          maxAge: 600,
+        });
 
         // Return JSON if client requests it (for CORS compatibility)
         if (wantsJson) {
@@ -298,8 +368,13 @@ async function reposRoutes(fastify: FastifyInstance) {
 
         return reply.redirect(installUrl);
       } catch (error) {
-        fastify.log.error({ err: error }, 'Failed to initiate GitHub connection');
-        return reply.code(500).send({ error: 'Failed to initiate GitHub connection' });
+        fastify.log.error(
+          { err: error },
+          'Failed to initiate GitHub connection'
+        );
+        return reply
+          .code(500)
+          .send({ error: 'Failed to initiate GitHub connection' });
       }
     }
   );
@@ -361,12 +436,16 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Querystring: GitHubInstallationCallback }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Querystring: GitHubInstallationCallback }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { installation_id, state } = request.query;
         const providerName = request.cookies.repo_provider_name || 'GitHub';
-        const providerDescription = request.cookies.repo_provider_description || '';
+        const providerDescription =
+          request.cookies.repo_provider_description || '';
 
         if (!installation_id) {
           return reply.code(400).send({ error: 'Installation ID is required' });
@@ -384,20 +463,26 @@ async function reposRoutes(fastify: FastifyInstance) {
 
         const jwtToken = generateGitHubAppJWT();
 
-        const installationResponse = await fetch(`https://api.github.com/app/installations/${installation_id}`, {
-          headers: {
-            Authorization: `Bearer ${jwtToken}`,
-            Accept: 'application/vnd.github+json',
-          },
-        });
+        const installationResponse = await fetch(
+          `https://api.github.com/app/installations/${installation_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${jwtToken}`,
+              Accept: 'application/vnd.github+json',
+            },
+          }
+        );
 
         if (!installationResponse.ok) {
           const txt = await installationResponse.text();
           fastify.log.error({ txt }, 'Failed to fetch installation details');
-          return reply.code(400).send({ error: 'Failed to fetch installation details' });
+          return reply
+            .code(400)
+            .send({ error: 'Failed to fetch installation details' });
         }
 
-        const installation = (await installationResponse.json()) as GitHubInstallation;
+        const installation =
+          (await installationResponse.json()) as GitHubInstallation;
 
         const tokenData = await getInstallationToken(installation_id);
 
@@ -405,33 +490,46 @@ async function reposRoutes(fastify: FastifyInstance) {
         let accountName = installation.account.login;
         if (installation.account.type === 'Organization') {
           try {
-            const orgResponse = await fetch(`https://api.github.com/orgs/${installation.account.login}`, {
-              headers: {
-                Authorization: `Bearer ${tokenData.token}`,
-                Accept: 'application/vnd.github+json',
-              },
-            });
+            const orgResponse = await fetch(
+              `https://api.github.com/orgs/${installation.account.login}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${tokenData.token}`,
+                  Accept: 'application/vnd.github+json',
+                },
+              }
+            );
             if (orgResponse.ok) {
               const orgData = (await orgResponse.json()) as GitHubOrganization;
               accountName = orgData.name || orgData.login;
             }
           } catch (error) {
-            fastify.log.warn({ err: error }, 'Failed to fetch organization details, using login');
+            fastify.log.warn(
+              { err: error },
+              'Failed to fetch organization details, using login'
+            );
           }
         } else if (installation.account.type === 'User') {
           try {
-            const userResponse = await fetch(`https://api.github.com/users/${installation.account.login}`, {
-              headers: {
-                Authorization: `Bearer ${tokenData.token}`,
-                Accept: 'application/vnd.github+json',
-              },
-            });
+            const userResponse = await fetch(
+              `https://api.github.com/users/${installation.account.login}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${tokenData.token}`,
+                  Accept: 'application/vnd.github+json',
+                },
+              }
+            );
             if (userResponse.ok) {
-              const userData = (await userResponse.json()) as GitHubOrganization;
+              const userData =
+                (await userResponse.json()) as GitHubOrganization;
               accountName = userData.name || userData.login;
             }
           } catch (error) {
-            fastify.log.warn({ err: error }, 'Failed to fetch user details, using login');
+            fastify.log.warn(
+              { err: error },
+              'Failed to fetch user details, using login'
+            );
           }
         }
 
@@ -445,7 +543,9 @@ async function reposRoutes(fastify: FastifyInstance) {
           description: providerDescription || accountName,
           access_token: tokenData.token,
           refresh_token: null,
-          expires_in: Math.floor((tokenData.expiresAt.getTime() - Date.now()) / 1000),
+          expires_in: Math.floor(
+            (tokenData.expiresAt.getTime() - Date.now()) / 1000
+          ),
           metadata: {
             installation_id: installation_id,
             app_id: appId,
@@ -453,7 +553,10 @@ async function reposRoutes(fastify: FastifyInstance) {
           repo_provider_app_name: 'github',
         };
 
-        const createdProvider = await db.insert(repoProviders).values(newRepoProvider).returning();
+        const createdProvider = await db
+          .insert(repoProviders)
+          .values(newRepoProvider)
+          .returning();
 
         // persist token creation time and expiry
         await db
@@ -471,8 +574,13 @@ async function reposRoutes(fastify: FastifyInstance) {
 
         // fetch installation repositories with pagination
         try {
-          const installationRepos = await paginateApi(`https://api.github.com/installation/repositories?per_page=100`, tokenData.token);
-          const reposToInsert: NewRepo[] = (installationRepos as GitHubRepo[]).map((repo) => ({
+          const installationRepos = await paginateApi(
+            `https://api.github.com/installation/repositories?per_page=100`,
+            tokenData.token
+          );
+          const reposToInsert: NewRepo[] = (
+            installationRepos as GitHubRepo[]
+          ).map(repo => ({
             id: repo.id.toString(),
             orgId: orgId,
             name: repo.name,
@@ -485,14 +593,24 @@ async function reposRoutes(fastify: FastifyInstance) {
             await db.insert(repos).values(reposToInsert).onConflictDoNothing();
           }
         } catch (err) {
-          fastify.log.error({ err }, 'Failed to fetch installation repositories, continuing');
+          fastify.log.error(
+            { err },
+            'Failed to fetch installation repositories, continuing'
+          );
         }
 
         // Return JSON response - frontend will handle the redirect
-        return reply.send(transformProviderResponse(createdProvider[0] as RepoProvider));
+        return reply.send(
+          transformProviderResponse(createdProvider[0] as RepoProvider)
+        );
       } catch (error) {
-        fastify.log.error({ err: error }, 'Failed to complete GitHub installation');
-        return reply.code(500).send({ error: 'Failed to complete GitHub installation' });
+        fastify.log.error(
+          { err: error },
+          'Failed to complete GitHub installation'
+        );
+        return reply
+          .code(500)
+          .send({ error: 'Failed to complete GitHub installation' });
       }
     }
   );
@@ -554,7 +672,12 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Body: { pat: string; name?: string; description?: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{
+        Body: { pat: string; name?: string; description?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { pat, name, description } = request.body;
@@ -567,7 +690,9 @@ async function reposRoutes(fastify: FastifyInstance) {
         });
 
         if (!userResponse.ok) {
-          return reply.code(400).send({ error: 'Invalid Personal Access Token' });
+          return reply
+            .code(400)
+            .send({ error: 'Invalid Personal Access Token' });
         }
 
         const userData = (await userResponse.json()) as { login: string };
@@ -577,7 +702,9 @@ async function reposRoutes(fastify: FastifyInstance) {
           id: providerId,
           orgId: user.orgId,
           name: name || 'GitHub (PAT)',
-          description: description || `GitHub account: ${userData.login} (Personal Access Token)`,
+          description:
+            description ||
+            `GitHub account: ${userData.login} (Personal Access Token)`,
           access_token: pat,
           refresh_token: null,
           expires_in: 0,
@@ -585,12 +712,19 @@ async function reposRoutes(fastify: FastifyInstance) {
           repo_provider_app_name: 'github',
         };
 
-        const createdProvider = await db.insert(repoProviders).values(newRepoProvider).returning();
+        const createdProvider = await db
+          .insert(repoProviders)
+          .values(newRepoProvider)
+          .returning();
 
-        return reply.send(transformProviderResponse(createdProvider[0] as RepoProvider));
+        return reply.send(
+          transformProviderResponse(createdProvider[0] as RepoProvider)
+        );
       } catch (error) {
         fastify.log.error({ err: error }, 'Failed to connect with PAT');
-        return reply.code(500).send({ error: 'Failed to connect with Personal Access Token' });
+        return reply
+          .code(500)
+          .send({ error: 'Failed to connect with Personal Access Token' });
       }
     }
   );
@@ -600,7 +734,8 @@ async function reposRoutes(fastify: FastifyInstance) {
     {
       schema: {
         tags: ['repos'],
-        description: 'Get all GitHub repo providers for the current organization',
+        description:
+          'Get all GitHub repo providers for the current organization',
         response: {
           200: {
             description: 'List of GitHub repo providers',
@@ -649,12 +784,19 @@ async function reposRoutes(fastify: FastifyInstance) {
         const providers = await db
           .select()
           .from(repoProviders)
-          .where(and(eq(repoProviders.orgId, user.orgId), eq(repoProviders.repo_provider_app_name, 'github')));
+          .where(
+            and(
+              eq(repoProviders.orgId, user.orgId),
+              eq(repoProviders.repo_provider_app_name, 'github')
+            )
+          );
 
         return reply.send(providers.map(transformProviderResponse));
       } catch (error) {
         fastify.log.error({ err: error }, 'Failed to fetch GitHub providers');
-        return reply.code(500).send({ error: 'Failed to fetch GitHub providers' });
+        return reply
+          .code(500)
+          .send({ error: 'Failed to fetch GitHub providers' });
       }
     }
   );
@@ -719,7 +861,10 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -727,20 +872,34 @@ async function reposRoutes(fastify: FastifyInstance) {
         const provider = await db
           .select()
           .from(repoProviders)
-          .where(and(eq(repoProviders.id, id), eq(repoProviders.orgId, user.orgId)))
+          .where(
+            and(eq(repoProviders.id, id), eq(repoProviders.orgId, user.orgId))
+          )
           .limit(1);
 
         if (!provider[0]) {
           return reply.code(404).send({ error: 'Repo provider not found' });
         }
 
-        await db.delete(repos).where(and(eq(repos.repo_provider_id, id), eq(repos.orgId, user.orgId)));
-        await db.delete(repoProviders).where(and(eq(repoProviders.id, id), eq(repoProviders.orgId, user.orgId)));
+        await db
+          .delete(repos)
+          .where(
+            and(eq(repos.repo_provider_id, id), eq(repos.orgId, user.orgId))
+          );
+        await db
+          .delete(repoProviders)
+          .where(
+            and(eq(repoProviders.id, id), eq(repoProviders.orgId, user.orgId))
+          );
 
-        return reply.send({ message: 'Repo provider disconnected successfully' });
+        return reply.send({
+          message: 'Repo provider disconnected successfully',
+        });
       } catch (error) {
         fastify.log.error({ err: error }, 'Failed to disconnect repo provider');
-        return reply.code(500).send({ error: 'Failed to disconnect repo provider' });
+        return reply
+          .code(500)
+          .send({ error: 'Failed to disconnect repo provider' });
       }
     }
   );
@@ -750,7 +909,8 @@ async function reposRoutes(fastify: FastifyInstance) {
     {
       schema: {
         tags: ['repos'],
-        description: 'Get all repos for a GitHub repo provider (fetched from GitHub API)',
+        description:
+          'Get all repos for a GitHub repo provider (fetched from GitHub API)',
         params: {
           type: 'object',
           properties: {
@@ -815,7 +975,10 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { providerId: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { providerId: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { providerId } = request.params;
@@ -823,7 +986,12 @@ async function reposRoutes(fastify: FastifyInstance) {
         const providerRow = await db
           .select()
           .from(repoProviders)
-          .where(and(eq(repoProviders.id, providerId), eq(repoProviders.orgId, user.orgId)))
+          .where(
+            and(
+              eq(repoProviders.id, providerId),
+              eq(repoProviders.orgId, user.orgId)
+            )
+          )
           .limit(1);
         const provider = providerRow[0];
 
@@ -832,7 +1000,9 @@ async function reposRoutes(fastify: FastifyInstance) {
         }
 
         if (provider.repo_provider_app_name !== 'github') {
-          return reply.code(400).send({ error: 'This endpoint is only for GitHub providers' });
+          return reply
+            .code(400)
+            .send({ error: 'This endpoint is only for GitHub providers' });
         }
 
         let accessToken: string;
@@ -840,7 +1010,10 @@ async function reposRoutes(fastify: FastifyInstance) {
           accessToken = await getValidAccessToken(provider);
         } catch (error) {
           fastify.log.error({ err: error }, 'Token generation failed');
-          return reply.code(401).send({ error: 'Failed to generate access token. Please reconnect your GitHub account.' });
+          return reply.code(401).send({
+            error:
+              'Failed to generate access token. Please reconnect your GitHub account.',
+          });
         }
 
         let githubRepos: GitHubRepo[] = [];
@@ -848,16 +1021,20 @@ async function reposRoutes(fastify: FastifyInstance) {
         const installationId = provider.metadata?.installation_id;
         if (installationId) {
           // installation repositories endpoint supports pagination and returns wrapper object
-          const reposPaginated = await paginateApi(`https://api.github.com/installation/repositories?per_page=100`, accessToken);
+          const reposPaginated = await paginateApi(
+            `https://api.github.com/installation/repositories?per_page=100`,
+            accessToken
+          );
           // paginateApi returns array of repositories or items, normalize
           githubRepos = reposPaginated as GitHubRepo[];
         } else {
           // user token path
-          const url = 'https://api.github.com/user/repos?per_page=100&affiliation=owner,collaborator,organization_member';
+          const url =
+            'https://api.github.com/user/repos?per_page=100&affiliation=owner,collaborator,organization_member';
           githubRepos = (await paginateApi(url, accessToken)) as GitHubRepo[];
         }
 
-        const reposResult = githubRepos.map((repo) => ({
+        const reposResult = githubRepos.map(repo => ({
           id: repo.id.toString(),
           name: repo.name,
           description: repo.description || null,
@@ -935,7 +1112,10 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -963,7 +1143,8 @@ async function reposRoutes(fastify: FastifyInstance) {
     {
       schema: {
         tags: ['repos'],
-        description: 'Get repo provider token by ID (returns installation token if available)',
+        description:
+          'Get repo provider token by ID (returns installation token if available)',
         params: {
           type: 'object',
           properties: {
@@ -1018,7 +1199,10 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -1032,7 +1216,9 @@ async function reposRoutes(fastify: FastifyInstance) {
             token_created_at: repoProviders.token_created_at,
           })
           .from(repoProviders)
-          .where(and(eq(repoProviders.id, id), eq(repoProviders.orgId, user.orgId)))
+          .where(
+            and(eq(repoProviders.id, id), eq(repoProviders.orgId, user.orgId))
+          )
           .limit(1);
 
         if (!providerRow[0]) {
@@ -1048,7 +1234,10 @@ async function reposRoutes(fastify: FastifyInstance) {
             const tokenData = await getInstallationToken(installationId);
             token = tokenData.token;
           } catch (error) {
-            fastify.log.error({ err: error }, 'Failed to get installation token');
+            fastify.log.error(
+              { err: error },
+              'Failed to get installation token'
+            );
           }
         }
 
@@ -1194,7 +1383,13 @@ async function reposRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string }; Body: { description?: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: { description?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -1213,7 +1408,8 @@ async function reposRoutes(fastify: FastifyInstance) {
         const updatedRepo = await db
           .update(repos)
           .set({
-            description: description !== undefined ? description : repo[0].description,
+            description:
+              description !== undefined ? description : repo[0].description,
             updatedAt: new Date(),
           })
           .where(and(eq(repos.id, id), eq(repos.orgId, user.orgId)))

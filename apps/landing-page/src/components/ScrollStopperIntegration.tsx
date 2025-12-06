@@ -18,8 +18,8 @@ export default function ScrollStopperIntegration() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           setIsInView(entry.isIntersecting);
         });
       },
@@ -68,7 +68,7 @@ export default function ScrollStopperIntegration() {
           if (step === 0) {
             setTaskStates(tasks);
           } else {
-            setTaskStates((prevStates) =>
+            setTaskStates(prevStates =>
               prevStates.map((task, index) => {
                 if (index < step) {
                   return { ...task, status: 'completed' };
@@ -111,15 +111,24 @@ export default function ScrollStopperIntegration() {
     <div className="pt-24">
       {/* Header Section */}
 
-
       {/* Interactive Demo */}
-      <div ref={sectionRef} className="max-w-6xl flex flex-col mx-auto min-h-[100vh] items-center will-change-transform">
+      <div
+        ref={sectionRef}
+        className="max-w-6xl flex flex-col mx-auto min-h-[100vh] items-center will-change-transform"
+      >
         <div className="text-center pt-24 max-w-3xl mx-auto">
-          <h2 className="text-heading md:text-heading-md lg:text-heading-lg font-medium text-text mb-6" style={{ lineHeight: '1.3', paddingBottom: '0.1em' }}>
+          <h2
+            className="text-heading md:text-heading-md lg:text-heading-lg font-medium text-text mb-6"
+            style={{ lineHeight: '1.3', paddingBottom: '0.1em' }}
+          >
             See Sia in Action
           </h2>
-          <p className="text-subheading md:text-subheading-md lg:text-subheading-lg font-extralight text-text/70 leading-relaxed" style={{ paddingBottom: '0.1em' }}>
-            Watch how Sia processes your tasks in real-time. From queue to pull request, track every step of the journey.
+          <p
+            className="text-subheading md:text-subheading-md lg:text-subheading-lg font-extralight text-text/70 leading-relaxed"
+            style={{ paddingBottom: '0.1em' }}
+          >
+            Watch how Sia processes your tasks in real-time. From queue to pull
+            request, track every step of the journey.
           </p>
         </div>
         <div className="relative bg-black/50 backdrop-blur-sm rounded-2xl p-8 border border-white/10 overflow-hidden w-full">
@@ -135,18 +144,26 @@ export default function ScrollStopperIntegration() {
                     </div>
                     <div className="flex-1">
                       <div className="text-base font-extralight text-text/70 mb-2">
-                        <span className="text-text font-mono">@sia - </span> Fix the token-persistence bug in login.tsx by moving the auth token from React state into a secure persistent storage.
+                        <span className="text-text font-mono">@sia - </span> Fix
+                        the token-persistence bug in login.tsx by moving the
+                        auth token from React state into a secure persistent
+                        storage.
                       </div>
-                      <div className="text-base font-extralight text-text/70">2 hours ago</div>
+                      <div className="text-base font-extralight text-text/70">
+                        2 hours ago
+                      </div>
                     </div>
                   </div>
 
                   <div className="border-l-2 border-white/10 ml-4 pl-6 space-y-3">
-                    {taskStates.map((task) => (
+                    {taskStates.map(task => (
                       <div
                         key={task.id}
-                        className={`flex items-center gap-3 transition-all duration-500 ${task.status === 'pending' ? 'opacity-40' : 'opacity-100'
-                          }`}
+                        className={`flex items-center gap-3 transition-all duration-500 ${
+                          task.status === 'pending'
+                            ? 'opacity-40'
+                            : 'opacity-100'
+                        }`}
                       >
                         {task.status === 'completed' && (
                           <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -158,12 +175,13 @@ export default function ScrollStopperIntegration() {
                           <Circle className="w-4 h-4 text-white/30 flex-shrink-0" />
                         )}
                         <span
-                          className={`text-subheading font-extralight transition-colors ${task.status === 'completed'
-                            ? 'text-text'
-                            : task.status === 'running'
+                          className={`text-subheading font-extralight transition-colors ${
+                            task.status === 'completed'
+                              ? 'text-text'
+                              : task.status === 'running'
                               ? 'text-text'
                               : 'text-text/50'
-                            }`}
+                          }`}
                         >
                           {task.label}
                         </span>
@@ -172,15 +190,25 @@ export default function ScrollStopperIntegration() {
                   </div>
 
                   {/* Always reserve space for PR card to prevent layout shift */}
-                  <div className={`transition-opacity duration-500 ${currentStep === 4 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  <div
+                    className={`transition-opacity duration-500 ${
+                      currentStep === 4
+                        ? 'opacity-100'
+                        : 'opacity-0 pointer-events-none'
+                    }`}
+                  >
                     <div className="bg-gradient-to-br from-green-500/10 to-transparent rounded-lg p-4 border border-green-500/30">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-subheading md:text-subheading-md lg:text-subheading-lg font-medium text-text">PR #247 Ready</span>
+                        <span className="text-subheading md:text-subheading-md lg:text-subheading-lg font-medium text-text">
+                          PR #247 Ready
+                        </span>
                         <span className="text-base font-extralight px-2 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
                           94% confidence
                         </span>
                       </div>
-                      <p className="text-base font-extralight text-text/70 mb-3">Fixed OAuth callback issue in login flow</p>
+                      <p className="text-base font-extralight text-text/70 mb-3">
+                        Fixed OAuth callback issue in login flow
+                      </p>
                       <button className="text-base font-medium text-green-400 hover:text-green-300 transition-colors">
                         Review on GitHub →
                       </button>
@@ -195,7 +223,8 @@ export default function ScrollStopperIntegration() {
                 Real-time visibility, zero overhead
               </h3>
               <p className="text-base font-extralight text-text/70 leading-relaxed mb-6">
-                Track task progress, get confidence scores, and merge PRs—all without leaving Slack or opening your laptop.
+                Track task progress, get confidence scores, and merge PRs—all
+                without leaving Slack or opening your laptop.
               </p>
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                 <span className="text-base font-extralight px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">

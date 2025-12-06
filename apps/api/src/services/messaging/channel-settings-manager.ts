@@ -124,4 +124,3 @@ export class ChannelSettingsManager {
 }
 
 export const channelSettingsManager = new ChannelSettingsManager();
-

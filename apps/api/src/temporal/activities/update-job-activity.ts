@@ -41,13 +41,12 @@ export async function updateJobStatus(params: {
   const jobResult = await db
     .select()
     .from(schema.jobs)
-    .where(and(
-      eq(schema.jobs.id, params.jobId),
-      eq(schema.jobs.orgId, params.orgId)
-    ))
+    .where(
+      and(eq(schema.jobs.id, params.jobId), eq(schema.jobs.orgId, params.orgId))
+    )
     .orderBy(desc(schema.jobs.version))
     .limit(1);
-  
+
   const currentJob = jobResult[0];
   const oldStatus = currentJob?.status;
 
@@ -55,7 +54,7 @@ export async function updateJobStatus(params: {
   let updateMessage = '';
   if (currentJob && oldStatus !== params.status) {
     const timestamp = new Date().toLocaleString();
-    
+
     if (params.status === 'failed') {
       updateMessage = `Job execution failed at ${timestamp}.`;
       if (params.error) {
@@ -83,8 +82,8 @@ export async function updateJobStatus(params: {
   // Prepend new updates (latest first)
   const existingUpdates = currentJob?.updates || '';
   const newUpdates = updateMessage
-    ? existingUpdates 
-      ? `${updateMessage}\n${existingUpdates}` 
+    ? existingUpdates
+      ? `${updateMessage}\n${existingUpdates}`
       : updateMessage
     : existingUpdates;
 
@@ -96,10 +95,9 @@ export async function updateJobStatus(params: {
       updates: updateMessage ? newUpdates : existingUpdates,
       updatedAt: new Date(),
     })
-    .where(and(
-      eq(schema.jobs.id, params.jobId),
-      eq(schema.jobs.orgId, params.orgId)
-    ));
+    .where(
+      and(eq(schema.jobs.id, params.jobId), eq(schema.jobs.orgId, params.orgId))
+    );
 
   // Create activity for status changes
   if (currentJob && oldStatus !== params.status) {
@@ -136,4 +134,3 @@ export async function updateJobStatus(params: {
     );
   }
 }
-

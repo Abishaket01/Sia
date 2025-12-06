@@ -17,7 +17,10 @@ async function isWorkflowRunning(workflowId: string): Promise<boolean> {
   } catch (error) {
     // If workflow doesn't exist or error accessing it, it's not running
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.includes('not found') || errorMessage.includes('NotFound')) {
+    if (
+      errorMessage.includes('not found') ||
+      errorMessage.includes('NotFound')
+    ) {
       return false;
     }
     // For other errors, log but assume not running
@@ -68,12 +71,12 @@ export async function detectStuckJobs(params: {
   for (const job of inProgressJobs) {
     const workflowId = `job-execution-${job.id}`;
     const isRunning = await isWorkflowRunning(workflowId);
-    
+
     if (!isRunning) {
       // Workflow is not running - this is an orphan job
       orphanJobs++;
       stuckJobs.push(job);
-      
+
       // Log to job that it's an orphan
       try {
         await logStorage.addLog(job.id, job.version, job.orgId, {
@@ -84,7 +87,10 @@ export async function detectStuckJobs(params: {
           stage: 'workflow',
         });
       } catch (logError) {
-        console.error(`Failed to log orphan job detection for ${job.id}:`, logError);
+        console.error(
+          `Failed to log orphan job detection for ${job.id}:`,
+          logError
+        );
       }
     } else if (job.updatedAt < thresholdTime) {
       // Workflow is running but job hasn't been updated in a while - might be stuck
@@ -118,9 +124,10 @@ export async function detectStuckJobs(params: {
           );
 
         // Find the max order, or default to -1 if queue is empty
-        const maxOrder = queueJobs.length > 0
-          ? Math.max(...queueJobs.map(j => j.orderInQueue))
-          : -1;
+        const maxOrder =
+          queueJobs.length > 0
+            ? Math.max(...queueJobs.map(j => j.orderInQueue))
+            : -1;
         const nextOrder = maxOrder + 1;
 
         // Return job to queue
@@ -166,4 +173,3 @@ export async function detectStuckJobs(params: {
 
   return { detected: stuckJobs.length, handled, orphanJobs };
 }
-

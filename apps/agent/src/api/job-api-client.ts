@@ -11,21 +11,24 @@ export interface JobUpdateRequest {
 export class JobApiClient {
   constructor(apiBaseUrl?: string) {
     // Configure API client base URL
-    const baseUrl = apiBaseUrl || process.env.API_BASE_URL || 'http://localhost:3001';
+    const baseUrl =
+      apiBaseUrl || process.env.API_BASE_URL || 'http://localhost:3001';
     client.setConfig({ baseUrl });
-    
+
     // TODO: Configure authentication if needed
     // client.setConfig({ headers: { 'Authorization': `Bearer ${process.env.API_TOKEN}` } });
   }
 
-  async* updateJob(
+  async *updateJob(
     jobId: string,
     updates: JobUpdateRequest
   ): AsyncGenerator<LogMessage, Job> {
     try {
       yield {
         level: 'info',
-        message: `Updating job ${jobId} with status: ${updates.status || 'N/A'}`,
+        message: `Updating job ${jobId} with status: ${
+          updates.status || 'N/A'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'update-status',
@@ -63,7 +66,9 @@ export class JobApiClient {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to update job: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to update job: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'update-status',
@@ -94,5 +99,3 @@ export class JobApiClient {
     return result.data as Job;
   }
 }
-
-

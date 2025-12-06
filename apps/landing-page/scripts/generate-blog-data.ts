@@ -9,7 +9,11 @@ import { fileURLToPath } from 'url';
 import { client } from '../src/lib/sanity/client';
 import { postsQuery } from '../src/lib/sanity/queries';
 import { urlForImage } from '../src/lib/sanity/image';
-import { portableTextToHtml, addHeadingIds, calculateReadingTime } from '../src/lib/sanity/portableTextToHtml';
+import {
+  portableTextToHtml,
+  addHeadingIds,
+  calculateReadingTime,
+} from '../src/lib/sanity/portableTextToHtml';
 import type { PortableTextBlock } from '@portabletext/types';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -55,16 +59,16 @@ interface StaticBlogPost {
 function convertSanityPostToStaticPost(sanityPost: SanityPost): StaticBlogPost {
   const slug = sanityPost.slug?.current || '';
   const publishedAt = sanityPost.publishedAt || sanityPost._createdAt;
-  
+
   // Convert Portable Text body to HTML
   let htmlContent = portableTextToHtml(sanityPost.body || []);
-  
+
   // Add IDs to headings for table of contents
   htmlContent = addHeadingIds(htmlContent);
-  
+
   // Calculate reading time
   const readingTime = calculateReadingTime(htmlContent);
-  
+
   // Get image URL
   let imageUrl = '';
   if (sanityPost.imageURL) {
@@ -77,10 +81,10 @@ function convertSanityPostToStaticPost(sanityPost: SanityPost): StaticBlogPost {
       imageUrl = (sanityPost.mainImage as any).asset?.url || '';
     }
   }
-  
+
   // Get description
   const description = sanityPost.description || '';
-  
+
   // Create original content representation (JSON string of Portable Text)
   const originalContent = JSON.stringify(sanityPost.body || []);
 
@@ -103,20 +107,20 @@ function convertSanityPostToStaticPost(sanityPost: SanityPost): StaticBlogPost {
 async function generateBlogData() {
   try {
     console.log('Fetching blog posts from Sanity...');
-    
+
     // Fetch all posts
     const sanityPosts = await client.fetch<SanityPost[]>(postsQuery);
     console.log(`Found ${sanityPosts.length} blog posts`);
-    
+
     // Convert to static format
     const staticPosts = sanityPosts
       .map(convertSanityPostToStaticPost)
       .filter(post => post.slug);
-    
+
     // Create output directory in public folder so it's accessible at runtime
     const outputDir = join(__dirname, '../public/data');
     mkdirSync(outputDir, { recursive: true });
-    
+
     // Generate posts index file
     const postsIndex = staticPosts.map(post => ({
       id: post.id,
@@ -128,18 +132,18 @@ async function generateBlogData() {
       readingTime: post.readingTime,
       authorName: post.authorName,
     }));
-    
+
     writeFileSync(
       join(outputDir, 'blog-posts.json'),
       JSON.stringify(postsIndex, null, 2),
       'utf-8'
     );
     console.log(`Generated blog-posts.json with ${postsIndex.length} posts`);
-    
+
     // Generate individual post files
     const postsDir = join(outputDir, 'posts');
     mkdirSync(postsDir, { recursive: true });
-    
+
     for (const post of staticPosts) {
       writeFileSync(
         join(postsDir, `${post.slug}.json`),
@@ -148,7 +152,7 @@ async function generateBlogData() {
       );
     }
     console.log(`Generated ${staticPosts.length} individual post files`);
-    
+
     // Generate slugs list for routing
     const slugs = staticPosts.map(post => post.slug);
     writeFileSync(
@@ -157,7 +161,7 @@ async function generateBlogData() {
       'utf-8'
     );
     console.log('Generated blog-slugs.json');
-    
+
     console.log('✅ Blog data generation complete!');
   } catch (error) {
     console.error('❌ Error generating blog data:', error);
@@ -167,4 +171,3 @@ async function generateBlogData() {
 
 // Run the script
 generateBlogData();
-

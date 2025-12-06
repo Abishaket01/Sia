@@ -28,7 +28,7 @@ const timelineVariants = cva('flex flex-col relative', {
  */
 interface TimelineProps
   extends React.HTMLAttributes<HTMLOListElement>,
-  VariantProps<typeof timelineVariants> {
+    VariantProps<typeof timelineVariants> {
   /** Size of the timeline icons */
   iconsize?: 'sm' | 'md' | 'lg';
 }
@@ -72,7 +72,7 @@ const Timeline = React.forwardRef<HTMLOListElement, TimelineProps>(
         })}
       </ol>
     );
-  },
+  }
 );
 Timeline.displayName = 'Timeline';
 
@@ -122,20 +122,17 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
       loading,
       error,
       // Omit unused Framer Motion props
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       initial,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       animate,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       transition,
       ...props
     },
-    ref,
+    ref
   ) => {
-    const commonClassName = cn(
-      'relative w-full mb-2 last:mb-0',
-      className,
-    );
+    const commonClassName = cn('relative w-full mb-2 last:mb-0', className);
 
     // Loading State
     if (loading) {
@@ -157,7 +154,9 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
               <div className="relative flex h-8 w-8 animate-pulse items-center justify-center rounded-full bg-muted ring-8 ring-background">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
-              {showConnector && <div className="h-full w-0.5 animate-pulse bg-muted" />}
+              {showConnector && (
+                <div className="h-full w-0.5 animate-pulse bg-muted" />
+              )}
             </div>
 
             <div className="flex flex-col gap-2 pl-2">
@@ -176,7 +175,10 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
       return (
         <motion.li
           ref={ref}
-          className={cn(commonClassName, 'border border-destructive/50 bg-destructive/10')}
+          className={cn(
+            commonClassName,
+            'border border-destructive/50 bg-destructive/10'
+          )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           role="alert"
@@ -191,14 +193,20 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
               <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-destructive/20 ring-8 ring-background">
                 <AlertCircle className="h-4 w-4 text-destructive" />
               </div>
-              {showConnector && <TimelineConnector status="pending" className="h-full" />}
+              {showConnector && (
+                <TimelineConnector status="pending" className="h-full" />
+              )}
             </div>
 
             <div className="flex flex-col gap-2 pl-2">
               <TimelineHeader>
-                <TimelineTitle className="text-destructive">{title || 'Error'}</TimelineTitle>
+                <TimelineTitle className="text-destructive">
+                  {title || 'Error'}
+                </TimelineTitle>
               </TimelineHeader>
-              <TimelineDescription className="text-destructive">{error}</TimelineDescription>
+              <TimelineDescription className="text-destructive">
+                {error}
+              </TimelineDescription>
             </div>
           </div>
         </motion.li>
@@ -218,11 +226,14 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
         {/* Timeline dot and connector */}
         <div className="flex flex-col items-center">
           <div className="relative z-10">
-            <TimelineIcon icon={icon} color={iconColor} status={status} iconSize={iconsize} />
+            <TimelineIcon
+              icon={icon}
+              color={iconColor}
+              status={status}
+              iconSize={iconsize}
+            />
           </div>
-          {showConnector && (
-            <div className="h-16 w-0.5 bg-gray-500 mt-2" />
-          )}
+          {showConnector && <div className="h-16 w-0.5 bg-gray-500 mt-2" />}
         </div>
 
         {/* Content */}
@@ -237,29 +248,28 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
 
     // Filter out Framer Motion specific props
     const {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       style,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       onDrag,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       onDragStart,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       onDragEnd,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       onAnimationStart,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       onAnimationComplete,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       transformTemplate,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       whileHover,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       whileTap,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       whileDrag,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       whileFocus,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       whileInView,
       ...filteredProps
     } = props;
@@ -269,7 +279,7 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
         {content}
       </li>
     );
-  },
+  }
 );
 TimelineItem.displayName = 'TimelineItem';
 
@@ -329,13 +339,16 @@ const TimelineTime = React.forwardRef<HTMLTimeElement, TimelineTimeProps>(
       <time
         ref={ref}
         dateTime={date ? new Date(date).toISOString() : undefined}
-        className={cn('text-sm font-medium tracking-tight text-muted-foreground', className)}
+        className={cn(
+          'text-sm font-medium tracking-tight text-muted-foreground',
+          className
+        )}
         {...props}
       >
         {children || formattedDate}
       </time>
     );
-  },
+  }
 );
 TimelineTime.displayName = 'TimelineTime';
 
@@ -355,20 +368,26 @@ const TimelineConnector = React.forwardRef<
         'bg-muted': color === 'muted' || (!color && status === 'pending'),
         'bg-secondary': color === 'secondary',
         'bg-accent': color === 'accent',
-        'bg-gradient-to-b from-primary to-muted': !color && status === 'in-progress',
+        'bg-gradient-to-b from-primary to-muted':
+          !color && status === 'in-progress',
       },
-      className,
+      className
     )}
     {...props}
   />
 ));
 TimelineConnector.displayName = 'TimelineConnector';
 
-const TimelineHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center gap-4', className)} {...props} />
-  ),
-);
+const TimelineHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex items-center gap-4', className)}
+    {...props}
+  />
+));
 TimelineHeader.displayName = 'TimelineHeader';
 
 const TimelineTitle = React.forwardRef<
@@ -377,7 +396,10 @@ const TimelineTitle = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('font-semibold leading-none tracking-tight text-secondary-foreground', className)}
+    className={cn(
+      'font-semibold leading-none tracking-tight text-secondary-foreground',
+      className
+    )}
     {...props}
   >
     {children}
@@ -421,11 +443,16 @@ const TimelineIcon = ({
       className={cn(
         'relative flex items-center justify-center rounded-full ring-8 ring-background shadow-sm',
         sizeClasses[iconSize],
-        colorClasses[color],
+        colorClasses[color]
       )}
     >
       {icon ? (
-        <div className={cn('flex items-center justify-center', iconSizeClasses[iconSize])}>
+        <div
+          className={cn(
+            'flex items-center justify-center',
+            iconSizeClasses[iconSize]
+          )}
+        >
           {icon}
         </div>
       ) : (
@@ -439,28 +466,43 @@ const TimelineDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn('max-w-sm text-sm text-muted-foreground', className)} {...props} />
+  <p
+    ref={ref}
+    className={cn('max-w-sm text-sm text-muted-foreground', className)}
+    {...props}
+  />
 ));
 TimelineDescription.displayName = 'TimelineDescription';
 
-const TimelineContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col gap-2 pl-2', className)} {...props} />
-  ),
-);
+const TimelineContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex flex-col gap-2 pl-2', className)}
+    {...props}
+  />
+));
 TimelineContent.displayName = 'TimelineContent';
 
-const TimelineEmpty = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('flex flex-col items-center justify-center p-8 text-center', className)}
-      {...props}
-    >
-      <p className="text-sm text-muted-foreground">{children || 'No timeline items to display'}</p>
-    </div>
-  ),
-);
+const TimelineEmpty = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, children, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'flex flex-col items-center justify-center p-8 text-center',
+      className
+    )}
+    {...props}
+  >
+    <p className="text-sm text-muted-foreground">
+      {children || 'No timeline items to display'}
+    </p>
+  </div>
+));
 TimelineEmpty.displayName = 'TimelineEmpty';
 
 export {

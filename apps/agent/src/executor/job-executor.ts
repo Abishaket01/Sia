@@ -17,7 +17,9 @@ export interface JobExecutionConfig {
 export class JobExecutor {
   private workspaceManager: WorkspaceManager;
   private jobApiClient: JobApiClient;
-  private config: Omit<Required<JobExecutionConfig>, 'cursorExecutablePath'> & { cursorExecutablePath?: string };
+  private config: Omit<Required<JobExecutionConfig>, 'cursorExecutablePath'> & {
+    cursorExecutablePath?: string;
+  };
 
   constructor(config: JobExecutionConfig = {}) {
     this.workspaceManager = new WorkspaceManager();
@@ -31,7 +33,9 @@ export class JobExecutor {
     };
   }
 
-  private extractGitCredentials(jobDetails?: Record<string, string>): GitCredentials | undefined {
+  private extractGitCredentials(
+    jobDetails?: Record<string, string>
+  ): GitCredentials | undefined {
     if (!jobDetails) return undefined;
 
     return {
@@ -60,12 +64,20 @@ export class JobExecutor {
   }
 
   private extractCommitMessage(jobDetails?: Record<string, string>): string {
-    return jobDetails?.commit_message || jobDetails?.commitMessage || this.config.commitMessage;
+    return (
+      jobDetails?.commit_message ||
+      jobDetails?.commitMessage ||
+      this.config.commitMessage
+    );
   }
 
   private getVibeCoder(jobDetails?: Record<string, string>): VibeCoder {
-    const vibeAgentType = jobDetails?.type || jobDetails?.vibeAgentType || 'cursor';
-    const executablePath = jobDetails?.executablePath || jobDetails?.vibeAgentExecutablePath || this.config.cursorExecutablePath;
+    const vibeAgentType =
+      jobDetails?.type || jobDetails?.vibeAgentType || 'cursor';
+    const executablePath =
+      jobDetails?.executablePath ||
+      jobDetails?.vibeAgentExecutablePath ||
+      this.config.cursorExecutablePath;
 
     switch (vibeAgentType) {
       case 'cursor':
@@ -89,7 +101,7 @@ export class JobExecutor {
     await this.workspaceManager.cleanupWorkspace(jobId, attemptNumber);
   }
 
-  async* executeJob(
+  async *executeJob(
     jobId: string,
     prompt: string,
     repoId?: string,
@@ -103,7 +115,10 @@ export class JobExecutor {
 
     try {
       // Stage 1: Create workspace
-      const workspaceGen = this.workspaceManager.createWorkspaceWithLogs(jobId, attemptNumber);
+      const workspaceGen = this.workspaceManager.createWorkspaceWithLogs(
+        jobId,
+        attemptNumber
+      );
       let workspacePathResult: string | undefined;
       for await (const log of workspaceGen) {
         if (typeof log === 'string') {
@@ -112,7 +127,9 @@ export class JobExecutor {
           yield log;
         }
       }
-      workspacePath = workspacePathResult || this.workspaceManager.getWorkspacePath(jobId, attemptNumber);
+      workspacePath =
+        workspacePathResult ||
+        this.workspaceManager.getWorkspacePath(jobId, attemptNumber);
 
       if (!workspacePath) {
         throw new Error('Failed to create workspace');
@@ -122,7 +139,7 @@ export class JobExecutor {
       if (repoId) {
         const gitService = new GitService(workspacePath);
         const credentials = this.extractGitCredentials(jobDetails);
-        
+
         const cloneGen = gitService.cloneRepository(repoId, jobId, credentials);
         for await (const log of cloneGen) {
           yield log;
@@ -157,12 +174,14 @@ export class JobExecutor {
           buildSuccess = true;
         } catch (buildError) {
           buildSuccess = false;
-          
+
           // Stage 6: Request rework if build failed
           if (reworkCount < maxReworkAttempts) {
             yield {
               level: 'info',
-              message: `Build failed. Requesting rework (attempt ${reworkCount + 1}/${maxReworkAttempts})`,
+              message: `Build failed. Requesting rework (attempt ${
+                reworkCount + 1
+              }/${maxReworkAttempts})`,
               timestamp: new Date().toISOString(),
               jobId,
               stage: 'rework',
@@ -174,14 +193,18 @@ export class JobExecutor {
             // - Sending errors back to vibe coder with context
             // - Modifying the prompt to include error information
             const buildResult = await buildService.executeBuild(buildCommands);
-            const errorContext = buildResult.errors?.join('\n') || 'Build failed with unknown errors';
-            
+            const errorContext =
+              buildResult.errors?.join('\n') ||
+              'Build failed with unknown errors';
+
             // Update prompt with error context for rework
             prompt = `${prompt}\n\nBuild errors encountered:\n${errorContext}\n\nPlease fix these errors and regenerate the code.`;
-            
+
             reworkCount++;
           } else {
-            throw new Error(`Build failed after ${maxReworkAttempts} rework attempts`);
+            throw new Error(
+              `Build failed after ${maxReworkAttempts} rework attempts`
+            );
           }
         }
       } while (!buildSuccess && reworkCount < maxReworkAttempts);
@@ -225,7 +248,9 @@ export class JobExecutor {
       }
 
       // Stage 14: Update job status
-      const prLink = repoId ? `https://github.com/${repoId}/compare/${jobId}` : undefined;
+      const prLink = repoId
+        ? `https://github.com/${repoId}/compare/${jobId}`
+        : undefined;
       const updateGen = this.jobApiClient.updateJob(jobId, {
         status: 'completed',
         prLink,
@@ -245,7 +270,9 @@ export class JobExecutor {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Job execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Job execution failed: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'error',
@@ -263,7 +290,9 @@ export class JobExecutor {
       } catch (updateError) {
         yield {
           level: 'error',
-          message: `Failed to update job status: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`,
+          message: `Failed to update job status: ${
+            updateError instanceof Error ? updateError.message : 'Unknown error'
+          }`,
           timestamp: new Date().toISOString(),
           jobId,
           stage: 'error',
@@ -277,4 +306,3 @@ export class JobExecutor {
     }
   }
 }
-

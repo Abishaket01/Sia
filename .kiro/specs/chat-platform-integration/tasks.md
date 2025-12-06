@@ -3,6 +3,7 @@
 ## Core Messaging Infrastructure
 
 - [x] 1. Platform Adapter Pattern
+
   - [x] 1.1 Define MessagingAdapter interface
     - Create `apps/api/src/services/messaging/messaging-adapter.ts`
     - Define UnifiedMessage, SendOptions, Attachment types
@@ -11,11 +12,12 @@
     - Create `apps/api/src/services/messaging/messaging-types.ts`
     - Define ConversationState, RelevanceResult, ChannelSettings
     - _Requirements: 1.3_
-  - [ ]* 1.3 Write property test for platform independence
+  - [ ]\* 1.3 Write property test for platform independence
     - **Property 3: Platform Independence**
     - **Validates: Requirements 1.1, 1.3**
 
 - [x] 2. Conversation Manager
+
   - [x] 2.1 Implement conversation state tracking
     - Create `apps/api/src/services/messaging/conversation-manager.ts`
     - Track active conversations per thread
@@ -24,14 +26,15 @@
     - Route messages to appropriate handlers
     - Determine priority based on mention status
     - _Requirements: 2.1, 2.4, 4.1_
-  - [ ]* 2.3 Write property test for explicit mention handling
+  - [ ]\* 2.3 Write property test for explicit mention handling
     - **Property 1: Explicit Mention Always Responds**
     - **Validates: Requirements 2.1, 2.4**
-  - [ ]* 2.4 Write property test for DM handling
+  - [ ]\* 2.4 Write property test for DM handling
     - **Property 2: DM Always Responds**
     - **Validates: Requirements 4.1, 4.2**
 
 - [x] 3. Conversational Handler
+
   - [x] 3.1 Implement message processing
     - Create `apps/api/src/services/messaging/conversational-handler.ts`
     - Process messages and generate AI responses
@@ -41,11 +44,12 @@
     - Match SIA-related keywords
     - Calculate confidence score
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
-  - [ ]* 3.3 Write property test for relevance filtering
+  - [ ]\* 3.3 Write property test for relevance filtering
     - **Property 4: Relevance Filtering**
     - **Validates: Requirements 5.5**
 
 - [x] 4. Message Queue Manager
+
   - [x] 4.1 Implement message queuing
     - Create `apps/api/src/services/messaging/message-queue-manager.ts`
     - Queue normal-priority messages
@@ -55,7 +59,7 @@
     - Process queued messages in batches
     - Respect rate limits
     - _Requirements: 6.1, 6.4_
-  - [ ]* 4.3 Write property test for message priority
+  - [ ]\* 4.3 Write property test for message priority
     - **Property 5: Message Priority**
     - **Validates: Requirements 6.2**
 
@@ -73,6 +77,7 @@
 ## Slack Integration (Primary Platform)
 
 - [x] 6. Slack Adapter
+
   - [x] 6.1 Implement SlackAdapter class
     - Create `apps/api/src/services/messaging/adapters/slack-adapter.ts`
     - Implement MessagingAdapter interface
@@ -91,6 +96,7 @@
     - _Requirements: 9.1, 9.2, 9.3_
 
 - [x] 7. Slack Event Handling
+
   - [x] 7.1 Implement event webhook endpoint
     - Create `/integrations/slack/events` route
     - Handle URL verification
@@ -110,6 +116,7 @@
     - _Requirements: 8.1, 8.2, 8.3_
 
 - [x] 8. Slack Link Unfurling
+
   - [x] 8.1 Implement link_shared event handling
     - Detect SIA job links
     - _Requirements: 10.1_
@@ -140,6 +147,7 @@
 ## Future Platform Integrations
 
 - [ ] 10. Discord Integration
+
   - [ ] 10.1 Implement DiscordAdapter class
     - Implement MessagingAdapter interface
     - _Requirements: 1.2_
@@ -168,7 +176,7 @@
   - [ ] 12.1 Unit tests for relevance detection
   - [ ] 12.2 Unit tests for conversation manager
   - [ ] 12.3 Integration tests with mock adapters
-  - [ ]* 12.4 Property-based tests for core algorithms
+  - [ ]\* 12.4 Property-based tests for core algorithms
   - [ ] 12.5 E2E tests with test Slack workspace
 
 ## Checkpoint

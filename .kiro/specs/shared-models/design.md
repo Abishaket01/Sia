@@ -14,37 +14,37 @@ flowchart TB
             TYPES[TypeScript Types]
             OPENAPI[OpenAPI Spec]
         end
-        
+
         subgraph "Generated"
             GRPC_TYPES[gRPC Types<br/>ts-proto]
             API_CLIENT[API Client<br/>@hey-api/openapi-ts]
         end
-        
+
         subgraph "Scripts"
             GEN_PROTO[generate-proto.ts]
             GEN_OPENAPI[generate-openapi.ts]
         end
     end
-    
+
     subgraph "Consumers"
         API[apps/api]
         WEB[apps/web]
         AGENT[apps/agent]
         CLI[apps/cli]
     end
-    
+
     PROTO --> GEN_PROTO
     GEN_PROTO --> GRPC_TYPES
-    
+
     OPENAPI --> GEN_OPENAPI
     GEN_OPENAPI --> API_CLIENT
-    
+
     GRPC_TYPES --> API
     GRPC_TYPES --> AGENT
-    
+
     API_CLIENT --> WEB
     API_CLIENT --> CLI
-    
+
     TYPES --> API
     TYPES --> WEB
     TYPES --> AGENT
@@ -88,12 +88,14 @@ service AgentService {
 ## Generation Scripts
 
 ### Proto Generation
+
 ```bash
 npm run generate:proto
 # Uses ts-proto to generate TypeScript from .proto files
 ```
 
 ### OpenAPI Generation
+
 ```bash
 npm run generate:openapi
 # Uses @hey-api/openapi-ts to generate client from OpenAPI spec

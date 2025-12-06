@@ -11,13 +11,15 @@ export async function hasInProgressJobs(params: {
   const jobs = await db
     .select()
     .from(schema.jobs)
-    .where(and(
-      eq(schema.jobs.orgId, params.orgId),
-      eq(schema.jobs.status, 'in-progress'),
-      eq(schema.jobs.queueType, params.queueType)
-    ))
+    .where(
+      and(
+        eq(schema.jobs.orgId, params.orgId),
+        eq(schema.jobs.status, 'in-progress'),
+        eq(schema.jobs.queueType, params.queueType)
+      )
+    )
     .limit(1);
-  
+
   return jobs.length > 0;
 }
 
@@ -33,17 +35,19 @@ export async function isQueuePaused(params: {
     const queueState = await db
       .select()
       .from(schema.queueStates)
-      .where(and(
-        eq(schema.queueStates.orgId, params.orgId),
-        eq(schema.queueStates.queueType, params.queueType)
-      ))
+      .where(
+        and(
+          eq(schema.queueStates.orgId, params.orgId),
+          eq(schema.queueStates.queueType, params.queueType)
+        )
+      )
       .limit(1);
-    
+
     if (queueState.length === 0) {
       // No pause state record means queue is not paused
       return false;
     }
-    
+
     return queueState[0].isPaused;
   } catch (error) {
     // If table doesn't exist yet or error, assume not paused
@@ -85,9 +89,7 @@ export async function setQueuePaused(params: {
 /**
  * Get agent information
  */
-export async function getAgent(params: {
-  agentId: string;
-}): Promise<{
+export async function getAgent(params: { agentId: string }): Promise<{
   id: string;
   orgId: string;
   status: string;
@@ -107,11 +109,11 @@ export async function getAgent(params: {
     .from(schema.agents)
     .where(eq(schema.agents.id, params.agentId))
     .limit(1);
-  
+
   if (agent.length === 0) {
     return null;
   }
-  
+
   return {
     id: agent[0].id,
     orgId: agent[0].orgId,
@@ -143,13 +145,14 @@ export async function hasAgentInProgressJob(params: {
   const jobs = await db
     .select()
     .from(schema.jobs)
-    .where(and(
-      eq(schema.jobs.orgId, agent.orgId),
-      eq(schema.jobs.status, 'in-progress'),
-      eq(schema.jobs.queueType, params.queueType)
-    ))
+    .where(
+      and(
+        eq(schema.jobs.orgId, agent.orgId),
+        eq(schema.jobs.status, 'in-progress'),
+        eq(schema.jobs.queueType, params.queueType)
+      )
+    )
     .limit(1);
-  
+
   return jobs.length > 0;
 }
-

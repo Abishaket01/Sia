@@ -11,7 +11,7 @@ export default function SEO({
   title = 'GetPullRequest - AI Dev Assistant That Creates PRs While You Sleep',
   description = 'Sia is an AI developer assistant that lives in Slack and Discord. Delegate coding tasks, queue them, and wake up to ready-to-review pull requests. Turn idle hours into productive development time.',
   keywords = 'AI coding assistant, automated pull requests, developer productivity, Slack bot, Discord bot, AI development tools, Claude Agent, Aider, async development, developer workflow, engineering automation',
-  ogImage = '/og-image.jpg'
+  ogImage = '/og-image.jpg',
 }: SEOProps) {
   useEffect(() => {
     document.title = title;
@@ -29,7 +29,7 @@ export default function SEO({
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
       { name: 'twitter:image', content: ogImage },
-      { name: 'twitter:favicon', content: '/favicon.ico' }
+      { name: 'twitter:favicon', content: '/favicon.ico' },
     ];
 
     metaTags.forEach(({ name, property, content }) => {

@@ -75,7 +75,7 @@ export const createClient = (config: Config = {}): Client => {
     return { opts, url };
   };
 
-  const request: Client['request'] = async (options) => {
+  const request: Client['request'] = async options => {
     // @ts-expect-error
     const { opts, url } = await beforeRequest(options);
     const requestInit: ReqInit = {
@@ -109,7 +109,7 @@ export const createClient = (config: Config = {}): Client => {
             error,
             undefined as any,
             request,
-            opts,
+            opts
           )) as unknown;
         }
       }

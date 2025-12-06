@@ -27,17 +27,20 @@ export default class JobCancel extends Command {
 
     try {
       const result = await client.cancelJob(args['job-id']);
-      
+
       if (result.success) {
         this.log(result.message);
       } else {
         this.error(result.message);
       }
     } catch (error) {
-      this.error(`Failed to cancel job: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.error(
+        `Failed to cancel job: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     } finally {
       client.close();
     }
   }
 }
-

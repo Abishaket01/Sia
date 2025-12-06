@@ -33,7 +33,9 @@ function parseArgs(): {
   }
 
   if (!apiKey) {
-    console.error('Error: --api-key is required or set SIA_API_KEY environment variable');
+    console.error(
+      'Error: --api-key is required or set SIA_API_KEY environment variable'
+    );
     process.exit(1);
   }
 
@@ -61,12 +63,16 @@ async function main() {
       process.exit(1);
     }
 
-    console.log(`Agent registered successfully. Agent ID: ${registrationResult.agentId}`);
+    console.log(
+      `Agent registered successfully. Agent ID: ${registrationResult.agentId}`
+    );
 
-    backendClient.startStream(registrationResult.agentId, (message) => {
+    backendClient.startStream(registrationResult.agentId, message => {
       if (message.messageType === BackendStreamMessageType.HEALTH_CHECK_PING) {
         backendClient.sendHeartbeat();
-      } else if (message.messageType === BackendStreamMessageType.TASK_ASSIGNMENT) {
+      } else if (
+        message.messageType === BackendStreamMessageType.TASK_ASSIGNMENT
+      ) {
         const taskData = JSON.parse(message.payload.toString());
         console.log('Received task assignment:', taskData);
       }
@@ -89,4 +95,3 @@ async function main() {
 }
 
 main();
-

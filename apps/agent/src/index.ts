@@ -7,4 +7,3 @@ export * from './vibe/vibe-coding-platform.js';
 export * from './build/build-service.js';
 export * from './api/job-api-client.js';
 export * from './executor/job-executor.js';
-

@@ -13,5 +13,3 @@ export interface VibeCoderConfig {
   executablePath?: string;
   // TODO: Add other configuration options
 }
-
-

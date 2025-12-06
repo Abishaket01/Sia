@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 
@@ -9,12 +8,10 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const Blogs = lazy(() => import('./pages/Blogs'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 
-
-
 function App() {
   return (
     <Router>
-      <Suspense >
+      <Suspense>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

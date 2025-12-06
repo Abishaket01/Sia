@@ -16,9 +16,12 @@ interface AuthMethods {
     userId: string;
     email: string;
     activeOrgId?: string | null;
-    orgIdToOrgMemberInfo?: Record<string, {
-      assignedRole?: string;
-    }>;
+    orgIdToOrgMemberInfo?: Record<
+      string,
+      {
+        assignedRole?: string;
+      }
+    >;
     firstName?: string | null;
     lastName?: string | null;
   }>;
@@ -36,7 +39,9 @@ async function getAuth(): Promise<AuthMethods | null> {
       const apiKey = process.env.PROPEL_VERIFICATION_KEY;
 
       if (!authUrl || !apiKey) {
-        console.warn('PropelAuth not configured - using mock auth for development');
+        console.warn(
+          'PropelAuth not configured - using mock auth for development'
+        );
         return null;
       }
 
@@ -46,7 +51,8 @@ async function getAuth(): Promise<AuthMethods | null> {
       });
 
       auth = {
-        validateAccessTokenAndGetUser: authInstance.validateAccessTokenAndGetUser,
+        validateAccessTokenAndGetUser:
+          authInstance.validateAccessTokenAndGetUser,
       };
     } catch (error) {
       console.warn(`Failed to initialize PropelAuth: ${error}`);
@@ -66,17 +72,17 @@ async function authenticateWithApiKey(
 ): Promise<User> {
   try {
     const { apiKeys } = schema;
-    
+
     // Hash the provided API key for lookup
     const keyHash = hashApiKey(apiKey);
-    
+
     // Find the API key by hash (fast lookup)
     const [storedKey] = await db
       .select()
       .from(apiKeys)
       .where(eq(apiKeys.keyHash, keyHash))
       .limit(1);
-    
+
     if (!storedKey) {
       return reply.code(401).send({
         error: 'Invalid API key',
@@ -86,7 +92,7 @@ async function authenticateWithApiKey(
     // Update lastUsedAt
     await db
       .update(apiKeys)
-      .set({ 
+      .set({
         lastUsedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -123,7 +129,7 @@ export async function getCurrentUser(
 
     // Check if it's an API key (starts with "sia_sk_")
     // Handle both "sia_sk_..." and "Bearer sia_sk_..." formats
-    const apiKey = authHeader.startsWith('Bearer ') 
+    const apiKey = authHeader.startsWith('Bearer ')
       ? authHeader.substring(7).trim()
       : authHeader.trim();
 
@@ -214,4 +220,3 @@ export async function requireAdmin(
 
   return user;
 }
-

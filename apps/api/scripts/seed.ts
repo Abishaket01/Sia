@@ -8,31 +8,36 @@ import * as fs from 'fs';
 
 dotenv.config();
 
-function logDirectoryTree(dirPath: string, maxDepth = 3, currentDepth = 0, prefix = ''): void {
+function logDirectoryTree(
+  dirPath: string,
+  maxDepth = 3,
+  currentDepth = 0,
+  prefix = ''
+): void {
   if (currentDepth >= maxDepth) return;
-  
+
   try {
     if (!fs.existsSync(dirPath)) {
       console.log(`${prefix}${path.basename(dirPath)}/ (does not exist)`);
       return;
     }
-    
+
     const stats = fs.statSync(dirPath);
     if (!stats.isDirectory()) {
       console.log(`${prefix}${path.basename(dirPath)} (file)`);
       return;
     }
-    
+
     console.log(`${prefix}${path.basename(dirPath)}/`);
     const entries = fs.readdirSync(dirPath).sort();
-    
+
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
       const fullPath = path.join(dirPath, entry);
       const isLast = i === entries.length - 1;
       const newPrefix = prefix + (isLast ? '└── ' : '├── ');
       const nextPrefix = prefix + (isLast ? '    ' : '│   ');
-      
+
       try {
         const entryStats = fs.statSync(fullPath);
         if (entryStats.isDirectory()) {
@@ -53,24 +58,27 @@ function loadSchema() {
   console.log('=== Schema Loading Debug Info ===');
   console.log(`process.cwd(): ${process.cwd()}`);
   console.log(`__dirname: ${__dirname}`);
-  console.log(`require.main?.filename: ${require.main?.filename || 'undefined'}`);
+  console.log(
+    `require.main?.filename: ${require.main?.filename || 'undefined'}`
+  );
   console.log(`process.argv[1]: ${process.argv[1]}`);
-  
-  const scriptDir = __dirname || path.dirname(require.main?.filename || process.argv[1] || '');
+
+  const scriptDir =
+    __dirname || path.dirname(require.main?.filename || process.argv[1] || '');
   const baseDir = path.resolve(scriptDir, '..');
   const distPath = path.resolve(baseDir, 'dist/db/schema.js');
   const srcPath = path.resolve(baseDir, 'src/db/schema.ts');
-  
+
   console.log(`\nComputed paths:`);
   console.log(`  scriptDir: ${scriptDir}`);
   console.log(`  baseDir: ${baseDir}`);
   console.log(`  distPath: ${distPath}`);
   console.log(`  srcPath: ${srcPath}`);
-  
+
   console.log(`\nChecking file existence:`);
   console.log(`  distPath exists: ${fs.existsSync(distPath)}`);
   console.log(`  srcPath exists: ${fs.existsSync(srcPath)}`);
-  
+
   if (fs.existsSync(distPath)) {
     console.log(`✅ Found schema at distPath: ${distPath}`);
     return require('../dist/db/schema');
@@ -79,15 +87,15 @@ function loadSchema() {
     return require('../src/db/schema');
   } else {
     console.log(`\n❌ Schema file not found. Exploring directory structure...`);
-    
+
     const distDir = path.resolve(baseDir, 'dist');
     const srcDir = path.resolve(baseDir, 'src');
-    
+
     console.log(`\nDirectory existence:`);
     console.log(`  baseDir exists: ${fs.existsSync(baseDir)}`);
     console.log(`  distDir exists: ${fs.existsSync(distDir)}`);
     console.log(`  srcDir exists: ${fs.existsSync(srcDir)}`);
-    
+
     if (fs.existsSync(baseDir)) {
       console.log(`\nbaseDir contents (${baseDir}):`);
       try {
@@ -96,23 +104,23 @@ function loadSchema() {
       } catch (e) {
         console.log(`  Error reading baseDir: ${e}`);
       }
-      
+
       console.log(`\n=== Directory Tree Structure (${baseDir}) ===`);
       logDirectoryTree(baseDir, 4);
     }
-    
+
     if (fs.existsSync(distDir)) {
       console.log(`\ndistDir contents (${distDir}):`);
       try {
         const distContents = fs.readdirSync(distDir);
         console.log(`  ${distContents.join(', ')}`);
-        
+
         const dbInDist = path.resolve(distDir, 'db');
         if (fs.existsSync(dbInDist)) {
           console.log(`\ndist/db contents (${dbInDist}):`);
           const dbContents = fs.readdirSync(dbInDist);
           console.log(`  ${dbContents.join(', ')}`);
-          
+
           const schemaFiles = dbContents.filter(f => f.includes('schema'));
           console.log(`\nSchema-related files in dist/db:`);
           schemaFiles.forEach(file => {
@@ -126,13 +134,13 @@ function loadSchema() {
         console.log(`  Error reading distDir: ${e}`);
       }
     }
-    
+
     if (fs.existsSync(srcDir)) {
       console.log(`\nsrcDir contents (${srcDir}):`);
       try {
         const srcContents = fs.readdirSync(srcDir);
         console.log(`  ${srcContents.join(', ')}`);
-        
+
         const dbInSrc = path.resolve(srcDir, 'db');
         if (fs.existsSync(dbInSrc)) {
           console.log(`\nsrc/db contents (${dbInSrc}):`);
@@ -143,12 +151,12 @@ function loadSchema() {
         console.log(`  Error reading srcDir: ${e}`);
       }
     }
-    
+
     let errorMsg = `Cannot find schema file. Checked:\n  - ${distPath}\n  - ${srcPath}\n`;
     errorMsg += `  Script dir: ${scriptDir}\n`;
     errorMsg += `  Base dir: ${baseDir}\n`;
     errorMsg += `  Current working directory: ${process.cwd()}\n`;
-    
+
     throw new Error(errorMsg);
   }
 }
@@ -159,7 +167,8 @@ const { jobs, activities } = schema;
 console.log('Schema loaded successfully');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/sia',
+  connectionString:
+    process.env.DATABASE_URL || 'postgresql://localhost:5432/sia',
 });
 
 const db = drizzle(pool);
@@ -241,7 +250,7 @@ const seedJobs: SeedJob[] = [
   },
   {
     title: 'Fix authentication issue',
-    desc: 'Support both user level and org level authentication using propelauth\'s organization based authentication.',
+    desc: "Support both user level and org level authentication using propelauth's organization based authentication.",
     status: 'completed',
   },
   {
@@ -286,7 +295,8 @@ const seedActivities: SeedActivity[] = [
     id: 'evt3',
     name: 'Add keyboard shortcuts for new task',
     status: 'queued',
-    summary: 'Sia queued the work to add keyboard shortcuts for creating tasks.',
+    summary:
+      'Sia queued the work to add keyboard shortcuts for creating tasks.',
     createdBy: 'sia.system',
     updatedBy: 'sia.system',
   },
@@ -334,7 +344,8 @@ const seedActivities: SeedActivity[] = [
     id: 'evt9',
     name: 'Fix authentication issue',
     status: 'completed',
-    summary: 'Sia fixed the authentication issue by adding user and org level auth handling.',
+    summary:
+      'Sia fixed the authentication issue by adding user and org level auth handling.',
     createdBy: 'sia.system',
     updatedBy: 'sia.system',
   },
@@ -342,7 +353,8 @@ const seedActivities: SeedActivity[] = [
     id: 'evt10',
     name: 'Permissions',
     status: 'completed',
-    summary: 'Sia completed the permissions update and now restricts mutations to admins.',
+    summary:
+      'Sia completed the permissions update and now restricts mutations to admins.',
     createdBy: 'sia.system',
     updatedBy: 'sia.system',
   },
@@ -350,7 +362,8 @@ const seedActivities: SeedActivity[] = [
     id: 'evt11',
     name: 'Fix test configurations',
     status: 'failed',
-    summary: 'Sia attempted to fix the API test setup but the process failed with Fastify config issues.',
+    summary:
+      'Sia attempted to fix the API test setup but the process failed with Fastify config issues.',
     createdBy: 'sia.system',
     updatedBy: 'sia.system',
   },
@@ -359,8 +372,10 @@ const seedActivities: SeedActivity[] = [
 async function seedDatabase() {
   const dbUrl = process.env.DATABASE_URL || 'postgresql://localhost:5432/sia';
   const isProduction = process.env.NODE_ENV === 'production';
-  
-  console.log(`Seeding database in ${isProduction ? 'PRODUCTION' : 'development'} mode...`);
+
+  console.log(
+    `Seeding database in ${isProduction ? 'PRODUCTION' : 'development'} mode...`
+  );
   console.log(`Database: ${dbUrl.replace(/:[^:@]+@/, ':****@')}`);
   console.log(`OrgIds: ${ORG_IDS.join(', ')}`);
   console.log('');
@@ -370,9 +385,13 @@ async function seedDatabase() {
     console.log('✅ Activities table exists and is accessible');
   } catch (error) {
     if (error instanceof Error && error.message.includes('does not exist')) {
-      console.error('❌ Activities table does not exist. Please run migrations first:');
+      console.error(
+        '❌ Activities table does not exist. Please run migrations first:'
+      );
       console.error('   npm run db:migrate -w @sia/api');
-      throw new Error('Activities table not found. Run migrations before seeding.');
+      throw new Error(
+        'Activities table not found. Run migrations before seeding.'
+      );
     }
     throw error;
   }
@@ -380,10 +399,10 @@ async function seedDatabase() {
   try {
     for (const ORG_ID of ORG_IDS) {
       console.log(`\n📦 Seeding data for org: ${ORG_ID}`);
-      
+
       for (const seedJob of seedJobs) {
         const jobId = generateJobId(seedJob.title, ORG_ID);
-        
+
         const existingJob = await db
           .select()
           .from(jobs)
@@ -411,7 +430,13 @@ async function seedDatabase() {
               ...jobData,
               updatedAt: new Date(),
             })
-            .where(and(eq(jobs.id, jobId), eq(jobs.orgId, ORG_ID), eq(jobs.version, existingJob[0].version)));
+            .where(
+              and(
+                eq(jobs.id, jobId),
+                eq(jobs.orgId, ORG_ID),
+                eq(jobs.version, existingJob[0].version)
+              )
+            );
           console.log(`✅ Updated job: ${seedJob.title}`);
         } else {
           await db.insert(jobs).values(jobData);
@@ -434,14 +459,16 @@ async function seedDatabase() {
 
       for (const seedActivity of seedActivities) {
         const jobId = jobMap.get(seedActivity.name);
-        
+
         if (!jobId) {
-          console.warn(`⚠️  Skipping activity ${seedActivity.id}: no job found with title "${seedActivity.name}"`);
+          console.warn(
+            `⚠️  Skipping activity ${seedActivity.id}: no job found with title "${seedActivity.name}"`
+          );
           continue;
         }
-        
+
         const activityId = generateActivityId(seedActivity.id, ORG_ID);
-        
+
         const existingActivity = await db
           .select()
           .from(activities)

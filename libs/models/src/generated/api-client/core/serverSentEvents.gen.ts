@@ -77,7 +77,7 @@ export interface StreamEvent<TData = unknown> {
 export type ServerSentEventsResult<
   TData = unknown,
   TReturn = void,
-  TNext = unknown,
+  TNext = unknown
 > = {
   stream: AsyncGenerator<
     TData extends Record<string, unknown> ? TData[keyof TData] : TData,
@@ -103,7 +103,7 @@ export const createSseClient = <TData = unknown>({
 
   const sleep =
     sseSleepFn ??
-    ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
+    ((ms: number) => new Promise(resolve => setTimeout(resolve, ms)));
 
   const createStream = async function* () {
     let retryDelay: number = sseDefaultRetryDelay ?? 3000;
@@ -143,7 +143,7 @@ export const createSseClient = <TData = unknown>({
 
         if (!response.ok)
           throw new Error(
-            `SSE failed: ${response.status} ${response.statusText}`,
+            `SSE failed: ${response.status} ${response.statusText}`
           );
 
         if (!response.body) throw new Error('No body in SSE response');
@@ -188,7 +188,7 @@ export const createSseClient = <TData = unknown>({
                 } else if (line.startsWith('retry:')) {
                   const parsed = Number.parseInt(
                     line.replace(/^retry:\s*/, ''),
-                    10,
+                    10
                   );
                   if (!Number.isNaN(parsed)) {
                     retryDelay = parsed;
@@ -251,7 +251,7 @@ export const createSseClient = <TData = unknown>({
         // exponential backoff: double retry each attempt, cap at 30s
         const backoff = Math.min(
           retryDelay * 2 ** (attempt - 1),
-          sseMaxRetryDelay ?? 30000,
+          sseMaxRetryDelay ?? 30000
         );
         await sleep(backoff);
       }

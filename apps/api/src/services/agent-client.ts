@@ -5,9 +5,7 @@ import type {
   HintJobResponse,
   CancelJobResponse,
 } from '@sia/models/proto';
-import {
-  AgentServiceClient,
-} from '@sia/models/proto';
+import { AgentServiceClient } from '@sia/models/proto';
 
 // TODO: These types will be available after proto regeneration
 // For now, define them locally to avoid TypeScript errors
@@ -41,8 +39,11 @@ export class AgentClient {
   private address: string;
 
   constructor(address?: string) {
-    this.address = address || process.env.AGENT_SERVER_ADDRESS || 'localhost:50051';
-    console.log(`[AgentClient] Initializing gRPC client for address: ${this.address}`);
+    this.address =
+      address || process.env.AGENT_SERVER_ADDRESS || 'localhost:50051';
+    console.log(
+      `[AgentClient] Initializing gRPC client for address: ${this.address}`
+    );
     this.client = new AgentServiceClient(
       this.address,
       grpc.credentials.createInsecure()
@@ -53,7 +54,11 @@ export class AgentClient {
   async executeJob(options: ExecuteJobOptions): Promise<void> {
     const { jobId, prompt, repoId, jobDetails, onLog } = options;
 
-    console.log(`[AgentClient] executeJob called for jobId=${jobId}, repoId=${repoId || 'none'}`);
+    console.log(
+      `[AgentClient] executeJob called for jobId=${jobId}, repoId=${
+        repoId || 'none'
+      }`
+    );
 
     return new Promise((resolve, reject) => {
       const request: ExecuteJobRequest = {
@@ -63,18 +68,28 @@ export class AgentClient {
         jobDetails: jobDetails || {},
       };
 
-      console.log(`[AgentClient] Initiating gRPC stream to ${this.address} for executeJob`);
+      console.log(
+        `[AgentClient] Initiating gRPC stream to ${this.address} for executeJob`
+      );
       const call = this.client.executeJob(request);
 
       call.on('data', (log: LogMessage) => {
-        console.log(`[AgentClient] Received log from agent: level=${log.level}, stage=${log.stage || 'none'}`);
+        console.log(
+          `[AgentClient] Received log from agent: level=${log.level}, stage=${
+            log.stage || 'none'
+          }`
+        );
         if (onLog) {
           onLog(log);
         }
       });
 
       call.on('error', (error: grpc.ServiceError) => {
-        console.error(`[AgentClient] gRPC error for jobId=${jobId}: code=${error.code}, message=${error.message}, details=${error.details || 'none'}`);
+        console.error(
+          `[AgentClient] gRPC error for jobId=${jobId}: code=${
+            error.code
+          }, message=${error.message}, details=${error.details || 'none'}`
+        );
         reject(error);
       });
 
@@ -123,10 +138,16 @@ export class AgentClient {
         { jobId },
         (error: grpc.ServiceError | null, response: VerificationResponse) => {
           if (error) {
-            console.error(`[AgentClient] runVerification error for jobId=${jobId}: code=${error.code}, message=${error.message}`);
+            console.error(
+              `[AgentClient] runVerification error for jobId=${jobId}: code=${error.code}, message=${error.message}`
+            );
             reject(error);
           } else {
-            console.log(`[AgentClient] runVerification success for jobId=${jobId}: ${JSON.stringify(response)}`);
+            console.log(
+              `[AgentClient] runVerification success for jobId=${jobId}: ${JSON.stringify(
+                response
+              )}`
+            );
             resolve(response);
           }
         }
@@ -141,7 +162,9 @@ export class AgentClient {
     title: string;
     body: string;
   }): Promise<PRResponse> {
-    console.log(`[AgentClient] createPR called for jobId=${params.jobId}, repoId=${params.repoId}, branch=${params.branchName}`);
+    console.log(
+      `[AgentClient] createPR called for jobId=${params.jobId}, repoId=${params.repoId}, branch=${params.branchName}`
+    );
     return new Promise((resolve, reject) => {
       // TODO: Type will be available after proto regeneration
       (this.client as any).createPR(
@@ -154,10 +177,14 @@ export class AgentClient {
         },
         (error: grpc.ServiceError | null, response: PRResponse) => {
           if (error) {
-            console.error(`[AgentClient] createPR error for jobId=${params.jobId}: code=${error.code}, message=${error.message}`);
+            console.error(
+              `[AgentClient] createPR error for jobId=${params.jobId}: code=${error.code}, message=${error.message}`
+            );
             reject(error);
           } else {
-            console.log(`[AgentClient] createPR success for jobId=${params.jobId}: prLink=${response.prLink}`);
+            console.log(
+              `[AgentClient] createPR success for jobId=${params.jobId}: prLink=${response.prLink}`
+            );
             resolve(response);
           }
         }
@@ -173,10 +200,14 @@ export class AgentClient {
         { jobId },
         (error: grpc.ServiceError | null, response: CleanupResponse) => {
           if (error) {
-            console.error(`[AgentClient] cleanupWorkspace error for jobId=${jobId}: code=${error.code}, message=${error.message}`);
+            console.error(
+              `[AgentClient] cleanupWorkspace error for jobId=${jobId}: code=${error.code}, message=${error.message}`
+            );
             reject(error);
           } else {
-            console.log(`[AgentClient] cleanupWorkspace success for jobId=${jobId}`);
+            console.log(
+              `[AgentClient] cleanupWorkspace success for jobId=${jobId}`
+            );
             resolve(response);
           }
         }
@@ -189,4 +220,3 @@ export class AgentClient {
     this.client.close();
   }
 }
-

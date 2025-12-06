@@ -27,7 +27,9 @@ async function loadJsonData<T>(path: string): Promise<T | null> {
 // Lazy load individual post data
 async function loadPostData(slug: string): Promise<EngineeringBlogPost | null> {
   try {
-    const postData = await loadJsonData<EngineeringBlogPost>(`/data/posts/${slug}.json`);
+    const postData = await loadJsonData<EngineeringBlogPost>(
+      `/data/posts/${slug}.json`
+    );
     return postData;
   } catch (error) {
     console.error(`Error loading post data for slug: ${slug}`, error);
@@ -42,7 +44,7 @@ export async function getBlogSlugs(): Promise<string[]> {
   if (blogSlugsCache) {
     return blogSlugsCache;
   }
-  
+
   const slugs = await loadJsonData<string[]>('/data/blog-slugs.json');
   blogSlugsCache = slugs || [];
   return blogSlugsCache;
@@ -55,7 +57,7 @@ export async function getBlogPostsIndex() {
   if (blogPostsIndexCache) {
     return blogPostsIndexCache;
   }
-  
+
   const index = await loadJsonData<any[]>('/data/blog-posts.json');
   blogPostsIndexCache = index || [];
   return blogPostsIndexCache;
@@ -68,29 +70,30 @@ export async function getStaticBlogPosts(): Promise<EngineeringBlogPost[]> {
   if (blogPostsCache) {
     return blogPostsCache;
   }
-  
+
   const slugs = await getBlogSlugs();
-  
+
   // Load all posts in parallel
-  const posts = await Promise.all(
-    slugs.map(slug => loadPostData(slug))
-  );
-  
+  const posts = await Promise.all(slugs.map(slug => loadPostData(slug)));
+
   // Filter out any failed loads and cache
-  blogPostsCache = posts.filter((post): post is EngineeringBlogPost => post !== null);
+  blogPostsCache = posts.filter(
+    (post): post is EngineeringBlogPost => post !== null
+  );
   return blogPostsCache;
 }
 
 /**
  * Get a single blog post by slug (static data)
  */
-export async function getStaticBlogPost(slug: string): Promise<EngineeringBlogPost | null> {
+export async function getStaticBlogPost(
+  slug: string
+): Promise<EngineeringBlogPost | null> {
   const slugs = await getBlogSlugs();
-  
+
   if (!slugs.includes(slug)) {
     return null;
   }
-  
+
   return loadPostData(slug);
 }
-

@@ -17,8 +17,12 @@ export class GitService {
   private buildRepoUrl(repoId: string, credentials?: GitCredentials): string {
     // TODO: Parse repoId to determine if it's a full URL or just owner/repo
     // For now, assume it's in format: owner/repo or full GitHub URL
-    
-    if (repoId.startsWith('http://') || repoId.startsWith('https://') || repoId.startsWith('git@')) {
+
+    if (
+      repoId.startsWith('http://') ||
+      repoId.startsWith('https://') ||
+      repoId.startsWith('git@')
+    ) {
       // Full URL provided
       if (credentials?.token && repoId.startsWith('https://')) {
         // Inject token into HTTPS URL
@@ -32,16 +36,18 @@ export class GitService {
 
     // Assume GitHub format: owner/repo
     if (credentials?.token) {
-      return `https://${credentials.username || 'git'}:${credentials.token}@github.com/${repoId}.git`;
+      return `https://${credentials.username || 'git'}:${
+        credentials.token
+      }@github.com/${repoId}.git`;
     }
-    
+
     return `https://github.com/${repoId}.git`;
   }
 
-  async* cloneRepository(
+  async *cloneRepository(
     repoId: string,
     jobId: string,
-    credentials?: GitCredentials,
+    credentials?: GitCredentials
   ): AsyncGenerator<LogMessage> {
     try {
       const repoUrl = this.buildRepoUrl(repoId, credentials);
@@ -66,7 +72,9 @@ export class GitService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to clone repository: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'clone',
@@ -75,7 +83,10 @@ export class GitService {
     }
   }
 
-  async* checkoutBranch(branch: string, jobId: string): AsyncGenerator<LogMessage> {
+  async *checkoutBranch(
+    branch: string,
+    jobId: string
+  ): AsyncGenerator<LogMessage> {
     try {
       yield {
         level: 'info',
@@ -97,7 +108,9 @@ export class GitService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to checkout branch: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to checkout branch: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'checkout',
@@ -106,7 +119,10 @@ export class GitService {
     }
   }
 
-  async* createBranch(branchName: string, jobId: string): AsyncGenerator<LogMessage> {
+  async *createBranch(
+    branchName: string,
+    jobId: string
+  ): AsyncGenerator<LogMessage> {
     try {
       yield {
         level: 'info',
@@ -128,7 +144,9 @@ export class GitService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to create branch: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to create branch: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'git',
@@ -137,7 +155,7 @@ export class GitService {
     }
   }
 
-  async* addAll(jobId: string): AsyncGenerator<LogMessage> {
+  async *addAll(jobId: string): AsyncGenerator<LogMessage> {
     try {
       yield {
         level: 'info',
@@ -159,7 +177,9 @@ export class GitService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to add changes: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to add changes: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'git',
@@ -168,7 +188,7 @@ export class GitService {
     }
   }
 
-  async* commit(message: string, jobId: string): AsyncGenerator<LogMessage> {
+  async *commit(message: string, jobId: string): AsyncGenerator<LogMessage> {
     try {
       yield {
         level: 'info',
@@ -190,7 +210,9 @@ export class GitService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to commit: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to commit: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'git',
@@ -199,7 +221,11 @@ export class GitService {
     }
   }
 
-  async* push(branchName: string, credentials?: GitCredentials, jobId?: string): AsyncGenerator<LogMessage> {
+  async *push(
+    branchName: string,
+    credentials?: GitCredentials,
+    jobId?: string
+  ): AsyncGenerator<LogMessage> {
     try {
       yield {
         level: 'info',
@@ -223,7 +249,9 @@ export class GitService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to push: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to push: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId: jobId || '',
         stage: 'git',
@@ -242,7 +270,9 @@ export class GitService {
     // Extract owner and repo from repoId (format: owner/repo)
     const [owner, repo] = repoId.split('/');
     if (!owner || !repo) {
-      throw new Error(`Invalid repoId format: ${repoId}. Expected format: owner/repo`);
+      throw new Error(
+        `Invalid repoId format: ${repoId}. Expected format: owner/repo`
+      );
     }
 
     const token = credentials?.token || process.env.GITHUB_TOKEN;
@@ -251,29 +281,30 @@ export class GitService {
     }
 
     // Use GitHub API to create PR
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title,
-        body,
-        head: branchName,
-        base: 'main', // TODO: Make base branch configurable
-      }),
-    });
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/pulls`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          body,
+          head: branchName,
+          base: 'main', // TODO: Make base branch configurable
+        }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
       throw new Error(`Failed to create PR: ${error}`);
     }
 
-    const prData = await response.json() as { html_url: string };
+    const prData = (await response.json()) as { html_url: string };
     return prData.html_url;
   }
 }
-
-

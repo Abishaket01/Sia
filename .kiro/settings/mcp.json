@@ -5,8 +5,8 @@
       "args": ["shadcn@latest", "mcp"]
     },
     "gcloud": {
-    "command": "npx",
-    "args": ["-y", "@google-cloud/gcloud-mcp"]
+      "command": "npx",
+      "args": ["-y", "@google-cloud/gcloud-mcp"]
     }
   }
 }

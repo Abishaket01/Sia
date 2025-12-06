@@ -1,51 +1,51 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
-import { useJobLogsWebSocket } from '@/hooks/use-job-logs-websocket'
-import { api } from '@/lib/api'
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
+import { useJobLogsWebSocket } from '@/hooks/use-job-logs-websocket';
+import { api } from '@/lib/api';
 
 interface LogEntry {
-  id: string
-  level: string
-  message: string
-  timestamp: string
-  stage?: string
+  id: string;
+  level: string;
+  message: string;
+  timestamp: string;
+  stage?: string;
 }
 
 interface StreamingLogsViewerProps {
-  jobId: string
-  jobVersion?: number | null
-  enabled?: boolean
-  className?: string
-  height?: string
+  jobId: string;
+  jobVersion?: number | null;
+  enabled?: boolean;
+  className?: string;
+  height?: string;
   initialLogs?: Array<{
-    level: string
-    timestamp: string
-    message: string
-    stage?: string
-  }>
-  useWebSocket?: boolean // If false, uses REST API instead
+    level: string;
+    timestamp: string;
+    message: string;
+    stage?: string;
+  }>;
+  useWebSocket?: boolean; // If false, uses REST API instead
 }
 
 function getSeverityIcon(level: string) {
-  const normalizedLevel = level.toLowerCase()
+  const normalizedLevel = level.toLowerCase();
   if (normalizedLevel === 'error') {
-    return '🔴'
+    return '🔴';
   }
   if (normalizedLevel === 'warn') {
-    return '🟡'
+    return '🟡';
   }
   if (normalizedLevel === 'info') {
-    return 'ℹ️'
+    return 'ℹ️';
   }
-  return '*'
+  return '*';
 }
 
 function formatTimestamp(timestamp: string): string {
   try {
-    const date = new Date(timestamp)
+    const date = new Date(timestamp);
     // Use system timezone - toLocaleString automatically uses the user's timezone
     return date.toLocaleString('en-US', {
       year: 'numeric',
@@ -57,9 +57,9 @@ function formatTimestamp(timestamp: string): string {
       fractionalSecondDigits: 3,
       hour12: false,
       timeZoneName: 'short', // This will add timezone abbreviation (e.g., PST, EST, IST)
-    })
+    });
   } catch {
-    return timestamp
+    return timestamp;
   }
 }
 
@@ -72,65 +72,71 @@ export function StreamingLogsViewer({
   initialLogs = [],
   useWebSocket = true,
 }: StreamingLogsViewerProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [logs, setLogs] = useState<LogEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [autoScroll, setAutoScroll] = useState(true)
-  const logIdCounterRef = useRef(0)
-  const previousLogsLengthRef = useRef(0)
-  const initialLogsLoadedRef = useRef(false)
-  const logsFetchedRef = useRef(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const logIdCounterRef = useRef(0);
+  const previousLogsLengthRef = useRef(0);
+  const initialLogsLoadedRef = useRef(false);
+  const logsFetchedRef = useRef(false);
 
   const { logs: streamedLogs, isConnected } = useJobLogsWebSocket({
     jobId: enabled && useWebSocket ? jobId : null,
     jobVersion: enabled && useWebSocket ? jobVersion : null,
     enabled: enabled && useWebSocket,
-    onLog: (log) => {
-      setIsLoading(false)
+    onLog: log => {
+      setIsLoading(false);
       const newLog: LogEntry = {
         id: `log-${logIdCounterRef.current++}-${Date.now()}`,
         level: log.level,
         message: log.message,
         timestamp: log.timestamp,
         stage: log.stage,
-      }
-      setLogs((prev) => [newLog, ...prev])
+      };
+      setLogs(prev => [newLog, ...prev]);
     },
-  })
+  });
 
   // Fetch logs via REST API when not using WebSocket
   useEffect(() => {
     if (!enabled || useWebSocket || logsFetchedRef.current) {
-      return
+      return;
     }
 
     // Show initialLogs immediately if available (for quick display)
     if (initialLogs.length > 0 && logs.length === 0) {
       const formattedLogs: LogEntry[] = initialLogs
-        .map((log) => ({
+        .map(log => ({
           id: `log-${logIdCounterRef.current++}-${log.timestamp}`,
           level: log.level,
           message: log.message,
           timestamp: log.timestamp,
           stage: log.stage,
         }))
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      setLogs(formattedLogs)
-      setIsLoading(false)
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      setLogs(formattedLogs);
+      setIsLoading(false);
     }
 
     const fetchLogs = async () => {
       try {
         // Only show loading if we don't have initialLogs
         if (initialLogs.length === 0) {
-          setIsLoading(true)
+          setIsLoading(true);
         }
-        const fetchedLogs = await api.getJobLogs(jobId, jobVersion || undefined)
-        logsFetchedRef.current = true
-        
+        const fetchedLogs = await api.getJobLogs(
+          jobId,
+          jobVersion || undefined
+        );
+        logsFetchedRef.current = true;
+
         if (fetchedLogs.length > 0) {
           const formattedLogs: LogEntry[] = fetchedLogs
-            .map((log) => ({
+            .map(log => ({
               id: `log-${logIdCounterRef.current++}-${log.timestamp}`,
               level: log.level,
               message: log.message,
@@ -138,71 +144,75 @@ export function StreamingLogsViewer({
               stage: log.stage,
             }))
             // Sort by timestamp (newest first)
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          setLogs(formattedLogs)
+            .sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+            );
+          setLogs(formattedLogs);
         }
-        setIsLoading(false)
+        setIsLoading(false);
       } catch (error) {
-        console.error('Failed to fetch logs:', error)
-        setIsLoading(false)
+        console.error('Failed to fetch logs:', error);
+        setIsLoading(false);
         // Keep initialLogs if REST API fails
       }
-    }
+    };
 
-    fetchLogs()
-  }, [enabled, useWebSocket, jobId, jobVersion, initialLogs, logs.length])
+    fetchLogs();
+  }, [enabled, useWebSocket, jobId, jobVersion, initialLogs, logs.length]);
 
   // Check scroll position - user is at top if scrollTop <= 10px
   const checkScrollPosition = useCallback(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-    const scrollTop = container.scrollTop
-    const threshold = 10
-    const isAtTop = scrollTop <= threshold
+    const scrollTop = container.scrollTop;
+    const threshold = 10;
+    const isAtTop = scrollTop <= threshold;
 
-    setAutoScroll(isAtTop)
-  }, [])
+    setAutoScroll(isAtTop);
+  }, []);
 
   // Handle scroll events
   useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
     const handleScroll = () => {
-      checkScrollPosition()
-    }
+      checkScrollPosition();
+    };
 
-    container.addEventListener('scroll', handleScroll, { passive: true })
+    container.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      container.removeEventListener('scroll', handleScroll)
-    }
-  }, [checkScrollPosition])
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [checkScrollPosition]);
 
   // Auto-scroll to top when new logs arrive (only if auto-scroll is enabled)
   useEffect(() => {
     if (!autoScroll || logs.length === 0) {
-      previousLogsLengthRef.current = logs.length
-      return
+      previousLogsLengthRef.current = logs.length;
+      return;
     }
 
-    const container = scrollContainerRef.current
+    const container = scrollContainerRef.current;
     if (!container) {
-      previousLogsLengthRef.current = logs.length
-      return
+      previousLogsLengthRef.current = logs.length;
+      return;
     }
 
     // Only auto-scroll if new logs were added
     if (logs.length > previousLogsLengthRef.current) {
       requestAnimationFrame(() => {
         if (container && autoScroll) {
-          container.scrollTop = 0
+          container.scrollTop = 0;
         }
-      })
+      });
     }
 
-    previousLogsLengthRef.current = logs.length
-  }, [logs, autoScroll])
+    previousLogsLengthRef.current = logs.length;
+  }, [logs, autoScroll]);
 
   // Load initial logs from job prop when component mounts (only for WebSocket mode or as fallback)
   useEffect(() => {
@@ -210,9 +220,9 @@ export function StreamingLogsViewer({
       // For WebSocket mode, use initialLogs as a starting point
       // For REST mode, we'll fetch via API, but initialLogs can be a fallback
       if (useWebSocket || (!useWebSocket && logs.length === 0)) {
-        setIsLoading(false)
+        setIsLoading(false);
         const formattedLogs: LogEntry[] = initialLogs
-          .map((log) => ({
+          .map(log => ({
             id: `log-${logIdCounterRef.current++}-${log.timestamp}`,
             level: log.level,
             message: log.message,
@@ -220,78 +230,89 @@ export function StreamingLogsViewer({
             stage: log.stage,
           }))
           // Sort by timestamp (newest first)
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        setLogs(formattedLogs)
-        initialLogsLoadedRef.current = true
-        
+          .sort(
+            (a, b) =>
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          );
+        setLogs(formattedLogs);
+        initialLogsLoadedRef.current = true;
+
         // Auto-scroll to top after initial load
         setTimeout(() => {
           if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop = 0
-            setAutoScroll(true)
+            scrollContainerRef.current.scrollTop = 0;
+            setAutoScroll(true);
           }
-        }, 100)
+        }, 100);
       }
     }
-  }, [initialLogs, useWebSocket, logs.length])
+  }, [initialLogs, useWebSocket, logs.length]);
 
   // Merge streamed logs (from WebSocket historical-logs) with existing logs
   useEffect(() => {
     if (streamedLogs.length > 0) {
-      setIsLoading(false)
+      setIsLoading(false);
       // Merge streamed logs with existing logs, avoiding duplicates
-      setLogs((prev) => {
-        const existingKeys = new Set(prev.map(log => `${log.timestamp}-${log.message}`));
+      setLogs(prev => {
+        const existingKeys = new Set(
+          prev.map(log => `${log.timestamp}-${log.message}`)
+        );
         const newLogs = streamedLogs
           .filter(log => !existingKeys.has(`${log.timestamp}-${log.message}`))
-          .map((log) => ({
+          .map(log => ({
             id: `log-${logIdCounterRef.current++}-${log.timestamp}`,
             level: log.level,
             message: log.message,
             timestamp: log.timestamp,
             stage: log.stage,
           }));
-        
+
         // Combine and sort by timestamp (newest first)
         const combined = [...prev, ...newLogs];
-        combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        combined.sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
         return combined;
       });
     }
-  }, [streamedLogs])
+  }, [streamedLogs]);
 
   // Reset when job changes or when disabled
   useEffect(() => {
     if (!enabled) {
-      setLogs([])
-      setIsLoading(true)
-      setAutoScroll(true)
-      logIdCounterRef.current = 0
-      previousLogsLengthRef.current = 0
-      initialLogsLoadedRef.current = false
-      logsFetchedRef.current = false
-      
+      setLogs([]);
+      setIsLoading(true);
+      setAutoScroll(true);
+      logIdCounterRef.current = 0;
+      previousLogsLengthRef.current = 0;
+      initialLogsLoadedRef.current = false;
+      logsFetchedRef.current = false;
+
       if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTop = 0
+        scrollContainerRef.current.scrollTop = 0;
       }
     } else {
       // Reset when jobId changes
-      setLogs([])
-      setIsLoading(true)
-      logIdCounterRef.current = 0
-      previousLogsLengthRef.current = 0
-      initialLogsLoadedRef.current = false
-      logsFetchedRef.current = false
+      setLogs([]);
+      setIsLoading(true);
+      logIdCounterRef.current = 0;
+      previousLogsLengthRef.current = 0;
+      initialLogsLoadedRef.current = false;
+      logsFetchedRef.current = false;
     }
-  }, [enabled, jobId])
+  }, [enabled, jobId]);
 
   if (!enabled) {
-    return null
+    return null;
   }
 
   return (
-    <div 
-      className={cn('flex flex-col border rounded-lg bg-background overflow-hidden', className)} 
+    <div
+      className={cn(
+        'flex flex-col border rounded-lg bg-background overflow-hidden',
+        className
+      )}
       style={{ height }}
     >
       {isLoading && useWebSocket && isConnected && (
@@ -300,11 +321,8 @@ export function StreamingLogsViewer({
           <span>Loading more logs...</span>
         </div>
       )}
-      
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-auto"
-      >
+
+      <div ref={scrollContainerRef} className="flex-1 overflow-auto">
         {logs.length === 0 && !isLoading && (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
             No logs available yet.
@@ -327,11 +345,13 @@ export function StreamingLogsViewer({
               </tr>
             </thead>
             <tbody>
-              {logs.map((log) => {
-                const normalizedLevel = log.level.toLowerCase()
-                const isError = normalizedLevel === 'error' || normalizedLevel === 'err'
-                const isWarning = normalizedLevel === 'warn' || normalizedLevel === 'warning'
-                
+              {logs.map(log => {
+                const normalizedLevel = log.level.toLowerCase();
+                const isError =
+                  normalizedLevel === 'error' || normalizedLevel === 'err';
+                const isWarning =
+                  normalizedLevel === 'warn' || normalizedLevel === 'warning';
+
                 return (
                   <tr
                     key={log.id}
@@ -344,38 +364,52 @@ export function StreamingLogsViewer({
                     <td className="p-2 text-xs">
                       <span>{getSeverityIcon(log.level)}</span>
                     </td>
-                    <td className={cn(
-                      'p-2 text-xs font-mono',
-                      isError ? 'text-destructive' : isWarning ? 'text-yellow-600' : 'text-muted-foreground'
-                    )}>
+                    <td
+                      className={cn(
+                        'p-2 text-xs font-mono',
+                        isError
+                          ? 'text-destructive'
+                          : isWarning
+                          ? 'text-yellow-600'
+                          : 'text-muted-foreground'
+                      )}
+                    >
                       {formatTimestamp(log.timestamp)}
                     </td>
                     <td className="p-2 text-xs break-words">
                       <div className="flex items-start gap-2">
                         {log.stage && (
-                          <span className={cn(
-                            'font-medium shrink-0',
-                            isError ? 'text-destructive' : isWarning ? 'text-yellow-600' : 'text-muted-foreground'
-                          )}>
+                          <span
+                            className={cn(
+                              'font-medium shrink-0',
+                              isError
+                                ? 'text-destructive'
+                                : isWarning
+                                ? 'text-yellow-600'
+                                : 'text-muted-foreground'
+                            )}
+                          >
                             [{log.stage}]
                           </span>
                         )}
-                        <span className={cn(
-                          isError && 'text-destructive font-medium',
-                          isWarning && 'text-yellow-600 font-medium',
-                          !isError && !isWarning && 'text-foreground'
-                        )}>
+                        <span
+                          className={cn(
+                            isError && 'text-destructive font-medium',
+                            isWarning && 'text-yellow-600 font-medium',
+                            !isError && !isWarning && 'text-foreground'
+                          )}
+                        >
                           {log.message}
                         </span>
                       </div>
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -18,18 +18,18 @@ const {
 
 /**
  * Queue Monitor Workflow
- * 
+ *
  * This workflow is triggered by a Temporal Schedule periodically (e.g., every 30 seconds).
  * Each agent has one schedule that monitors both queues and picks up tasks.
- * 
+ *
  * Priority: Checks rework queue first, then backlog queue
- * 
+ *
  * Conditions for processing:
  * 1. Agent is active
  * 2. Queue is not paused
  * 3. Agent doesn't have a job currently in-progress
  * 4. There's at least one job in the queue
- * 
+ *
  * This approach is better for horizontal scaling as:
  * - No long-running workflows with while loops
  * - Each execution is independent and can run on any worker
@@ -38,7 +38,11 @@ const {
  */
 export async function queueMonitorWorkflow(params: {
   agentId: string;
-}): Promise<{ processed: boolean; jobId?: string; queueType?: 'rework' | 'backlog' }> {
+}): Promise<{
+  processed: boolean;
+  jobId?: string;
+  queueType?: 'rework' | 'backlog';
+}> {
   const { agentId } = params;
 
   // Get agent info to get orgId and check status
@@ -54,8 +58,14 @@ export async function queueMonitorWorkflow(params: {
   await detectStuckJobs({ orgId });
 
   // Check if this agent already has a job in progress
-  const hasInProgressRework = await hasAgentInProgressJob({ agentId, queueType: 'rework' });
-  const hasInProgressBacklog = await hasAgentInProgressJob({ agentId, queueType: 'backlog' });
+  const hasInProgressRework = await hasAgentInProgressJob({
+    agentId,
+    queueType: 'rework',
+  });
+  const hasInProgressBacklog = await hasAgentInProgressJob({
+    agentId,
+    queueType: 'backlog',
+  });
   if (hasInProgressRework || hasInProgressBacklog) {
     return { processed: false };
   }
@@ -63,7 +73,7 @@ export async function queueMonitorWorkflow(params: {
   // Check queues in priority order: rework first, then backlog
   // This ensures rework jobs are always processed before backlog jobs
   const queueTypes: Array<'rework' | 'backlog'> = ['rework', 'backlog'];
-  
+
   for (const queueType of queueTypes) {
     // Check if queue is paused
     const paused = await isQueuePaused({ orgId, queueType });
@@ -82,12 +92,14 @@ export async function queueMonitorWorkflow(params: {
     // The job has already been removed from the queue and marked as in-progress
     try {
       await executeChild(jobExecutionWorkflow, {
-        args: [{
-          jobId: claimedJob.jobId,
-          orgId,
-          queueType,
-          agentId, // Assign job to this agent
-        }],
+        args: [
+          {
+            jobId: claimedJob.jobId,
+            orgId,
+            queueType,
+            agentId, // Assign job to this agent
+          },
+        ],
         workflowId: `job-execution-${claimedJob.jobId}`,
         workflowExecutionTimeout: '2 hours', // Long timeout for job execution
         workflowRunTimeout: '1 hour', // Individual run timeout
@@ -102,4 +114,3 @@ export async function queueMonitorWorkflow(params: {
   // No jobs found in either queue
   return { processed: false };
 }
-

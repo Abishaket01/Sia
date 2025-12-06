@@ -1,12 +1,13 @@
-import type { Job } from '@sia/models'
-import type { ActivityEvent } from '@/types'
+import type { Job } from '@sia/models';
+import type { ActivityEvent } from '@/types';
 
 export const MOCK_JOBS: Job[] = [
   {
     id: 'job-001',
     version: 1,
     generated_name: 'Stabilize onboarding flow',
-    generated_description: 'Investigate intermittent 400s when creating tenants.',
+    generated_description:
+      'Investigate intermittent 400s when creating tenants.',
     status: 'queued',
     priority: 'high',
     order_in_queue: 1,
@@ -78,7 +79,8 @@ export const MOCK_JOBS: Job[] = [
     id: 'job-004',
     version: 2,
     generated_name: 'Finalize billing PR #812',
-    generated_description: 'Resolve final comments on flexible billing rollout.',
+    generated_description:
+      'Resolve final comments on flexible billing rollout.',
     status: 'completed',
     priority: 'medium',
     order_in_queue: 0,
@@ -126,7 +128,8 @@ export const MOCK_JOBS: Job[] = [
     id: 'job-006',
     version: 1,
     generated_name: 'Deprecate legacy auth hooks',
-    generated_description: 'Remove unused OAuth1 entrypoints and add redirect guard.',
+    generated_description:
+      'Remove unused OAuth1 entrypoints and add redirect guard.',
     status: 'archived',
     priority: 'medium',
     order_in_queue: 0,
@@ -146,7 +149,7 @@ export const MOCK_JOBS: Job[] = [
     confidence_score: '0.71',
     pr_link: 'https://github.com/sia/platform/pull/1421',
   },
-]
+];
 
 export const MOCK_ACTIVITY_EVENTS: ActivityEvent[] = [
   {
@@ -170,5 +173,4 @@ export const MOCK_ACTIVITY_EVENTS: ActivityEvent[] = [
     timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     jobId: 'job-005',
   },
-]
-
+];

@@ -33,7 +33,7 @@ export class AgentStreamManager {
       this.unregisterStream(agentId);
     });
 
-    call.on('error', (error) => {
+    call.on('error', error => {
       console.error(`Stream error for agent ${agentId}:`, error);
       this.unregisterStream(agentId);
     });
@@ -91,10 +91,9 @@ export class AgentStreamManager {
 
   getAgentIdsByOrg(orgId: string): string[] {
     return Array.from(this.connections.values())
-      .filter((conn) => conn.orgId === orgId)
-      .map((conn) => conn.agentId);
+      .filter(conn => conn.orgId === orgId)
+      .map(conn => conn.agentId);
   }
 }
 
 export const agentStreamManager = new AgentStreamManager();
-

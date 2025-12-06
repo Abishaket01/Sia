@@ -9,6 +9,7 @@ This library contains **only generated code** and generation scripts. All source
 ## Generated Code
 
 The `src/generated/` directory contains auto-generated TypeScript code from:
+
 1. **Protocol Buffer files** (`.proto`) - gRPC service types and clients
 2. **OpenAPI specification** (`apps/api/openapi.json`) - REST API client SDK
 
@@ -27,6 +28,7 @@ npm run generate -w @sia/models
 ```
 
 This runs both generation scripts:
+
 - `generate-proto`: Generates TypeScript from proto files in `apps/agent/proto/`
 - `generate-api-client`: Generates TypeScript SDK from `apps/api/openapi.json`
 
@@ -47,6 +49,7 @@ npm run generate-api-client -w @sia/models
 Reads OpenAPI spec from `apps/api/openapi.json` and generates TypeScript client SDK in `src/generated/api-client/`.
 
 **Note**: The API must be built first to generate `openapi.json`:
+
 ```bash
 npx nx build @sia/api
 ```
@@ -78,21 +81,25 @@ import { JobsService } from '@sia/models';
 ## Workflow
 
 1. **Define models in source projects**:
+
    - Add/modify proto files in `apps/agent/proto/`
    - Add/modify API routes in `apps/api/src/routes/`
    - Update types in `apps/api/src/types.ts`
 
 2. **Build API** (generates `openapi.json`):
+
    ```bash
    npx nx build @sia/api
    ```
 
 3. **Generate code**:
+
    ```bash
    npm run generate -w @sia/models
    ```
 
 4. **Build models library**:
+
    ```bash
    npx nx build @sia/models
    ```

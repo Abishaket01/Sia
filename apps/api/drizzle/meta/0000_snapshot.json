@@ -138,10 +138,7 @@
       "compositePrimaryKeys": {
         "gpr_jobs_id_version_pk": {
           "name": "gpr_jobs_id_version_pk",
-          "columns": [
-            "id",
-            "version"
-          ]
+          "columns": ["id", "version"]
         }
       },
       "uniqueConstraints": {},
@@ -154,22 +151,12 @@
     "public.gpr_job_priority": {
       "name": "gpr_job_priority",
       "schema": "public",
-      "values": [
-        "low",
-        "medium",
-        "high"
-      ]
+      "values": ["low", "medium", "high"]
     },
     "public.gpr_job_status": {
       "name": "gpr_job_status",
       "schema": "public",
-      "values": [
-        "queued",
-        "in-progress",
-        "completed",
-        "failed",
-        "archived"
-      ]
+      "values": ["queued", "in-progress", "completed", "failed", "archived"]
     },
     "public.gpr_user_acceptance_status": {
       "name": "gpr_user_acceptance_status",
@@ -184,12 +171,7 @@
     "public.gpr_user_input_source": {
       "name": "gpr_user_input_source",
       "schema": "public",
-      "values": [
-        "slack",
-        "discord",
-        "mobile",
-        "gh-issues"
-      ]
+      "values": ["slack", "discord", "mobile", "gh-issues"]
     }
   },
   "schemas": {},

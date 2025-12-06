@@ -31,7 +31,10 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/kgm2xsf.css" />
       </head>
-      <body className={clsx('min-h-screen bg-background antialiased')} suppressHydrationWarning>
+      <body
+        className={clsx('min-h-screen bg-background antialiased')}
+        suppressHydrationWarning
+      >
         <Providers>
           <Layout>{children}</Layout>
         </Providers>

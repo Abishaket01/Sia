@@ -29,7 +29,7 @@ export async function jobExecutionWorkflow(params: {
   try {
     // Get job details
     const job = await getJobDetails({ jobId, orgId });
-    
+
     if (!job) {
       throw new Error('Job not found');
     }
@@ -50,7 +50,9 @@ export async function jobExecutionWorkflow(params: {
       jobId,
       orgId,
       level: 'info',
-      message: `Job details: prompt="${job.prompt?.substring(0, 100)}${job.prompt && job.prompt.length > 100 ? '...' : ''}", repoId=${job.repoId || 'none'}, agentId=${agentId || 'default'}`,
+      message: `Job details: prompt="${job.prompt?.substring(0, 100)}${
+        job.prompt && job.prompt.length > 100 ? '...' : ''
+      }", repoId=${job.repoId || 'none'}, agentId=${agentId || 'default'}`,
       stage: 'workflow',
     });
 
@@ -59,24 +61,34 @@ export async function jobExecutionWorkflow(params: {
       jobId,
       orgId,
       level: 'info',
-      message: `Starting: Get git credentials for repoId=${job.repoId || 'none'}`,
+      message: `Starting: Get git credentials for repoId=${
+        job.repoId || 'none'
+      }`,
       stage: 'workflow',
     });
-    const gitCredentials = await getGitCredentials({ jobId, orgId, repoId: job.repoId });
+    const gitCredentials = await getGitCredentials({
+      jobId,
+      orgId,
+      repoId: job.repoId,
+    });
     await logToJobActivity({
       jobId,
       orgId,
       level: 'info',
-      message: `Completed: Get git credentials - token obtained: ${gitCredentials?.token ? 'yes' : 'no'}, username: ${gitCredentials?.username || 'none'}`,
+      message: `Completed: Get git credentials - token obtained: ${
+        gitCredentials?.token ? 'yes' : 'no'
+      }, username: ${gitCredentials?.username || 'none'}`,
       stage: 'workflow',
     });
-    
+
     // Step 2: Get vibe coder credentials (Backend) - pass agentId to read from agent record
     await logToJobActivity({
       jobId,
       orgId,
       level: 'info',
-      message: `Starting: Get vibe coder credentials for agentId=${agentId || 'default'}`,
+      message: `Starting: Get vibe coder credentials for agentId=${
+        agentId || 'default'
+      }`,
       stage: 'workflow',
     });
     let vibeCoderCredentials;
@@ -86,7 +98,9 @@ export async function jobExecutionWorkflow(params: {
         jobId,
         orgId,
         level: 'info',
-        message: `Completed: Get vibe coder credentials - credentials obtained: ${vibeCoderCredentials ? 'yes' : 'no'}`,
+        message: `Completed: Get vibe coder credentials - credentials obtained: ${
+          vibeCoderCredentials ? 'yes' : 'no'
+        }`,
         stage: 'workflow',
       });
     } catch (error) {
@@ -102,7 +116,9 @@ export async function jobExecutionWorkflow(params: {
         jobId,
         orgId,
         level: 'error',
-        message: `Workflow aborting due to credentials failure. Please check agent configuration for agentId=${agentId || 'default'}`,
+        message: `Workflow aborting due to credentials failure. Please check agent configuration for agentId=${
+          agentId || 'default'
+        }`,
         stage: 'workflow',
       });
       // Update job status to failed with credentials error
@@ -110,25 +126,32 @@ export async function jobExecutionWorkflow(params: {
         jobId,
         orgId,
         status: 'failed',
-        error: error instanceof Error ? error.message : 'Failed to get vibe-agent credentials',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to get vibe-agent credentials',
       });
       throw error;
     }
-    
+
     // Step 3-5: Send command to agent to start execution
     // Agent will: clone repo, start cursor, execute task
     await logToJobActivity({
       jobId,
       orgId,
       level: 'info',
-      message: `Starting: Code generation execution - connecting to agent (agentId=${agentId || 'default'})`,
+      message: `Starting: Code generation execution - connecting to agent (agentId=${
+        agentId || 'default'
+      })`,
       stage: 'workflow',
     });
     await logToJobActivity({
       jobId,
       orgId,
       level: 'info',
-      message: `Sending startExecution command to agent with repoId=${job.repoId || 'none'}`,
+      message: `Sending startExecution command to agent with repoId=${
+        job.repoId || 'none'
+      }`,
       stage: 'workflow',
     });
     await sendCommandToAgent({
@@ -147,13 +170,14 @@ export async function jobExecutionWorkflow(params: {
       jobId,
       orgId,
       level: 'info',
-      message: 'Completed: Code generation execution - agent finished processing',
+      message:
+        'Completed: Code generation execution - agent finished processing',
       stage: 'workflow',
     });
 
     // Step 6: Code generation streams via gRPC (handled in activity)
     // Step 7: Execution completes (handled in startExecution)
-    
+
     // Step 7.a: Automatically run verification
     await logToJobActivity({
       jobId,
@@ -168,7 +192,7 @@ export async function jobExecutionWorkflow(params: {
       command: 'runVerification',
       payload: { agentId }, // Pass agentId to activity
     });
-    
+
     if (!verificationResult.success) {
       await logToJobActivity({
         jobId,
@@ -181,7 +205,9 @@ export async function jobExecutionWorkflow(params: {
         jobId,
         orgId,
         level: 'error',
-        message: `Verification errors: ${verificationResult.errors?.join(', ') || 'none provided'}`,
+        message: `Verification errors: ${
+          verificationResult.errors?.join(', ') || 'none provided'
+        }`,
         stage: 'workflow',
       });
       throw new Error(`Verification failed: ${verificationResult.message}`);
@@ -193,7 +219,7 @@ export async function jobExecutionWorkflow(params: {
       message: `Completed: Run verification - all checks passed`,
       stage: 'workflow',
     });
-    
+
     // Step 8-9: Automatically create PR (if repoId exists)
     let prResult = null;
     if (job.repoId) {
@@ -221,7 +247,7 @@ export async function jobExecutionWorkflow(params: {
         message: `Completed: Create pull request - PR link: ${prResult.prLink}`,
         stage: 'workflow',
       });
-      
+
       // Step 12: Backend updates PR in job and marks as in-review
       await logToJobActivity({
         jobId,
@@ -252,7 +278,7 @@ export async function jobExecutionWorkflow(params: {
         stage: 'workflow',
       });
     }
-    
+
     // Step 10-11: Automatically cleanup
     await logToJobActivity({
       jobId,
@@ -274,7 +300,7 @@ export async function jobExecutionWorkflow(params: {
       message: `Completed: Cleanup workspace - agent resources released`,
       stage: 'workflow',
     });
-    
+
     await logToJobActivity({
       jobId,
       orgId,
@@ -282,32 +308,38 @@ export async function jobExecutionWorkflow(params: {
       message: `Workflow execution completed successfully for job ${jobId}`,
       stage: 'workflow',
     });
-    
+
     await logToJobActivity({
       jobId,
       orgId,
       level: 'info',
-      message: `Final status: ${prResult?.prLink ? `PR created at ${prResult.prLink}` : 'No PR created (no repo configured)'}`,
+      message: `Final status: ${
+        prResult?.prLink
+          ? `PR created at ${prResult.prLink}`
+          : 'No PR created (no repo configured)'
+      }`,
       stage: 'workflow',
     });
-    
+
     return {
       prLink: prResult?.prLink,
       status: 'completed',
     };
-    
   } catch (error) {
     // Extract meaningful error message from Temporal errors
     let errorMessage = 'Unknown error';
     let errorStack: string | undefined;
     let errorCause: string | undefined;
-    
+
     if (error instanceof Error) {
       errorMessage = error.message;
       errorStack = error.stack;
-      
+
       // If it's a Temporal ActivityFailure, extract the underlying cause
-      if (errorMessage.includes('Activity task failed') || errorMessage.includes('ActivityFailure')) {
+      if (
+        errorMessage.includes('Activity task failed') ||
+        errorMessage.includes('ActivityFailure')
+      ) {
         // Check for cause property (Temporal wraps errors)
         const cause = (error as { cause?: unknown }).cause;
         if (cause instanceof Error) {
@@ -322,10 +354,12 @@ export async function jobExecutionWorkflow(params: {
           const stackLines = error.stack.split('\n');
           for (const line of stackLines) {
             // Look for error messages that aren't Temporal wrapper messages
-            if (line.includes('Error:') && 
-                !line.includes('Activity task failed') && 
-                !line.includes('ActivityFailure') &&
-                !line.includes('WorkflowExecutionFailedError')) {
+            if (
+              line.includes('Error:') &&
+              !line.includes('Activity task failed') &&
+              !line.includes('ActivityFailure') &&
+              !line.includes('WorkflowExecutionFailedError')
+            ) {
               const match = line.match(/Error:\s*(.+)/);
               if (match && match[1]) {
                 const extracted = match[1].trim();
@@ -340,7 +374,11 @@ export async function jobExecutionWorkflow(params: {
             // The actual error is usually right before the "at" line
             if (line.trim().startsWith('at ') && stackLines.indexOf(line) > 0) {
               const prevLine = stackLines[stackLines.indexOf(line) - 1];
-              if (prevLine && prevLine.includes('Error:') && !prevLine.includes('Activity task failed')) {
+              if (
+                prevLine &&
+                prevLine.includes('Error:') &&
+                !prevLine.includes('Activity task failed')
+              ) {
                 const match = prevLine.match(/Error:\s*(.+)/);
                 if (match && match[1]) {
                   errorMessage = match[1].trim();
@@ -352,7 +390,7 @@ export async function jobExecutionWorkflow(params: {
         }
       }
     }
-    
+
     // Log error details to generation logs for developer visibility
     await logToJobActivity({
       jobId,
@@ -361,7 +399,7 @@ export async function jobExecutionWorkflow(params: {
       message: `Workflow execution failed: ${errorMessage}`,
       stage: 'workflow',
     });
-    
+
     // Log the full error message if different from the extracted one
     if (error instanceof Error && error.message !== errorMessage) {
       await logToJobActivity({
@@ -372,7 +410,7 @@ export async function jobExecutionWorkflow(params: {
         stage: 'workflow',
       });
     }
-    
+
     // Log error cause if available
     if (errorCause) {
       await logToJobActivity({
@@ -383,19 +421,20 @@ export async function jobExecutionWorkflow(params: {
         stage: 'workflow',
       });
     }
-    
+
     // Log stack trace (truncated to avoid overwhelming logs, but keep first 20 lines)
     if (errorStack) {
       const stackLines = errorStack.split('\n');
       const relevantStack = stackLines
-        .filter(line => 
-          !line.includes('Activity task failed') && 
-          !line.includes('ActivityFailure') &&
-          !line.includes('WorkflowExecutionFailedError')
+        .filter(
+          line =>
+            !line.includes('Activity task failed') &&
+            !line.includes('ActivityFailure') &&
+            !line.includes('WorkflowExecutionFailedError')
         )
         .slice(0, 20)
         .join('\n');
-      
+
       if (relevantStack) {
         await logToJobActivity({
           jobId,
@@ -406,9 +445,10 @@ export async function jobExecutionWorkflow(params: {
         });
       }
     }
-    
+
     // Log error type for additional context
-    const errorType = error instanceof Error ? error.constructor.name : typeof error;
+    const errorType =
+      error instanceof Error ? error.constructor.name : typeof error;
     await logToJobActivity({
       jobId,
       orgId,
@@ -416,7 +456,7 @@ export async function jobExecutionWorkflow(params: {
       message: `Error type: ${errorType}`,
       stage: 'workflow',
     });
-    
+
     await logToJobActivity({
       jobId,
       orgId,
@@ -424,14 +464,14 @@ export async function jobExecutionWorkflow(params: {
       message: `Job status will be updated to 'failed'. Please review the error details above.`,
       stage: 'workflow',
     });
-    
+
     await updateJobStatus({
       jobId,
       orgId,
       status: 'failed',
       error: errorMessage,
     });
-    
+
     await logToJobActivity({
       jobId,
       orgId,
@@ -439,7 +479,7 @@ export async function jobExecutionWorkflow(params: {
       message: `[Workflow] Workflow execution terminated with error. Job marked as failed.`,
       stage: 'workflow',
     });
-    
+
     throw error;
   } finally {
     // Log workflow completion/termination
@@ -458,4 +498,3 @@ export async function jobExecutionWorkflow(params: {
     }
   }
 }
-

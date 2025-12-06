@@ -43,7 +43,9 @@ class AgentClient {
           onLog(log);
         } else {
           const timestamp = new Date(log.timestamp).toLocaleTimeString();
-          const prefix = `[${timestamp}] [${log.level.toUpperCase()}] [${log.stage}]`;
+          const prefix = `[${timestamp}] [${log.level.toUpperCase()}] [${
+            log.stage
+          }]`;
           console.log(`${prefix} ${log.message}`);
         }
       });
@@ -98,5 +100,10 @@ class AgentClient {
   }
 }
 
-export type { ExecuteJobOptions, LogMessage, HintJobResponse, CancelJobResponse };
+export type {
+  ExecuteJobOptions,
+  LogMessage,
+  HintJobResponse,
+  CancelJobResponse,
+};
 export { AgentClient };

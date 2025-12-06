@@ -1,14 +1,8 @@
-"use client"
-import React, { createContext, useContext, useEffect, useState } from "react";
-import {
-  OrgMemberInfoClass,
-  useAuthInfo,
-  User,
-} from "@propelauth/react";
-import { toast } from "react-toastify";
-import { setTokenGetter, setUserIdGetter } from "@/lib/api";
-
-
+'use client';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { OrgMemberInfoClass, useAuthInfo, User } from '@propelauth/react';
+import { toast } from 'react-toastify';
+import { setTokenGetter, setUserIdGetter } from '@/lib/api';
 
 interface AuthContextType {
   accessToken: string | null | undefined;
@@ -33,7 +27,9 @@ const AuthContext = createContext<AuthContextType>({
   user: {} as User,
   isLoading: true,
   trataClientConfig: {} as TrataClientConfigType,
-  refreshToken: async () => { },
+  refreshToken: async () => {
+    // Default no-op implementation
+  },
 });
 
 export const AuthContextProvider = ({
@@ -61,12 +57,12 @@ export const AuthContextProvider = ({
 
         // Find the preferred org in the available orgs
         const preferredOrg = preferredOrgId
-          ? orgs.find((o) => o.orgId === preferredOrgId)
+          ? orgs.find(o => o.orgId === preferredOrgId)
           : null;
 
         // If preferred org exists and is available, use it
         if (preferredOrg) {
-          setActiveOrg((current) => {
+          setActiveOrg(current => {
             // Only update if it's different to avoid unnecessary re-renders
             if (current?.orgId !== preferredOrg.orgId) {
               return preferredOrg;
@@ -76,9 +72,10 @@ export const AuthContextProvider = ({
         }
         // If no preferred org or it's not available, use first org
         else {
-          setActiveOrg((current) => {
+          setActiveOrg(current => {
             // Only update if current org is not in the list or if we don't have one
-            const foundActive = current && orgs.find((o) => o.orgId === current.orgId);
+            const foundActive =
+              current && orgs.find(o => o.orgId === current.orgId);
             if (foundActive) {
               return current; // Keep current if it's still valid
             } else {
@@ -90,7 +87,7 @@ export const AuthContextProvider = ({
         }
       } else {
         // No orgs available, clear activeOrg only if it's not already null
-        setActiveOrg((current) => current !== null ? null : current);
+        setActiveOrg(current => (current !== null ? null : current));
       }
     }
   }, [userClass?.userId]); // Only depend on userId, not the entire userClass or activeOrg
@@ -99,19 +96,19 @@ export const AuthContextProvider = ({
     if (activeOrg) {
       try {
         const token = await authInfo.tokens.getAccessTokenForOrg(
-          activeOrg.orgId,
+          activeOrg.orgId
         );
         if (token) {
           setTrataClientConfig(createTrataConfig(token.accessToken));
         }
       } catch (error) {
-        console.error("Error refreshing token", error);
-        toast.error("Failed to refresh session", {
-          toastId: "token-refresh-failed",
+        console.error('Error refreshing token', error);
+        toast.error('Failed to refresh session', {
+          toastId: 'token-refresh-failed',
         });
       }
     } else {
-      console.warn("Cannot refresh token: no active organization");
+      console.warn('Cannot refresh token: no active organization');
     }
   };
 
@@ -120,13 +117,13 @@ export const AuthContextProvider = ({
       if (activeOrg) {
         try {
           const token = await authInfo.tokens.getAccessTokenForOrg(
-            activeOrg.orgId,
+            activeOrg.orgId
           );
           if (token) {
             setTrataClientConfig(createTrataConfig(token.accessToken));
           }
         } catch (error) {
-          console.error("Error setting up config", error);
+          console.error('Error setting up config', error);
         }
       }
     };
@@ -140,13 +137,13 @@ export const AuthContextProvider = ({
       return true;
     }
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      const payload = JSON.parse(atob(token.split('.')[1]));
       const expiryTime = payload.exp * 1000; // convert to milliseconds
       const currentTime = Date.now();
       const fiveMinutes = 5 * 60 * 1000;
       return expiryTime - currentTime < fiveMinutes;
     } catch (e) {
-      console.error("Error parsing token:", e);
+      console.error('Error parsing token:', e);
       return true; // refresh token on error to be safe
     }
   };
@@ -202,12 +199,14 @@ export const AuthContextProvider = ({
             }
 
             if (process.env.NODE_ENV === 'development') {
-              console.log('[AuthProvider] Fetching fresh org token from PropelAuth');
+              console.log(
+                '[AuthProvider] Fetching fresh org token from PropelAuth'
+              );
             }
 
             // Get fresh token for org (PropelAuth will refresh if needed)
             const tokenData = await authInfo.tokens.getAccessTokenForOrg(
-              activeOrg.orgId,
+              activeOrg.orgId
             );
 
             if (tokenData?.accessToken) {
@@ -220,7 +219,9 @@ export const AuthContextProvider = ({
             }
 
             if (process.env.NODE_ENV === 'development') {
-              console.warn('[AuthProvider] No access token in tokenData for org');
+              console.warn(
+                '[AuthProvider] No access token in tokenData for org'
+              );
             }
 
             cachedToken = null;
@@ -261,7 +262,7 @@ export const AuthContextProvider = ({
             return null;
           }
         } catch (error) {
-          console.error("[AuthProvider] Error getting token for API:", error);
+          console.error('[AuthProvider] Error getting token for API:', error);
           cachedToken = null;
           cachedOrgId = null;
           return null;
@@ -269,7 +270,9 @@ export const AuthContextProvider = ({
       });
     } else {
       if (process.env.NODE_ENV === 'development') {
-        console.warn('[AuthProvider] No authInfo, setting token getter to null');
+        console.warn(
+          '[AuthProvider] No authInfo, setting token getter to null'
+        );
       }
       setUserIdGetter(() => null);
       setTokenGetter(() => null);
@@ -279,7 +282,7 @@ export const AuthContextProvider = ({
 
   const createTrataConfig = (token?: string): TrataClientConfigType => {
     if (!token) {
-      console.warn("Creating config without token");
+      console.warn('Creating config without token');
     }
 
     const config: TrataClientConfigType = {
@@ -290,14 +293,14 @@ export const AuthContextProvider = ({
           // Only refresh if current token is about to expire
           if (activeOrg && token && shouldRefreshToken(token)) {
             const freshToken = await authInfo.tokens.getAccessTokenForOrg(
-              activeOrg.orgId,
+              activeOrg.orgId
             );
             if (freshToken) {
               // Update the header with new token
               context.init.headers = {
                 ...context.init.headers,
                 Authorization: `Bearer ${freshToken.accessToken}`,
-                "x-trata-environment": "all",
+                'x-trata-environment': 'all',
               };
               // Update the state with new token - this will trigger a re-render with new config
               setTrataClientConfig(createTrataConfig(freshToken.accessToken));
@@ -307,48 +310,54 @@ export const AuthContextProvider = ({
             context.init.headers = {
               ...context.init.headers,
               Authorization: `Bearer ${token}`,
-              "x-trata-environment": "all",
+              'x-trata-environment': 'all',
             };
           }
           return context;
         },
-        onError: async (error: { response?: { status?: number; data?: { detail?: string } }; message?: string }) => {
+        onError: async (error: {
+          response?: { status?: number; data?: { detail?: string } };
+          message?: string;
+        }) => {
           if (error?.response?.status === 401) {
             toast.error(
               error.response?.data?.detail ||
-              "Session expired, please login again",
+                'Session expired, please login again',
               {
-                toastId: "session-expired",
-              },
+                toastId: 'session-expired',
+              }
             );
-          } else if (error?.message === "Network Error") {
+          } else if (error?.message === 'Network Error') {
             toast.error(
               error.response?.data?.detail ||
-              "Network Error, please try again later",
+                'Network Error, please try again later',
               {
-                toastId: "network-error",
-              },
+                toastId: 'network-error',
+              }
             );
           } else if (error?.response?.status === 403) {
             toast.error(
               error.response?.data?.detail ||
-              "You are not authorized to perform this operation",
+                'You are not authorized to perform this operation',
               {
-                toastId: "unauthorized",
-              },
+                toastId: 'unauthorized',
+              }
             );
           } else if (error?.response?.status === 404) {
             toast.error(
               error.response?.data?.detail ||
-              "Request failed with status code 404",
+                'Request failed with status code 404',
               {
-                toastId: "not found",
-              },
+                toastId: 'not found',
+              }
             );
           } else if (error?.response?.status === 500) {
-            toast.error(error.response?.data?.detail || "Internal server error", {
-              toastId: "internal-server-error",
-            });
+            toast.error(
+              error.response?.data?.detail || 'Internal server error',
+              {
+                toastId: 'internal-server-error',
+              }
+            );
           }
 
           throw error;
@@ -378,7 +387,7 @@ export const AuthContextProvider = ({
 export const useUserAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthContextProvider");
+    throw new Error('useAuth must be used within an AuthContextProvider');
   }
   return context;
 };

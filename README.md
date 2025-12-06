@@ -1,245 +1,148 @@
 # <a alt="Sia logo" href="https://getpullrequest.com" target="_blank" rel="noreferrer"><img src="apps/landing-page/public/favicon.svg" width="40"></a> Sia
 
+<div align="center">
+  <img src="apps/landing-page/public/banner.jpg" alt="Sia - Wake Up To Ready Pull Requests" />
+</div>
+
 > ⚠️ **Pre-alpha** - This project is under active development and not ready for production use.
 
 Sia is an AI Developer Assistant that automates small, well-defined coding tasks and creates ready-to-review Pull Requests (PRs) while the human developer is offline or sleeping.
 
-## Tech Stack
+## What is Sia?
 
-| Layer | Tech |
-|-------|------|
-| Monorepo | Nx |
-| Frontend | Next.js, TailwindCSS, shadcn/ui, TanStack Query |
-| Backend | Fastify (REST), WebSocket (logs), gRPC (agents) |
-| Database | PostgreSQL + Drizzle ORM |
-| Workflows | Temporal |
-| Auth | PropelAuth |
+Sia is your autonomous coding partner that works around the clock. Delegate coding tasks through Slack or Discord, and wake up to ready-to-review pull requests. Sia integrates with AI coding assistants like Claude Agent and Aider to execute tasks, run tests, and create PRs automatically.
 
-## Workspace Structure
+## Key Features
 
-- **`apps/web`** - Next.js frontend (desktop/tablet only, 768px+)
-- **`apps/api`** - Fastify backend + gRPC server
-- **`apps/agent`** - AI agent that runs on cloud dev machines
-- **`apps/cli`** - Command line interface
-- **`libs/models`** - Shared types, protobuf, OpenAPI client
+### 🤖 Delegate via Chat
 
-## Quick Rules
+Assign tasks through Slack or Discord. Just mention `@sia` with your task and she handles the rest. No need to switch contexts or open additional tools.
 
-- Use strict TypeScript everywhere - avoid `any`/`unknown`
-- Never edit files in `generated/` folders
-- Run `npm run build:all` after changes to verify everything compiles
-- Check `.kiro/steering/` for detailed frontend/backend guidelines
+### 🔄 Automatic PRs
 
-## Prerequisites
+Sia integrates with Claude Agent and Aider to execute tasks and create pull requests automatically. Each PR is ready for review with proper commits, tests, and documentation.
 
-- Node.js (v18+ recommended)
-- npm
+### ⏰ 24/7 Execution
+
+Tasks run continuously, even when you're offline. Turn idle hours into productive development time. Queue multiple tasks and let Sia work through them systematically.
+
+### 📱 Mobile Control
+
+Review progress, merge PRs, or request rework directly from your phone without opening a laptop. Stay connected to your development workflow from anywhere.
+
+### ⚡ Smart Queue
+
+Prioritize, pause, or cancel tasks from chat. Sia manages execution order intelligently, ensuring important tasks get attention first.
+
+### 📈 Learning Assistant
+
+Over time, Sia learns your working style and suggests priorities to improve code quality. The more you use Sia, the better she understands your preferences.
+
+## Platform Capabilities
+
+### Job Board Dashboard
+
+Visualize your entire workflow at a glance. Track tasks from queue to completion with an intuitive job board. See what Sia is working on, what's in the pipeline, and what's been delivered.
+
+### Recent Activity Feed
+
+Stay updated with real-time activity tracking. Monitor every action Sia takes, from code commits to PR creation. Never miss a beat with detailed activity logs and notifications.
+
+### Agent Management
+
+Configure and manage your AI agents with precision. Set up custom workflows, define task priorities, and optimize agent performance. Full control over your autonomous development team.
+
+### Seamless Integrations
+
+Connect with your favorite tools effortlessly. Slack, Discord, GitHub, and more. Sia fits right into your existing workflow, no disruption required.
+
+## How It Works
+
+1. **Delegate** - Assign a coding task via Slack, Discord, or the web interface
+2. **Queue** - Sia adds your task to the smart queue and prioritizes it
+3. **Execute** - AI agents work on your task, writing code, running tests, and fixing issues
+4. **Review** - Wake up to a ready-to-review pull request with all changes documented
+5. **Merge** - Review and merge directly from your phone or desktop
+
+## Architecture
+
+Sia follows a distributed architecture:
+
+- **Web UI & Chat Apps** - User interfaces for Slack, Discord, and web dashboard
+- **Backend Server** - Orchestrates job management, agent coordination, and communication
+- **AI Agents** - Run on cloud dev machines, executing coding tasks using AI assistants
+- **gRPC Communication** - Reliable, bidirectional streaming between backend and agents
+
+For detailed architecture documentation, design specifications, and implementation details, see [`.kiro/specs`](./.kiro/specs/) which contains comprehensive documentation for each component:
+
+- Platform architecture and requirements
+- API server design and implementation
+- Web frontend specifications
+- SIA agent architecture
+- CLI application design
+- Chat platform integrations
+- Temporal task queue system
+- Shared models and data structures
 
 ## Getting Started
 
-### Install Dependencies
+### Prerequisites
 
-```sh
-npm install
-```
+- Node.js (v18+ recommended)
+- npm
+- PostgreSQL (for backend)
+- GitHub account (for repository access)
 
-## Managing Dependencies
+### Quick Start
 
-This workspace uses **npm workspaces** for dependency management. Here's the recommended approach:
+1. **Clone the repository**
 
-### **Recommendation: Add project-specific dependencies to the project's `package.json`**
+   ```sh
+   git clone https://github.com/your-org/oss-sia.git
+   cd oss-sia
+   ```
 
-For dependencies that are specific to a single project (like `@tanstack/react-query` for the web app, or `fastify` for the API), add them to the project's own `package.json` file.
+2. **Install dependencies**
 
-**Why?**
-- Keeps dependencies scoped to where they're used
-- Makes it clear which project uses which dependencies
-- Better for code splitting and bundle optimization
-- Easier to maintain and understand project boundaries
+   ```sh
+   npm install
+   ```
 
-### Adding Dependencies
+3. **Set up environment variables**
 
-#### Add to a specific project (Recommended)
+   ```sh
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-Use the `-w` (workspace) flag to add dependencies to a specific project:
+4. **Run the development servers**
 
-```sh
-# Add to web app
-npm install <package-name> -w apps/web
+   ```sh
+   # Terminal 1: Web UI
+   npx nx serve @sia/web
 
-# Add to API server
-npm install <package-name> -w apps/api
+   # Terminal 2: API Server
+   npx nx serve @sia/api
+   ```
 
-# Add as dev dependency
-npm install <package-name> -D -w apps/web
-```
+5. **Access the application**
+   - Web UI: [http://localhost:3000](http://localhost:3000)
+   - API Server: [http://localhost:3001](http://localhost:3001)
 
-**Examples:**
-```sh
-# Add TanStack Query to web app
-npm install @tanstack/react-query -w apps/web
+> **Note:** After authentication is added, auth may not work on localhost endpoints. Use ngrok for development in that case.
 
-# Add a dev dependency to API
-npm install @types/node -D -w apps/api
-```
+## Documentation
 
-#### Add to root (for shared dependencies)
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development setup, coding standards, and contribution guidelines
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
+- **[AGENTS.md](./AGENTS.md)** - Guidelines for AI agents working with this codebase
+- **[`.kiro/specs/`](./.kiro/specs/)** - Detailed architecture specifications, design documents, and requirements for all components
 
-Only add dependencies to the root `package.json` if they're shared across multiple projects or are workspace-level tools:
+## Learn More
 
-```sh
-# Add shared dependency
-npm install <package-name> -w .
+- **Website:** [getpullrequest.com](https://getpullrequest.com)
+- **Documentation:** See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed development documentation
 
-# Add shared dev dependency-
-npm install <package-name> -D -w .
-```
+## Status
 
-**Examples of root-level dependencies:**
-- Build tools (`@nx/next`, `@nx/js`)
-- Testing frameworks (`jest`, `@testing-library/react`)
-- Linting tools (`eslint`, `prettier`)
-- TypeScript (`typescript`, `@types/node`)
-
-### Summary
-
-| Dependency Type | Location | Command |
-|----------------|----------|---------|
-| Project-specific runtime | `apps/<project>/package.json` | `npm install <pkg> -w apps/<project>` |
-| Project-specific dev | `apps/<project>/package.json` | `npm install <pkg> -D -w apps/<project>` |
-| Shared runtime | Root `package.json` | `npm install <pkg> -w .` |
-| Shared dev tools | Root `package.json` | `npm install <pkg> -D -w .` |
-
-## Running Applications
-
-### Run Web Application (Frontend)
-
-Start the Next.js development server:
-
-```sh
-npx nx serve @sia/web
-```
-
-or
-
-```sh
-npx nx dev @sia/web
-```
-
-The web app will be available at [http://localhost:3000](http://localhost:3000)
-
-after authentication added the auth is not work on localhost endpoint for that case use ngrok for development.
-
-### Run API Server (Backend)
-
-Start the Fastify API server:
-
-```sh
-npx nx serve @sia/api
-```
-
-The API server will be available at [http://localhost:3001](http://localhost:3001)
-
-### Run Both Applications Simultaneously
-
-Open two terminal windows and run each command:
-
-**Terminal 1:**
-```sh
-npx nx serve @sia/web
-```
-
-**Terminal 2:**
-```sh
-npx nx serve @sia/api
-```
-
-Alternatively, you can use a process manager like `concurrently`:
-
-```sh
-npx concurrently "nx serve @sia/web" "nx serve @sia/api"
-```
-
-## Available Commands
-
-### Web Application (`@sia/web`)
-
-| Command | Description |
-|---------|-------------|
-| `npx nx serve @sia/web` | Start development server |
-| `npx nx dev @sia/web` | Start development server (alias) |
-| `npx nx build @sia/web` | Build for production |
-| `npx nx start @sia/web` | Start production server (requires build first) |
-| `npx nx lint @sia/web` | Run ESLint |
-| `npx nx test @sia/web` | Run tests |
-
-### API Server (`@sia/api`)
-
-| Command | Description |
-|---------|-------------|
-| `npx nx serve @sia/api` | Start development server |
-| `npx nx build @sia/api` | Build for production |
-| `npx nx lint @sia/api` | Run ESLint |
-| `npx nx typecheck @sia/api` | Run TypeScript type checking |
-npx nx run-many --target=build --all
-### General Commands
-
-| Command | Description |
-|---------|-------------|
-| `npx nx graph` | Visualize project dependencies |
-| `npx nx show project <project-name>` | Show all available targets for a project |
-| `` | Build all projects |
-| `npx nx run-many --target=lint --all` | Lint all projects |
-| `npx nx run-many --target=test --all` | Test all projects |
-
-### DB Migration Commands
-`npm run db:generate -w @sia/api -- --name={name of migration}`
-`npm run db:migrate -w @sia/api`
-
-## API Endpoints
-
-The Fastify API server includes:
-
-- `GET /` - Hello world endpoint returning `{ hello: 'world' }`
-
-## Building for Production
-
-### Build Web Application
-
-```sh
-npx nx build @sia/web
-```
-
-### Build API Server
-
-```sh
-npx nx build @sia/api
-```
-
-### Build All Projects
-
-```sh
-npx nx run-many --target=build --all
-```
-
-## Development
-
-### Type Checking
-
-```sh
-npx nx typecheck @sia/api
-```
-
-### Linting
-
-```sh
-npx nx lint @sia/web
-npx nx lint @sia/api
-```
-
-### Testing
-
-```sh
-npx nx test @sia/web
-```
-
+This project is in **pre-alpha** and under active development. Features and APIs may change without notice. We welcome contributions and feedback!

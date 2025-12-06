@@ -88,7 +88,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Body: CreateAgentRequest }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Body: CreateAgentRequest }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { name, host, port, ip, status } = request.body;
@@ -111,7 +114,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
           lastActive: null,
         };
 
-        const createdAgentResult = await db.insert(agents).values(newAgent).returning();
+        const createdAgentResult = await db
+          .insert(agents)
+          .values(newAgent)
+          .returning();
         const createdAgent = createdAgentResult[0];
 
         // If agent is created as active, start schedule
@@ -121,7 +127,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
             // Also initialize in database (for tracking)
             await initializeScheduleForAgent(agentId, user.orgId);
           } catch (error) {
-            fastify.log.warn({ error }, `Failed to start schedule for agent ${agentId}`);
+            fastify.log.warn(
+              { error },
+              `Failed to start schedule for agent ${agentId}`
+            );
             // Don't fail the request, schedule can be started later
           }
         }
@@ -194,7 +203,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -345,7 +357,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: UpdateAgentRequest }>,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: UpdateAgentRequest;
+      }>,
       reply: FastifyReply
     ) => {
       try {
@@ -397,7 +412,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
               await queueWorkflowService.pauseAgentSchedules(id);
             }
           } catch (error) {
-            fastify.log.warn({ error }, `Failed to update schedule for agent ${id}`);
+            fastify.log.warn(
+              { error },
+              `Failed to update schedule for agent ${id}`
+            );
             // Don't fail the request, schedules can be updated later
           }
         }
@@ -470,7 +488,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -490,7 +511,10 @@ async function agentsRoutes(fastify: FastifyInstance) {
           const scheduleId = `queue-schedule-${id}`;
           await queueWorkflowService.deleteSchedule(scheduleId);
         } catch (error) {
-          fastify.log.warn({ error }, `Failed to delete schedule for agent ${id}`);
+          fastify.log.warn(
+            { error },
+            `Failed to delete schedule for agent ${id}`
+          );
           // Continue with agent deletion even if schedule deletion fails
         }
 
@@ -510,4 +534,3 @@ async function agentsRoutes(fastify: FastifyInstance) {
 }
 
 export default agentsRoutes;
-

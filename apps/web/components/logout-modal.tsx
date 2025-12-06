@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   Dialog,
@@ -7,31 +7,30 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { useLogoutFunction } from "@propelauth/react"
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { useLogoutFunction } from '@propelauth/react';
 
 interface LogoutIndicationModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const LogoutIndicationModal = ({
   isOpen,
   onClose,
 }: LogoutIndicationModalProps) => {
-  const logout = useLogoutFunction()
+  const logout = useLogoutFunction();
 
   const handleConfirmLogout = async () => {
     try {
       await logout(false);
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error('Error during logout:', error);
     } finally {
       onClose();
     }
   };
-
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -39,7 +38,8 @@ export const LogoutIndicationModal = ({
         <DialogHeader>
           <DialogTitle>Log out</DialogTitle>
           <DialogDescription>
-            Are you sure you want to log out? You&apos;ll need to sign in again to access your account.
+            Are you sure you want to log out? You&apos;ll need to sign in again
+            to access your account.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -52,6 +52,5 @@ export const LogoutIndicationModal = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
-
+  );
+};

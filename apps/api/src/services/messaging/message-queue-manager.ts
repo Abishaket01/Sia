@@ -72,11 +72,14 @@ export class MessageQueueManager {
       }
     }
 
-    logger?.info({ 
-      queueSize: this.queue.length,
-      priority,
-      messageId: message.id 
-    }, 'Message enqueued');
+    logger?.info(
+      {
+        queueSize: this.queue.length,
+        priority,
+        messageId: message.id,
+      },
+      'Message enqueued'
+    );
   }
 
   /**
@@ -101,11 +104,14 @@ export class MessageQueueManager {
     const item = this.queue.shift()!;
 
     try {
-      item.logger?.info({ 
-        messageId: item.message.id,
-        priority: item.priority,
-        queueSize: this.queue.length 
-      }, 'Processing queued message');
+      item.logger?.info(
+        {
+          messageId: item.message.id,
+          priority: item.priority,
+          queueSize: this.queue.length,
+        },
+        'Processing queued message'
+      );
 
       await conversationManager.handleMessage(
         item.message,
@@ -114,7 +120,10 @@ export class MessageQueueManager {
         item.logger
       );
     } catch (error) {
-      item.logger?.error({ err: error, messageId: item.message.id }, 'Error processing queued message');
+      item.logger?.error(
+        { err: error, messageId: item.message.id },
+        'Error processing queued message'
+      );
     } finally {
       this.processing = false;
     }
@@ -146,4 +155,3 @@ export class MessageQueueManager {
 }
 
 export const messageQueueManager = new MessageQueueManager();
-

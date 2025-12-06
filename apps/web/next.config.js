@@ -1,8 +1,7 @@
 //@ts-check
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { composePlugins, withNx } = require('@nx/next');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const webpack = require('webpack');
 
 /**
@@ -18,18 +17,18 @@ const nextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         'form-data': false,
-        'fs': false,
-        'tls': false,
-        'net': false,
-        'crypto': false,
-        'stream': false,
-        'url': false,
-        'zlib': false,
-        'http': false,
-        'https': false,
-        'assert': false,
-        'os': false,
-        'path': false,
+        fs: false,
+        tls: false,
+        net: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
       };
       // Ignore gRPC code in browser (only needed for Node.js)
       config.plugins = config.plugins || [];

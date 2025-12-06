@@ -47,7 +47,7 @@ export enum IntentType {
   RESUME_EXECUTION = 'resume_execution',
   LIST_PR_REVIEWS = 'list_pr_reviews',
   GENERAL_CHAT = 'general_chat',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
 }
 
 export interface ClassifiedIntent {

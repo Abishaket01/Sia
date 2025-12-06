@@ -3,7 +3,6 @@ import { Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import WaitlistModal from './WaitlistModal';
 
-
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -25,26 +24,28 @@ export default function Navbar() {
     { name: 'Blogs', href: '/blogs', isRoute: true },
   ];
 
-
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-[1000] flex justify-center pt-4 pb-4 px-4 ">
       <div
-        className={`w-full max-w-screen-2xl mx-auto rounded-2xl transition-all duration-300 ${isScrolled
-          ? 'bg-background/50 backdrop-blur-sm border border-white/10'
-          : 'bg-transparent'
-          }`}
+        className={`w-full max-w-screen-2xl mx-auto rounded-2xl transition-all duration-300 ${
+          isScrolled
+            ? 'bg-background/50 backdrop-blur-sm border border-white/10'
+            : 'bg-transparent'
+        }`}
       >
         <div className="flex items-center justify-between  px-6 p-6 h-16 ">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
+          >
             <img src="/sia-icon-dark.svg" alt="SIA" width={48} height={48} />
             <span className="text-subheading font-medium">SIA</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) =>
+            {navLinks.map(link =>
               link.isRoute ? (
                 <Link
                   key={link.name}
@@ -63,7 +64,6 @@ export default function Navbar() {
                 </a>
               )
             )}
-
           </div>
 
           {/* Right Side Actions */}
@@ -106,7 +106,11 @@ export default function Navbar() {
               className="text-white"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
@@ -115,7 +119,7 @@ export default function Navbar() {
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 mt-2 border-t border-white/10 rounded-b-2xl bg-background/95 backdrop-blur-md">
             <div className="flex flex-col gap-4 px-6">
-              {navLinks.map((link) =>
+              {navLinks.map(link =>
                 link.isRoute ? (
                   <Link
                     key={link.name}
@@ -150,7 +154,10 @@ export default function Navbar() {
         )}
       </div>
 
-      <WaitlistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <WaitlistModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </nav>
   );
 }

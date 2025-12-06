@@ -25,4 +25,3 @@ export async function updateAgentStatus(params: {
     .set(updateData)
     .where(eq(schema.agents.id, agentId));
 }
-

@@ -1,12 +1,28 @@
 import type { SourceMetadata } from './db/schema';
 
-export type JobStatus = 'queued' | 'in-progress' | 'in-review' | 'completed' | 'failed' | 'archived';
+export type JobStatus =
+  | 'queued'
+  | 'in-progress'
+  | 'in-review'
+  | 'completed'
+  | 'failed'
+  | 'archived';
 export type JobPriority = 'low' | 'medium' | 'high';
 export type AgentStatus = 'active' | 'idle' | 'offline';
 export type IntegrationStatus = 'connected' | 'disconnected';
 export type UserInputSource = 'slack' | 'discord' | 'mobile' | 'gh-issues';
-export type UserAcceptanceStatus = 'not_reviewed' | 'reviewed_and_accepted' | 'reviewed_and_asked_rework' | 'rejected';
-export type ActivityEventType = 'pr_created' | 'job_failed' | 'job_completed' | 'job_started' | 'agent_connected' | 'agent_disconnected';
+export type UserAcceptanceStatus =
+  | 'not_reviewed'
+  | 'reviewed_and_accepted'
+  | 'reviewed_and_asked_rework'
+  | 'rejected';
+export type ActivityEventType =
+  | 'pr_created'
+  | 'job_failed'
+  | 'job_completed'
+  | 'job_started'
+  | 'agent_connected'
+  | 'agent_disconnected';
 // ActivityStatus removed - activities now only track read/unread status per user
 // All job details are in the summary field
 
@@ -115,4 +131,3 @@ export interface UpdateAgentRequest {
   ip?: string;
   status?: AgentStatus;
 }
-

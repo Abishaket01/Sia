@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import { Sidebar } from './sidebar'
-import { Navbar } from './navbar'
-import { SidebarProvider, SidebarInset } from './ui/sidebar'
+import { Sidebar } from './sidebar';
+import { Navbar } from './navbar';
+import { SidebarProvider, SidebarInset } from './ui/sidebar';
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
@@ -19,6 +19,5 @@ export function Layout({ children }: LayoutProps) {
         </SidebarInset>
       </SidebarProvider>
     </div>
-  )
+  );
 }
-

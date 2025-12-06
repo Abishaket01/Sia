@@ -14,27 +14,19 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "slack"
-                ]
+                "enum": ["slack"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "discord"
-                ]
+                "enum": ["discord"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "mobile"
-                ]
+                "enum": ["mobile"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "gh-issues"
-                ]
+                "enum": ["gh-issues"]
               }
             ]
           },
@@ -56,11 +48,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "channelId",
-                  "threadId",
-                  "threadTimestamp"
-                ]
+                "required": ["channelId", "threadId", "threadTimestamp"]
               },
               {
                 "type": "object",
@@ -75,11 +63,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "channelId",
-                  "threadId",
-                  "threadTimestamp"
-                ]
+                "required": ["channelId", "threadId", "threadTimestamp"]
               },
               {
                 "type": "object",
@@ -88,9 +72,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "threadId"
-                ]
+                "required": ["threadId"]
               },
               {
                 "type": "object",
@@ -121,10 +103,7 @@
             ]
           }
         },
-        "required": [
-          "source",
-          "prompt"
-        ]
+        "required": ["source", "prompt"]
       },
       "UserComment": {
         "type": "object",
@@ -139,11 +118,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "file_name",
-          "line_no",
-          "prompt"
-        ]
+        "required": ["file_name", "line_no", "prompt"]
       },
       "CreateJobRequest": {
         "additionalProperties": false,
@@ -156,27 +131,19 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "slack"
-                    ]
+                    "enum": ["slack"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "discord"
-                    ]
+                    "enum": ["discord"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "mobile"
-                    ]
+                    "enum": ["mobile"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "gh-issues"
-                    ]
+                    "enum": ["gh-issues"]
                   }
                 ]
               },
@@ -198,11 +165,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -217,11 +180,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -230,9 +189,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "threadId"
-                    ]
+                    "required": ["threadId"]
                   },
                   {
                     "type": "object",
@@ -263,10 +220,7 @@
                 ]
               }
             },
-            "required": [
-              "source",
-              "prompt"
-            ]
+            "required": ["source", "prompt"]
           },
           "repo": {
             "type": "string"
@@ -275,10 +229,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "user_input",
-          "created_by"
-        ]
+        "required": ["user_input", "created_by"]
       },
       "UpdateJobRequest": {
         "additionalProperties": false,
@@ -294,39 +245,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "queued"
-                ]
+                "enum": ["queued"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "in-progress"
-                ]
+                "enum": ["in-progress"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "in-review"
-                ]
+                "enum": ["in-review"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "completed"
-                ]
+                "enum": ["completed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "failed"
-                ]
+                "enum": ["failed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "archived"
-                ]
+                "enum": ["archived"]
               }
             ]
           },
@@ -334,21 +273,15 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "low"
-                ]
+                "enum": ["low"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "medium"
-                ]
+                "enum": ["medium"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "high"
-                ]
+                "enum": ["high"]
               }
             ]
           },
@@ -362,27 +295,19 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "slack"
-                    ]
+                    "enum": ["slack"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "discord"
-                    ]
+                    "enum": ["discord"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "mobile"
-                    ]
+                    "enum": ["mobile"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "gh-issues"
-                    ]
+                    "enum": ["gh-issues"]
                   }
                 ]
               },
@@ -404,11 +329,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -423,11 +344,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -436,9 +353,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "threadId"
-                    ]
+                    "required": ["threadId"]
                   },
                   {
                     "type": "object",
@@ -469,10 +384,7 @@
                 ]
               }
             },
-            "required": [
-              "source",
-              "prompt"
-            ]
+            "required": ["source", "prompt"]
           },
           "repo": {
             "type": "string"
@@ -495,38 +407,26 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "file_name",
-                "line_no",
-                "prompt"
-              ]
+              "required": ["file_name", "line_no", "prompt"]
             }
           },
           "user_acceptance_status": {
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "not_reviewed"
-                ]
+                "enum": ["not_reviewed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "reviewed_and_accepted"
-                ]
+                "enum": ["reviewed_and_accepted"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "reviewed_and_asked_rework"
-                ]
+                "enum": ["reviewed_and_asked_rework"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "rejected"
-                ]
+                "enum": ["rejected"]
               }
             ]
           },
@@ -534,22 +434,16 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "rework"
-                ]
+                "enum": ["rework"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "backlog"
-                ]
+                "enum": ["backlog"]
               }
             ]
           }
         },
-        "required": [
-          "updated_by"
-        ]
+        "required": ["updated_by"]
       },
       "Job": {
         "additionalProperties": false,
@@ -571,39 +465,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "queued"
-                ]
+                "enum": ["queued"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "in-progress"
-                ]
+                "enum": ["in-progress"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "in-review"
-                ]
+                "enum": ["in-review"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "completed"
-                ]
+                "enum": ["completed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "failed"
-                ]
+                "enum": ["failed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "archived"
-                ]
+                "enum": ["archived"]
               }
             ]
           },
@@ -611,21 +493,15 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "low"
-                ]
+                "enum": ["low"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "medium"
-                ]
+                "enum": ["medium"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "high"
-                ]
+                "enum": ["high"]
               }
             ]
           },
@@ -636,15 +512,11 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "rework"
-                ]
+                "enum": ["rework"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "backlog"
-                ]
+                "enum": ["backlog"]
               }
             ]
           },
@@ -675,27 +547,19 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "slack"
-                    ]
+                    "enum": ["slack"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "discord"
-                    ]
+                    "enum": ["discord"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "mobile"
-                    ]
+                    "enum": ["mobile"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "gh-issues"
-                    ]
+                    "enum": ["gh-issues"]
                   }
                 ]
               },
@@ -717,11 +581,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -736,11 +596,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -749,9 +605,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "threadId"
-                    ]
+                    "required": ["threadId"]
                   },
                   {
                     "type": "object",
@@ -782,10 +636,7 @@
                 ]
               }
             },
-            "required": [
-              "source",
-              "prompt"
-            ]
+            "required": ["source", "prompt"]
           },
           "repo_id": {
             "type": "string"
@@ -794,27 +645,19 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "not_reviewed"
-                ]
+                "enum": ["not_reviewed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "reviewed_and_accepted"
-                ]
+                "enum": ["reviewed_and_accepted"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "reviewed_and_asked_rework"
-                ]
+                "enum": ["reviewed_and_asked_rework"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "rejected"
-                ]
+                "enum": ["rejected"]
               }
             ]
           },
@@ -833,11 +676,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "file_name",
-                "line_no",
-                "prompt"
-              ]
+              "required": ["file_name", "line_no", "prompt"]
             }
           },
           "confidence_score": {
@@ -880,39 +719,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "queued"
-                ]
+                "enum": ["queued"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "in-progress"
-                ]
+                "enum": ["in-progress"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "in-review"
-                ]
+                "enum": ["in-review"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "completed"
-                ]
+                "enum": ["completed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "failed"
-                ]
+                "enum": ["failed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "archived"
-                ]
+                "enum": ["archived"]
               }
             ]
           },
@@ -920,21 +747,15 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "low"
-                ]
+                "enum": ["low"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "medium"
-                ]
+                "enum": ["medium"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "high"
-                ]
+                "enum": ["high"]
               }
             ]
           },
@@ -945,15 +766,11 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "rework"
-                ]
+                "enum": ["rework"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "backlog"
-                ]
+                "enum": ["backlog"]
               }
             ]
           },
@@ -984,27 +801,19 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "slack"
-                    ]
+                    "enum": ["slack"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "discord"
-                    ]
+                    "enum": ["discord"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "mobile"
-                    ]
+                    "enum": ["mobile"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "gh-issues"
-                    ]
+                    "enum": ["gh-issues"]
                   }
                 ]
               },
@@ -1026,11 +835,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -1045,11 +850,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "channelId",
-                      "threadId",
-                      "threadTimestamp"
-                    ]
+                    "required": ["channelId", "threadId", "threadTimestamp"]
                   },
                   {
                     "type": "object",
@@ -1058,9 +859,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "threadId"
-                    ]
+                    "required": ["threadId"]
                   },
                   {
                     "type": "object",
@@ -1091,10 +890,7 @@
                 ]
               }
             },
-            "required": [
-              "source",
-              "prompt"
-            ]
+            "required": ["source", "prompt"]
           },
           "repo_id": {
             "type": "string"
@@ -1109,27 +905,19 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "not_reviewed"
-                ]
+                "enum": ["not_reviewed"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "reviewed_and_accepted"
-                ]
+                "enum": ["reviewed_and_accepted"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "reviewed_and_asked_rework"
-                ]
+                "enum": ["reviewed_and_asked_rework"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "rejected"
-                ]
+                "enum": ["rejected"]
               }
             ]
           },
@@ -1148,11 +936,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "file_name",
-                "line_no",
-                "prompt"
-              ]
+              "required": ["file_name", "line_no", "prompt"]
             }
           },
           "confidence_score": {
@@ -1186,9 +970,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "error"
-        ]
+        "required": ["error"]
       },
       "Repo": {
         "additionalProperties": false,
@@ -1261,21 +1043,15 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "github"
-                ]
+                "enum": ["github"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "gitlab"
-                ]
+                "enum": ["gitlab"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "bitbucket"
-                ]
+                "enum": ["bitbucket"]
               }
             ]
           },
@@ -1311,10 +1087,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "access_token",
-          "expires_in"
-        ]
+        "required": ["access_token", "expires_in"]
       },
       "ConnectGitHubRequest": {
         "additionalProperties": false,
@@ -1345,9 +1118,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "installation_id"
-        ]
+        "required": ["installation_id"]
       },
       "ConnectPATRequest": {
         "additionalProperties": false,
@@ -1363,9 +1134,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "pat"
-        ]
+        "required": ["pat"]
       },
       "DisconnectProviderResponse": {
         "additionalProperties": false,
@@ -1375,9 +1144,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "message"
-        ]
+        "required": ["message"]
       },
       "GetReposResponse": {
         "type": "array",
@@ -1442,12 +1209,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "job_id",
-          "summary",
-          "created_by"
-        ]
+        "required": ["name", "job_id", "summary", "created_by"]
       },
       "UpdateActivityRequest": {
         "additionalProperties": false,
@@ -1469,9 +1231,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "updated_by"
-        ]
+        "required": ["updated_by"]
       },
       "UpdateActivityReadStatusRequest": {
         "additionalProperties": false,
@@ -1481,9 +1241,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "is_read"
-        ]
+        "required": ["is_read"]
       },
       "UpdateActivityReadStatusResponse": {
         "additionalProperties": false,
@@ -1496,23 +1254,16 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "read"
-                ]
+                "enum": ["read"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "unread"
-                ]
+                "enum": ["unread"]
               }
             ]
           }
         },
-        "required": [
-          "message",
-          "read_status"
-        ]
+        "required": ["message", "read_status"]
       },
       "Activity": {
         "additionalProperties": false,
@@ -1554,15 +1305,11 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "read"
-                ]
+                "enum": ["read"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "unread"
-                ]
+                "enum": ["unread"]
               }
             ]
           }
@@ -1690,9 +1437,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "position"
-        ]
+        "required": ["position"]
       },
       "ReprioritizeJobResponse": {
         "additionalProperties": false,
@@ -1721,39 +1466,27 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "queued"
-                    ]
+                    "enum": ["queued"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "in-progress"
-                    ]
+                    "enum": ["in-progress"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "in-review"
-                    ]
+                    "enum": ["in-review"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "completed"
-                    ]
+                    "enum": ["completed"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "failed"
-                    ]
+                    "enum": ["failed"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "archived"
-                    ]
+                    "enum": ["archived"]
                   }
                 ]
               },
@@ -1761,21 +1494,15 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "low"
-                    ]
+                    "enum": ["low"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "medium"
-                    ]
+                    "enum": ["medium"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "high"
-                    ]
+                    "enum": ["high"]
                   }
                 ]
               },
@@ -1786,15 +1513,11 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "rework"
-                    ]
+                    "enum": ["rework"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "backlog"
-                    ]
+                    "enum": ["backlog"]
                   }
                 ]
               },
@@ -1825,27 +1548,19 @@
                     "anyOf": [
                       {
                         "type": "string",
-                        "enum": [
-                          "slack"
-                        ]
+                        "enum": ["slack"]
                       },
                       {
                         "type": "string",
-                        "enum": [
-                          "discord"
-                        ]
+                        "enum": ["discord"]
                       },
                       {
                         "type": "string",
-                        "enum": [
-                          "mobile"
-                        ]
+                        "enum": ["mobile"]
                       },
                       {
                         "type": "string",
-                        "enum": [
-                          "gh-issues"
-                        ]
+                        "enum": ["gh-issues"]
                       }
                     ]
                   },
@@ -1867,11 +1582,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "channelId",
-                          "threadId",
-                          "threadTimestamp"
-                        ]
+                        "required": ["channelId", "threadId", "threadTimestamp"]
                       },
                       {
                         "type": "object",
@@ -1886,11 +1597,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "channelId",
-                          "threadId",
-                          "threadTimestamp"
-                        ]
+                        "required": ["channelId", "threadId", "threadTimestamp"]
                       },
                       {
                         "type": "object",
@@ -1899,9 +1606,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "threadId"
-                        ]
+                        "required": ["threadId"]
                       },
                       {
                         "type": "object",
@@ -1932,10 +1637,7 @@
                     ]
                   }
                 },
-                "required": [
-                  "source",
-                  "prompt"
-                ]
+                "required": ["source", "prompt"]
               },
               "repo_id": {
                 "type": "string"
@@ -1950,27 +1652,19 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "not_reviewed"
-                    ]
+                    "enum": ["not_reviewed"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "reviewed_and_accepted"
-                    ]
+                    "enum": ["reviewed_and_accepted"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "reviewed_and_asked_rework"
-                    ]
+                    "enum": ["reviewed_and_asked_rework"]
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "rejected"
-                    ]
+                    "enum": ["rejected"]
                   }
                 ]
               },
@@ -1989,11 +1683,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "file_name",
-                    "line_no",
-                    "prompt"
-                  ]
+                  "required": ["file_name", "line_no", "prompt"]
                 }
               },
               "confidence_score": {
@@ -2020,10 +1710,7 @@
             ]
           }
         },
-        "required": [
-          "message",
-          "job"
-        ]
+        "required": ["message", "job"]
       },
       "CreateAgentRequest": {
         "additionalProperties": false,
@@ -2045,30 +1732,20 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "active"
-                ]
+                "enum": ["active"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "idle"
-                ]
+                "enum": ["idle"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "offline"
-                ]
+                "enum": ["offline"]
               }
             ]
           }
         },
-        "required": [
-          "name",
-          "host",
-          "port"
-        ]
+        "required": ["name", "host", "port"]
       },
       "UpdateAgentRequest": {
         "additionalProperties": false,
@@ -2090,21 +1767,15 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "active"
-                ]
+                "enum": ["active"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "idle"
-                ]
+                "enum": ["idle"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "offline"
-                ]
+                "enum": ["offline"]
               }
             ]
           }
@@ -2127,21 +1798,15 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "active"
-                ]
+                "enum": ["active"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "idle"
-                ]
+                "enum": ["idle"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "offline"
-                ]
+                "enum": ["offline"]
               }
             ]
           },
@@ -2194,11 +1859,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "providerType",
-          "name",
-          "apiKey"
-        ]
+        "required": ["providerType", "name", "apiKey"]
       },
       "StoreIntegrationSecretResponse": {
         "additionalProperties": false,
@@ -2217,15 +1878,11 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "gcp"
-                ]
+                "enum": ["gcp"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "encrypted_local"
-                ]
+                "enum": ["encrypted_local"]
               }
             ]
           },
@@ -2234,13 +1891,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "providerType",
-          "name",
-          "storageType",
-          "createdAt"
-        ]
+        "required": ["id", "providerType", "name", "storageType", "createdAt"]
       },
       "GetIntegrationSecretResponse": {
         "additionalProperties": false,
@@ -2259,15 +1910,11 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "gcp"
-                ]
+                "enum": ["gcp"]
               },
               {
                 "type": "string",
-                "enum": [
-                  "encrypted_local"
-                ]
+                "enum": ["encrypted_local"]
               }
             ]
           },
@@ -2297,9 +1944,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "apiKey"
-        ]
+        "required": ["apiKey"]
       },
       "CreateApiKeyRequest": {
         "additionalProperties": false,
@@ -2310,9 +1955,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name"
-        ]
+        "required": ["name"]
       },
       "CreateApiKeyResponse": {
         "additionalProperties": false,
@@ -2336,13 +1979,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "keyPrefix",
-          "apiKey",
-          "createdAt"
-        ]
+        "required": ["id", "name", "keyPrefix", "apiKey", "createdAt"]
       },
       "ApiKey": {
         "additionalProperties": false,
@@ -2370,13 +2007,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "keyPrefix",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "name", "keyPrefix", "createdAt", "updatedAt"]
       },
       "GetApiKeysResponse": {
         "type": "array",
@@ -2406,13 +2037,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "id",
-            "name",
-            "keyPrefix",
-            "createdAt",
-            "updatedAt"
-          ]
+          "required": ["id", "name", "keyPrefix", "createdAt", "updatedAt"]
         }
       }
     }
@@ -2420,9 +2045,7 @@
   "paths": {
     "/jobs": {
       "post": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "Create a new job",
         "requestBody": {
           "content": {
@@ -2477,9 +2100,7 @@
         }
       },
       "get": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "List all jobs",
         "responses": {
           "200": {
@@ -2520,9 +2141,7 @@
     },
     "/jobs/{id}": {
       "get": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "Get a job by ID",
         "parameters": [
           {
@@ -2586,9 +2205,7 @@
         }
       },
       "put": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "Update a job",
         "requestBody": {
           "content": {
@@ -2653,9 +2270,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "Delete (archive) a job",
         "parameters": [
           {
@@ -2723,9 +2338,7 @@
     },
     "/jobs/{id}/execute": {
       "post": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "Execute a job",
         "parameters": [
           {
@@ -2801,9 +2414,7 @@
     },
     "/jobs/{id}/reprioritize": {
       "post": {
-        "tags": [
-          "jobs"
-        ],
+        "tags": ["jobs"],
         "description": "Reprioritize a job by changing its queue position",
         "requestBody": {
           "content": {
@@ -2880,18 +2491,13 @@
     },
     "/queues/{queueType}/start": {
       "post": {
-        "tags": [
-          "queues"
-        ],
+        "tags": ["queues"],
         "description": "Resume queue processing for an organization (database state only)",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "rework",
-                "backlog"
-              ]
+              "enum": ["rework", "backlog"]
             },
             "in": "path",
             "name": "queueType",
@@ -2919,18 +2525,13 @@
     },
     "/queues/{queueType}/pause": {
       "post": {
-        "tags": [
-          "queues"
-        ],
+        "tags": ["queues"],
         "description": "Pause queue workflow",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "rework",
-                "backlog"
-              ]
+              "enum": ["rework", "backlog"]
             },
             "in": "path",
             "name": "queueType",
@@ -2958,18 +2559,13 @@
     },
     "/queues/{queueType}/resume": {
       "post": {
-        "tags": [
-          "queues"
-        ],
+        "tags": ["queues"],
         "description": "Resume queue workflow",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "rework",
-                "backlog"
-              ]
+              "enum": ["rework", "backlog"]
             },
             "in": "path",
             "name": "queueType",
@@ -2997,18 +2593,13 @@
     },
     "/queues/{queueType}/status": {
       "get": {
-        "tags": [
-          "queues"
-        ],
+        "tags": ["queues"],
         "description": "Get queue pause state (database only)",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "enum": [
-                "rework",
-                "backlog"
-              ]
+              "enum": ["rework", "backlog"]
             },
             "in": "path",
             "name": "queueType",
@@ -3039,9 +2630,7 @@
     },
     "/jobs/{id}/logs": {
       "get": {
-        "tags": [
-          "job-logs"
-        ],
+        "tags": ["job-logs"],
         "description": "Get job logs",
         "parameters": [
           {
@@ -3128,9 +2717,7 @@
     },
     "/repos/github/connect": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Initiate GitHub App installation or PAT fallback",
         "parameters": [
           {
@@ -3171,9 +2758,7 @@
                       "description": "URL to redirect to for GitHub App installation"
                     }
                   },
-                  "required": [
-                    "redirectUrl"
-                  ]
+                  "required": ["redirectUrl"]
                 }
               }
             }
@@ -3223,9 +2808,7 @@
     },
     "/repos/github/connect/callback": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Handle GitHub App installation callback",
         "parameters": [
           {
@@ -3299,9 +2882,7 @@
     },
     "/repos/github/connect/pat": {
       "post": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Connect using Personal Access Token (fallback)",
         "requestBody": {
           "content": {
@@ -3358,9 +2939,7 @@
     },
     "/repos/github/providers": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Get all GitHub repo providers for the current organization",
         "responses": {
           "200": {
@@ -3401,9 +2980,7 @@
     },
     "/repos/github/providers/{id}": {
       "delete": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Disconnect a repo provider",
         "parameters": [
           {
@@ -3461,9 +3038,7 @@
     },
     "/repos/github/providers/{providerId}/repos": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Get all repos for a GitHub repo provider (fetched from GitHub API)",
         "parameters": [
           {
@@ -3531,9 +3106,7 @@
     },
     "/repos/github/{id}": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Get a repo by ID",
         "parameters": [
           {
@@ -3591,9 +3164,7 @@
     },
     "/repos/github/providers/{id}/token": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Get repo provider token by ID (returns installation token if available)",
         "parameters": [
           {
@@ -3651,9 +3222,7 @@
     },
     "/repos": {
       "get": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Get all repos for the current organization",
         "responses": {
           "200": {
@@ -3694,9 +3263,7 @@
     },
     "/repos/{id}": {
       "patch": {
-        "tags": [
-          "repos"
-        ],
+        "tags": ["repos"],
         "description": "Update a repo description",
         "requestBody": {
           "content": {
@@ -3769,9 +3336,7 @@
     },
     "/integrations/slack/connect": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Initiate Slack OAuth connection",
         "parameters": [
           {
@@ -3804,9 +3369,7 @@
                       "description": "URL to redirect to for Slack OAuth"
                     }
                   },
-                  "required": [
-                    "redirectUrl"
-                  ]
+                  "required": ["redirectUrl"]
                 }
               }
             }
@@ -3871,9 +3434,7 @@
     },
     "/integrations/slack/connect/callback": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Handle Slack OAuth callback",
         "parameters": [
           {
@@ -3962,9 +3523,7 @@
     },
     "/integrations/slack/providers": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Get all Slack integrations for the current organization",
         "responses": {
           "200": {
@@ -4015,9 +3574,7 @@
     },
     "/integrations/slack/providers/{id}": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Get a Slack integration by ID",
         "parameters": [
           {
@@ -4088,9 +3645,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Delete a Slack integration",
         "parameters": [
           {
@@ -4168,9 +3723,7 @@
     },
     "/integrations/slack/providers/{id}/token": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Get or refresh access token for a Slack integration",
         "parameters": [
           {
@@ -4254,9 +3807,7 @@
     },
     "/integrations/slack/events": {
       "post": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Handle Slack events",
         "responses": {
           "200": {
@@ -4284,9 +3835,7 @@
     },
     "/activities": {
       "post": {
-        "tags": [
-          "activities"
-        ],
+        "tags": ["activities"],
         "description": "Create a new activity",
         "requestBody": {
           "content": {
@@ -4351,9 +3900,7 @@
         }
       },
       "get": {
-        "tags": [
-          "activities"
-        ],
+        "tags": ["activities"],
         "description": "List all activities",
         "parameters": [
           {
@@ -4404,9 +3951,7 @@
     },
     "/activities/{id}": {
       "get": {
-        "tags": [
-          "activities"
-        ],
+        "tags": ["activities"],
         "description": "Get an activity by ID",
         "parameters": [
           {
@@ -4462,9 +4007,7 @@
         }
       },
       "put": {
-        "tags": [
-          "activities"
-        ],
+        "tags": ["activities"],
         "description": "Update an activity",
         "requestBody": {
           "content": {
@@ -4529,9 +4072,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "activities"
-        ],
+        "tags": ["activities"],
         "description": "Delete an activity",
         "parameters": [
           {
@@ -4589,9 +4130,7 @@
     },
     "/activities/{id}/read-status": {
       "put": {
-        "tags": [
-          "activities"
-        ],
+        "tags": ["activities"],
         "description": "Update activity read status",
         "requestBody": {
           "content": {
@@ -4658,9 +4197,7 @@
     },
     "/agents": {
       "post": {
-        "tags": [
-          "agents"
-        ],
+        "tags": ["agents"],
         "description": "Create a new agent",
         "requestBody": {
           "content": {
@@ -4715,9 +4252,7 @@
         }
       },
       "get": {
-        "tags": [
-          "agents"
-        ],
+        "tags": ["agents"],
         "description": "List all agents",
         "responses": {
           "200": {
@@ -4758,9 +4293,7 @@
     },
     "/agents/{id}": {
       "get": {
-        "tags": [
-          "agents"
-        ],
+        "tags": ["agents"],
         "description": "Get an agent by ID",
         "parameters": [
           {
@@ -4816,9 +4349,7 @@
         }
       },
       "put": {
-        "tags": [
-          "agents"
-        ],
+        "tags": ["agents"],
         "description": "Update an agent",
         "requestBody": {
           "content": {
@@ -4883,9 +4414,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "agents"
-        ],
+        "tags": ["agents"],
         "description": "Delete an agent",
         "parameters": [
           {
@@ -4943,9 +4472,7 @@
     },
     "/integrations/secrets": {
       "post": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Store an integration secret (API key)",
         "requestBody": {
           "content": {
@@ -5000,9 +4527,7 @@
         }
       },
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "List all integration secrets for the current organization",
         "parameters": [
           {
@@ -5054,9 +4579,7 @@
     },
     "/integrations/secrets/{id}": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Retrieve an integration secret",
         "parameters": [
           {
@@ -5113,9 +4636,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Delete an integration secret (API key)",
         "parameters": [
           {
@@ -5174,9 +4695,7 @@
     },
     "/integrations/secrets/{id}/plaintext": {
       "get": {
-        "tags": [
-          "integrations"
-        ],
+        "tags": ["integrations"],
         "description": "Retrieve the plaintext API key for an integration (use with caution)",
         "parameters": [
           {
@@ -5235,9 +4754,7 @@
     },
     "/api-keys": {
       "post": {
-        "tags": [
-          "api-keys"
-        ],
+        "tags": ["api-keys"],
         "description": "Create a new API key",
         "requestBody": {
           "content": {
@@ -5292,9 +4809,7 @@
         }
       },
       "get": {
-        "tags": [
-          "api-keys"
-        ],
+        "tags": ["api-keys"],
         "description": "Get all API keys for the current user",
         "responses": {
           "200": {
@@ -5332,9 +4847,7 @@
     },
     "/api-keys/{id}": {
       "delete": {
-        "tags": [
-          "api-keys"
-        ],
+        "tags": ["api-keys"],
         "description": "Delete an API key",
         "parameters": [
           {

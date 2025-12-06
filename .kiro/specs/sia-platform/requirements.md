@@ -5,6 +5,7 @@
 This document specifies the high-level requirements for the SIA (Software Intelligence Assistant) platform. SIA is an AI Developer Assistant that automates small, well-defined coding tasks and creates ready-to-review Pull Requests (PRs) while the human developer is offline or sleeping.
 
 The platform follows a distributed architecture where:
+
 - Users interact via Web UI or Chat Apps (Slack/Discord)
 - The SIA Backend Server orchestrates job management and communication
 - SIA Agents run on Cloud Dev Machines to execute coding tasks using AI coding assistants (Claude Code, CLI)

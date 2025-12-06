@@ -9,7 +9,11 @@ export class JobExecutionService {
   private activeExecutions: Map<string, AgentClient> = new Map();
   private pausedJobs: Set<string> = new Set();
 
-  async executeJob(jobId: string, orgId: string, options?: { additionalLogHandler?: (log: LogMessage) => void }): Promise<void> {
+  async executeJob(
+    jobId: string,
+    orgId: string,
+    options?: { additionalLogHandler?: (log: LogMessage) => void }
+  ): Promise<void> {
     const jobResult = await db
       .select()
       .from(schema.jobs)
@@ -27,13 +31,13 @@ export class JobExecutionService {
     const existingUpdates = job.updates || '';
     const timestamp = new Date().toLocaleString();
     const updateMessage = `Job execution started at ${timestamp}.`;
-    const newUpdates = existingUpdates 
-      ? `${existingUpdates}\n${updateMessage}` 
+    const newUpdates = existingUpdates
+      ? `${existingUpdates}\n${updateMessage}`
       : updateMessage;
 
     await db
       .update(schema.jobs)
-      .set({ 
+      .set({
         status: 'in-progress',
         queueType: null,
         orderInQueue: -1,
@@ -69,13 +73,13 @@ export class JobExecutionService {
       const existingUpdates = job.updates || '';
       const timestamp = new Date().toLocaleString();
       const updateMessage = `Job completed successfully at ${timestamp}.`;
-      const newUpdates = existingUpdates 
-        ? `${existingUpdates}\n${updateMessage}` 
+      const newUpdates = existingUpdates
+        ? `${existingUpdates}\n${updateMessage}`
         : updateMessage;
 
       await db
         .update(schema.jobs)
-        .set({ 
+        .set({
           status: 'completed',
           updates: newUpdates,
           updatedAt: new Date(),
@@ -91,9 +95,12 @@ export class JobExecutionService {
       let errorMessage = 'Unknown error';
       if (error instanceof Error) {
         errorMessage = error.message;
-        
+
         // If it's a Temporal ActivityFailure, extract the underlying cause
-        if (errorMessage.includes('Activity task failed') || errorMessage.includes('ActivityFailure')) {
+        if (
+          errorMessage.includes('Activity task failed') ||
+          errorMessage.includes('ActivityFailure')
+        ) {
           // Check for cause property (Temporal wraps errors)
           const cause = (error as any).cause;
           if (cause instanceof Error) {
@@ -105,10 +112,12 @@ export class JobExecutionService {
             const stackLines = error.stack.split('\n');
             for (const line of stackLines) {
               // Look for error messages that aren't Temporal wrapper messages
-              if (line.includes('Error:') && 
-                  !line.includes('Activity task failed') && 
-                  !line.includes('ActivityFailure') &&
-                  !line.includes('WorkflowExecutionFailedError')) {
+              if (
+                line.includes('Error:') &&
+                !line.includes('Activity task failed') &&
+                !line.includes('ActivityFailure') &&
+                !line.includes('WorkflowExecutionFailedError')
+              ) {
                 const match = line.match(/Error:\s*(.+)/);
                 if (match && match[1]) {
                   const extracted = match[1].trim();
@@ -120,9 +129,16 @@ export class JobExecutionService {
                 }
               }
               // Also check for "at" lines that might contain the error location
-              if (line.trim().startsWith('at ') && stackLines.indexOf(line) > 0) {
+              if (
+                line.trim().startsWith('at ') &&
+                stackLines.indexOf(line) > 0
+              ) {
                 const prevLine = stackLines[stackLines.indexOf(line) - 1];
-                if (prevLine && prevLine.includes('Error:') && !prevLine.includes('Activity task failed')) {
+                if (
+                  prevLine &&
+                  prevLine.includes('Error:') &&
+                  !prevLine.includes('Activity task failed')
+                ) {
                   const match = prevLine.match(/Error:\s*(.+)/);
                   if (match && match[1]) {
                     errorMessage = match[1].trim();
@@ -134,18 +150,18 @@ export class JobExecutionService {
           }
         }
       }
-      
+
       const existingUpdates = job.updates || '';
       const timestamp = new Date().toLocaleString();
       const updateMessage = `Job execution failed at ${timestamp}. Error details: ${errorMessage}`;
       // Prepend new updates (latest first)
-      const newUpdates = existingUpdates 
-        ? `${updateMessage}\n${existingUpdates}` 
+      const newUpdates = existingUpdates
+        ? `${updateMessage}\n${existingUpdates}`
         : updateMessage;
 
       await db
         .update(schema.jobs)
-        .set({ 
+        .set({
           status: 'failed',
           updates: newUpdates,
           updatedAt: new Date(),
@@ -207,7 +223,10 @@ export class JobExecutionService {
    * This replaces direct executeJob calls for queued jobs
    * The job will be picked up by the queueMonitorWorkflow automatically via Temporal Schedules
    */
-  async scheduleJob(jobId: string, orgId: string): Promise<{ workflowId: string }> {
+  async scheduleJob(
+    jobId: string,
+    orgId: string
+  ): Promise<{ workflowId: string }> {
     const jobResult = await db
       .select()
       .from(schema.jobs)
@@ -232,4 +251,3 @@ export class JobExecutionService {
 }
 
 export const jobExecutionService = new JobExecutionService();
-

@@ -45,10 +45,12 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': '*/*',
+            Accept: '*/*',
           },
           body: JSON.stringify({
-            text: `🎉 New Waitlist Signup!\n\nName: ${name || 'Not provided'}\nEmail: ${email}`,
+            text: `🎉 New Waitlist Signup!\n\nName: ${
+              name || 'Not provided'
+            }\nEmail: ${email}`,
           }),
         }
       );
@@ -90,7 +92,9 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
               <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
                 <CheckCircle2 className="w-8 h-8 text-green-400" />
               </div>
-              <h3 className="text-2xl font-bold text-text mb-2">You're on the list!</h3>
+              <h3 className="text-2xl font-bold text-text mb-2">
+                You're on the list!
+              </h3>
               <p className="text-text/70 mb-6">
                 We'll notify you when Sia is ready to transform your workflow.
               </p>
@@ -106,30 +110,39 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-5 h-5 text-green-400" />
-                  <h3 className="text-2xl font-bold text-text">Join the Waitlist</h3>
+                  <h3 className="text-2xl font-bold text-text">
+                    Join the Waitlist
+                  </h3>
                 </div>
                 <p className="text-text/70">
-                  Be among the first to experience async development. Get notified when we launch.
+                  Be among the first to experience async development. Get
+                  notified when we launch.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="modal-name" className="block text-sm font-medium text-text/70 mb-2">
+                  <label
+                    htmlFor="modal-name"
+                    className="block text-sm font-medium text-text/70 mb-2"
+                  >
                     Name
                   </label>
                   <input
                     type="text"
                     id="modal-name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={e => setName(e.target.value)}
                     className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-text placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
                     placeholder="Jane Developer"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="modal-email" className="block text-sm font-medium text-text/70 mb-2">
+                  <label
+                    htmlFor="modal-email"
+                    className="block text-sm font-medium text-text/70 mb-2"
+                  >
                     Work Email <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
@@ -139,7 +152,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                       id="modal-email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-black/50 border border-white/10 rounded-lg text-text placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
                       placeholder="jane@company.com"
                     />

@@ -19,7 +19,10 @@ export async function pingAgentViaStream(params: {
     try {
       await queueWorkflowService.pauseHealthCheckSchedule(agentId);
     } catch (error) {
-      console.error(`Failed to pause health check schedule for agent ${agentId}:`, error);
+      console.error(
+        `Failed to pause health check schedule for agent ${agentId}:`,
+        error
+      );
     }
     return { success: false, error: 'Agent not found' };
   }
@@ -41,7 +44,7 @@ export async function pingAgentViaStream(params: {
       return { success: false, error: 'Failed to send ping' };
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     const updatedAgent = await db
       .select()
@@ -56,7 +59,11 @@ export async function pingAgentViaStream(params: {
     const lastActive = updatedAgent[0].lastActive?.getTime() || 0;
     const timeSinceLastActive = Date.now() - lastActive;
 
-    if (timeSinceLastActive < 10000 && updatedAgent[0].lastActive && updatedAgent[0].lastActive.getTime() >= pingTimestamp) {
+    if (
+      timeSinceLastActive < 10000 &&
+      updatedAgent[0].lastActive &&
+      updatedAgent[0].lastActive.getTime() >= pingTimestamp
+    ) {
       return { success: true };
     } else {
       return { success: false, error: 'No heartbeat received within timeout' };
@@ -68,4 +75,3 @@ export async function pingAgentViaStream(params: {
     };
   }
 }
-

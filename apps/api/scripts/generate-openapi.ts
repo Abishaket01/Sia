@@ -39,8 +39,7 @@ async function generateOpenApiSpec() {
   await fastify.close();
 }
 
-generateOpenApiSpec().catch((error) => {
+generateOpenApiSpec().catch(error => {
   console.error('❌ Error generating OpenAPI spec:', error);
   process.exit(1);
 });
-

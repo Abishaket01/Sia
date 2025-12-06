@@ -53,10 +53,7 @@ export async function registerAgent(
     .select()
     .from(schema.agents)
     .where(
-      and(
-        eq(schema.agents.orgId, orgId),
-        eq(schema.agents.host, hostname)
-      )
+      and(eq(schema.agents.orgId, orgId), eq(schema.agents.host, hostname))
     )
     .limit(1);
 
@@ -112,4 +109,3 @@ export async function registerAgent(
     };
   }
 }
-

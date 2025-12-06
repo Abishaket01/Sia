@@ -12,7 +12,8 @@ export async function generateJobTitleAndDescription(
   try {
     const result = await generateText({
       model,
-      system: 'You are a helpful assistant that generates concise, descriptive titles and descriptions for development tasks. Generate a short title (max 60 characters) and a brief description (max 200 characters) based on the task description provided.',
+      system:
+        'You are a helpful assistant that generates concise, descriptive titles and descriptions for development tasks. Generate a short title (max 60 characters) and a brief description (max 200 characters) based on the task description provided.',
       messages: [
         {
           role: 'user',
@@ -30,9 +31,11 @@ Return your response in this exact JSON format:
     // Try to parse JSON from the response
     const text = result.text.trim();
     let parsed: { title: string; description: string };
-    
+
     // Extract JSON from markdown code blocks if present
-    const jsonMatch = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || text.match(/(\{[\s\S]*\})/);
+    const jsonMatch =
+      text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) ||
+      text.match(/(\{[\s\S]*\})/);
     if (jsonMatch) {
       parsed = JSON.parse(jsonMatch[1]);
     } else {
@@ -45,7 +48,10 @@ Return your response in this exact JSON format:
       description: parsed.description || taskDescription.substring(0, 200),
     };
   } catch (error) {
-    console.warn('Failed to generate job title/description, using fallback:', error);
+    console.warn(
+      'Failed to generate job title/description, using fallback:',
+      error
+    );
     // Fallback: use first 60 chars for title, first 200 for description
     return {
       title: taskDescription.substring(0, 60),
@@ -53,4 +59,3 @@ Return your response in this exact JSON format:
     };
   }
 }
-

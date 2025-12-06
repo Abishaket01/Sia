@@ -18,7 +18,9 @@ export async function getJobDetails(params: {
       queueType: schema.jobs.queueType,
     })
     .from(schema.jobs)
-    .where(and(eq(schema.jobs.id, params.jobId), eq(schema.jobs.orgId, params.orgId)))
+    .where(
+      and(eq(schema.jobs.id, params.jobId), eq(schema.jobs.orgId, params.orgId))
+    )
     .orderBy(desc(schema.jobs.version))
     .limit(1);
 
@@ -34,4 +36,3 @@ export async function getJobDetails(params: {
     queueType: job.queueType as 'rework' | 'backlog' | null,
   };
 }
-

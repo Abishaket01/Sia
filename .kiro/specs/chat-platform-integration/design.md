@@ -13,47 +13,47 @@ flowchart TB
         DISCORD[Discord Gateway]
         TEAMS[MS Teams Bot Framework]
     end
-    
+
     subgraph "SIA Backend - Messaging Layer"
         subgraph "Platform Adapters"
             SLACK_ADAPTER[Slack Adapter]
             DISCORD_ADAPTER[Discord Adapter]
             TEAMS_ADAPTER[Teams Adapter]
         end
-        
+
         subgraph "Core Services"
             CONV_MGR[Conversation Manager]
             QUEUE_MGR[Message Queue Manager]
             CONV_HANDLER[Conversational Handler]
             CHANNEL_SETTINGS[Channel Settings Manager]
         end
-        
+
         subgraph "Storage"
             REDIS[(Redis<br/>Conversation State)]
             PG[(PostgreSQL<br/>Settings & Feedback)]
         end
     end
-    
+
     subgraph "SIA Core"
         JOB_API[Job API]
         AI[AI Service]
     end
-    
+
     SLACK --> SLACK_ADAPTER
     DISCORD --> DISCORD_ADAPTER
     TEAMS --> TEAMS_ADAPTER
-    
+
     SLACK_ADAPTER --> CONV_MGR
     DISCORD_ADAPTER --> CONV_MGR
     TEAMS_ADAPTER --> CONV_MGR
-    
+
     CONV_MGR --> QUEUE_MGR
     CONV_MGR --> CONV_HANDLER
     CONV_MGR --> CHANNEL_SETTINGS
-    
+
     CONV_HANDLER --> JOB_API
     CONV_HANDLER --> AI
-    
+
     CONV_MGR --> REDIS
     CHANNEL_SETTINGS --> PG
 ```
@@ -85,18 +85,31 @@ Platform-agnostic interface for chat platform communication.
 interface MessagingAdapter {
   // Parse incoming platform event to unified message format
   parseIncomingMessage(event: unknown): Promise<UnifiedMessage>;
-  
+
   // Send a message to a channel/thread
-  sendMessage(channelId: string, text: string, options?: SendOptions): Promise<void>;
-  
+  sendMessage(
+    channelId: string,
+    text: string,
+    options?: SendOptions
+  ): Promise<void>;
+
   // Send a reply in a thread
-  replyInThread(channelId: string, threadId: string, text: string): Promise<void>;
-  
+  replyInThread(
+    channelId: string,
+    threadId: string,
+    text: string
+  ): Promise<void>;
+
   // Download an attachment
   downloadAttachment(attachment: Attachment): Promise<string>;
-  
+
   // Unfurl a link with rich preview
-  unfurlLink(channelId: string, messageTs: string, url: string, content: UnfurlContent): Promise<void>;
+  unfurlLink(
+    channelId: string,
+    messageTs: string,
+    url: string,
+    content: UnfurlContent
+  ): Promise<void>;
 }
 
 interface UnifiedMessage {
@@ -127,10 +140,13 @@ interface ConversationManager {
     logger: Logger,
     isMention: boolean
   ): Promise<void>;
-  
+
   // Get conversation state for a thread
-  getConversationState(channelId: string, threadId?: string): Promise<ConversationState>;
-  
+  getConversationState(
+    channelId: string,
+    threadId?: string
+  ): Promise<ConversationState>;
+
   // Check if conversation is active
   isConversationActive(channelId: string, threadId?: string): Promise<boolean>;
 }
@@ -158,10 +174,10 @@ interface ConversationalHandler {
     context: ConversationContext,
     orgId: string
   ): Promise<string>;
-  
+
   // Detect if a message is relevant to SIA
   detectQuestionRelevance(text: string): RelevanceResult;
-  
+
   // Set logger for debugging
   setLogger(logger: Logger): void;
 }
@@ -188,7 +204,7 @@ interface MessageQueueManager {
     priority: 'high' | 'normal',
     logger: Logger
   ): void;
-  
+
   // Process queued messages
   processQueue(): Promise<void>;
 }
@@ -203,9 +219,13 @@ Manages per-channel bot configuration.
 interface ChannelSettingsManager {
   // Get settings for a channel
   getSettings(channelId: string, orgId: string): Promise<ChannelSettings>;
-  
+
   // Update channel settings
-  updateSettings(channelId: string, orgId: string, settings: Partial<ChannelSettings>): Promise<void>;
+  updateSettings(
+    channelId: string,
+    orgId: string,
+    settings: Partial<ChannelSettings>
+  ): Promise<void>;
 }
 
 interface ChannelSettings {
@@ -226,13 +246,13 @@ sequenceDiagram
     participant QueueMgr as Queue Manager
     participant Handler as Conversational Handler
     participant AI as AI Service
-    
+
     Platform->>Adapter: Incoming Event
     Adapter->>Adapter: Parse to UnifiedMessage
     Adapter->>ConvMgr: handleMessage()
-    
+
     ConvMgr->>ConvMgr: Check if mention
-    
+
     alt Is @mention or DM
         ConvMgr->>Handler: processMessage() [HIGH PRIORITY]
         Handler->>Handler: detectQuestionRelevance()
@@ -242,7 +262,7 @@ sequenceDiagram
     else Channel message, no mention
         ConvMgr->>Handler: detectQuestionRelevance()
         Handler-->>ConvMgr: RelevanceResult
-        
+
         alt High relevance
             ConvMgr->>QueueMgr: enqueue() [NORMAL PRIORITY]
             Note over QueueMgr: Batch processing
@@ -260,19 +280,34 @@ sequenceDiagram
 
 ```typescript
 function detectQuestionRelevance(text: string): RelevanceResult {
-  const keywords = ['job', 'task', 'pr', 'pull request', 'code', 'build', 
-                    'deploy', 'status', 'queue', 'sia', 'help'];
-  
-  const matchedKeywords = keywords.filter(k => 
-    text.toLowerCase().includes(k)
-  );
-  
-  const isQuestion = text.includes('?') || 
-    /^(what|how|when|where|why|can|could|would|is|are|do|does)/i.test(text.trim());
-  
+  const keywords = [
+    'job',
+    'task',
+    'pr',
+    'pull request',
+    'code',
+    'build',
+    'deploy',
+    'status',
+    'queue',
+    'sia',
+    'help',
+  ];
+
+  const matchedKeywords = keywords.filter(k => text.toLowerCase().includes(k));
+
+  const isQuestion =
+    text.includes('?') ||
+    /^(what|how|when|where|why|can|could|would|is|are|do|does)/i.test(
+      text.trim()
+    );
+
   let confidence: RelevanceResult['confidence'];
-  
-  if (matchedKeywords.length >= 2 || (matchedKeywords.length >= 1 && isQuestion)) {
+
+  if (
+    matchedKeywords.length >= 2 ||
+    (matchedKeywords.length >= 1 && isQuestion)
+  ) {
     confidence = 'high_related';
   } else if (matchedKeywords.length === 1 || isQuestion) {
     confidence = 'medium_related';
@@ -281,7 +316,7 @@ function detectQuestionRelevance(text: string): RelevanceResult {
   } else {
     confidence = 'unrelated';
   }
-  
+
   return { confidence, keywords: matchedKeywords, isQuestion };
 }
 ```
@@ -294,7 +329,7 @@ function detectQuestionRelevance(text: string): RelevanceResult {
 // apps/api/src/services/messaging/adapters/slack-adapter.ts
 class SlackAdapter implements MessagingAdapter {
   constructor(private accessToken: string) {}
-  
+
   async parseIncomingMessage(event: SlackEvent): Promise<UnifiedMessage> {
     return {
       id: event.ts,
@@ -308,13 +343,17 @@ class SlackAdapter implements MessagingAdapter {
       timestamp: new Date(parseFloat(event.ts) * 1000),
     };
   }
-  
-  async sendMessage(channelId: string, text: string, options?: SendOptions): Promise<void> {
+
+  async sendMessage(
+    channelId: string,
+    text: string,
+    options?: SendOptions
+  ): Promise<void> {
     await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${this.accessToken}`,
       },
       body: JSON.stringify({
         channel: channelId,
@@ -332,7 +371,7 @@ class SlackAdapter implements MessagingAdapter {
 // apps/api/src/services/messaging/adapters/discord-adapter.ts
 class DiscordAdapter implements MessagingAdapter {
   constructor(private botToken: string) {}
-  
+
   async parseIncomingMessage(event: DiscordMessage): Promise<UnifiedMessage> {
     return {
       id: event.id,
@@ -346,7 +385,7 @@ class DiscordAdapter implements MessagingAdapter {
       timestamp: new Date(event.timestamp),
     };
   }
-  
+
   // ... other methods
 }
 ```
@@ -354,23 +393,28 @@ class DiscordAdapter implements MessagingAdapter {
 ## Correctness Properties
 
 ### Property 1: Explicit Mention Always Responds
-*For any* message containing an explicit @mention of the bot, the system SHALL process it with high priority.
+
+_For any_ message containing an explicit @mention of the bot, the system SHALL process it with high priority.
 **Validates: Requirements 2.1, 2.4**
 
 ### Property 2: DM Always Responds
-*For any* direct message to the bot, the system SHALL respond without requiring @mention.
+
+_For any_ direct message to the bot, the system SHALL respond without requiring @mention.
 **Validates: Requirements 4.1, 4.2**
 
 ### Property 3: Platform Independence
-*For any* supported chat platform, the conversation logic SHALL produce equivalent behavior.
+
+_For any_ supported chat platform, the conversation logic SHALL produce equivalent behavior.
 **Validates: Requirements 1.1, 1.3**
 
 ### Property 4: Relevance Filtering
-*For any* channel message without @mention, the system SHALL only respond if relevance confidence is high.
+
+_For any_ channel message without @mention, the system SHALL only respond if relevance confidence is high.
 **Validates: Requirements 5.5**
 
 ### Property 5: Message Priority
-*For any* @mention message, the system SHALL process it immediately without queuing.
+
+_For any_ @mention message, the system SHALL process it immediately without queuing.
 **Validates: Requirements 6.2**
 
 ## Error Handling

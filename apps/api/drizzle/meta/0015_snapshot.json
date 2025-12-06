@@ -1194,10 +1194,7 @@
       "compositePrimaryKeys": {
         "gpr_jobs_id_version_pk": {
           "name": "gpr_jobs_id_version_pk",
-          "columns": [
-            "id",
-            "version"
-          ]
+          "columns": ["id", "version"]
         }
       },
       "uniqueConstraints": {},
@@ -1285,10 +1282,7 @@
       "compositePrimaryKeys": {
         "gpr_queue_schedules_agent_id_queue_type_pk": {
           "name": "gpr_queue_schedules_agent_id_queue_type_pk",
-          "columns": [
-            "agent_id",
-            "queue_type"
-          ]
+          "columns": ["agent_id", "queue_type"]
         }
       },
       "uniqueConstraints": {},
@@ -1355,10 +1349,7 @@
       "compositePrimaryKeys": {
         "gpr_queue_states_org_id_queue_type_pk": {
           "name": "gpr_queue_states_org_id_queue_type_pk",
-          "columns": [
-            "org_id",
-            "queue_type"
-          ]
+          "columns": ["org_id", "queue_type"]
         }
       },
       "uniqueConstraints": {},
@@ -1555,28 +1546,17 @@
     "public.gpr_activity_read_status": {
       "name": "gpr_activity_read_status",
       "schema": "public",
-      "values": [
-        "read",
-        "unread"
-      ]
+      "values": ["read", "unread"]
     },
     "public.gpr_agent_status": {
       "name": "gpr_agent_status",
       "schema": "public",
-      "values": [
-        "active",
-        "idle",
-        "offline"
-      ]
+      "values": ["active", "idle", "offline"]
     },
     "public.gpr_job_priority": {
       "name": "gpr_job_priority",
       "schema": "public",
-      "values": [
-        "low",
-        "medium",
-        "high"
-      ]
+      "values": ["low", "medium", "high"]
     },
     "public.gpr_job_status": {
       "name": "gpr_job_status",
@@ -1593,19 +1573,12 @@
     "public.gpr_queue_type": {
       "name": "gpr_queue_type",
       "schema": "public",
-      "values": [
-        "rework",
-        "backlog"
-      ]
+      "values": ["rework", "backlog"]
     },
     "public.gpr_repo_provider_app_name": {
       "name": "gpr_repo_provider_app_name",
       "schema": "public",
-      "values": [
-        "github",
-        "gitlab",
-        "bitbucket"
-      ]
+      "values": ["github", "gitlab", "bitbucket"]
     },
     "public.gpr_user_acceptance_status": {
       "name": "gpr_user_acceptance_status",
@@ -1620,21 +1593,12 @@
     "public.gpr_user_input_source": {
       "name": "gpr_user_input_source",
       "schema": "public",
-      "values": [
-        "slack",
-        "discord",
-        "mobile",
-        "gh-issues"
-      ]
+      "values": ["slack", "discord", "mobile", "gh-issues"]
     },
     "public.gpr_vibe_agent": {
       "name": "gpr_vibe_agent",
       "schema": "public",
-      "values": [
-        "cursor",
-        "kiro-cli",
-        "claude-code"
-      ]
+      "values": ["cursor", "kiro-cli", "claude-code"]
     }
   },
   "schemas": {},

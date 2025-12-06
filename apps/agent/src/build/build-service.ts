@@ -14,7 +14,7 @@ export class BuildService {
     this.workspacePath = workspacePath;
   }
 
-  async* build(
+  async *build(
     buildCommands: string[] = ['npm install', 'npm run build'],
     jobId: string
   ): AsyncGenerator<LogMessage> {
@@ -37,7 +37,7 @@ export class BuildService {
         };
 
         const [cmd, ...args] = command.split(' ');
-        
+
         try {
           const result = await execa(cmd, args, {
             cwd: this.workspacePath,
@@ -73,7 +73,8 @@ export class BuildService {
             stage: 'build',
           };
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
           const stderr = (error as any)?.stderr || '';
           const stdout = (error as any)?.stdout || '';
 
@@ -99,7 +100,9 @@ export class BuildService {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Build process failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Build process failed: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'build',
@@ -116,7 +119,7 @@ export class BuildService {
 
     for (const command of buildCommands) {
       const [cmd, ...args] = command.split(' ');
-      
+
       try {
         const result = await execa(cmd, args, {
           cwd: this.workspacePath,
@@ -128,7 +131,8 @@ export class BuildService {
           output += result.stderr;
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         const stderr = (error as any)?.stderr || '';
         errors.push(`${command}: ${errorMessage}\n${stderr}`);
       }
@@ -141,5 +145,3 @@ export class BuildService {
     };
   }
 }
-
-

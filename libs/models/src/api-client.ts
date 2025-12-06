@@ -5,4 +5,3 @@
 export type * from './generated/api-client/types.gen.js';
 export * from './generated/api-client/sdk.gen.js';
 export { client } from './generated/api-client/client.gen.js';
-

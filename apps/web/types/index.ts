@@ -11,13 +11,28 @@ export type {
 // Types below are not part of the generated models, so they are defined locally here
 // These match the definitions from apps/api/src/types.ts
 
-export type JobStatus = 'queued' | 'in-progress' | 'completed' | 'failed' | 'archived';
+export type JobStatus =
+  | 'queued'
+  | 'in-progress'
+  | 'completed'
+  | 'failed'
+  | 'archived';
 export type JobPriority = 'low' | 'medium' | 'high';
 export type AgentStatus = 'active' | 'idle' | 'offline';
 export type IntegrationStatus = 'connected' | 'disconnected';
 export type UserInputSource = 'slack' | 'discord' | 'mobile' | 'gh-issues';
-export type UserAcceptanceStatus = 'not_reviewed' | 'reviewed_and_accepted' | 'reviewed_and_asked_rework' | 'rejected';
-export type ActivityEventType = 'pr_created' | 'job_failed' | 'job_completed' | 'job_started' | 'agent_connected' | 'agent_disconnected';
+export type UserAcceptanceStatus =
+  | 'not_reviewed'
+  | 'reviewed_and_accepted'
+  | 'reviewed_and_asked_rework'
+  | 'rejected';
+export type ActivityEventType =
+  | 'pr_created'
+  | 'job_failed'
+  | 'job_completed'
+  | 'job_started'
+  | 'agent_connected'
+  | 'agent_disconnected';
 
 export interface Agent {
   id: string;
@@ -56,7 +71,12 @@ import { ReactNode } from 'react';
 
 export type TimelineSize = 'sm' | 'md' | 'lg';
 export type TimelineStatus = 'completed' | 'in-progress' | 'pending';
-export type TimelineColor = 'primary' | 'secondary' | 'muted' | 'accent' | 'destructive';
+export type TimelineColor =
+  | 'primary'
+  | 'secondary'
+  | 'muted'
+  | 'accent'
+  | 'destructive';
 
 export interface TimelineElement {
   id: number;

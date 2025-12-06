@@ -1,4 +1,8 @@
-import type { IncomingMessage, OutgoingMessage, ConversationMessage } from './messaging-types';
+import type {
+  IncomingMessage,
+  OutgoingMessage,
+  ConversationMessage,
+} from './messaging-types';
 import type { MessagingAdapter } from './messaging-adapter';
 import { db, schema } from '../../db/index';
 import { eq, and } from 'drizzle-orm';
@@ -11,30 +15,34 @@ import { channelSettingsManager } from './channel-settings-manager';
  */
 export class ConversationManager {
   private handler: ConversationalHandler;
-  
+
   constructor() {
     this.handler = new ConversationalHandler();
   }
-  
+
   /**
    * Determine response location (thread vs channel) - platform agnostic
    * Default: always reply in thread (except DMs)
    */
-  private determineResponseLocation(message: IncomingMessage): { threadId?: string; createThread: boolean } {
+  private determineResponseLocation(message: IncomingMessage): {
+    threadId?: string;
+    createThread: boolean;
+  } {
     // DMs: no thread (platform-specific check - Slack DMs start with 'D', Discord DMs are different)
     // For now, we'll check if it's a DM based on channel type in metadata or channelId pattern
-    const isDM = message.metadata.isDM === true || 
-                 (message.platform === 'slack' && message.channelId.startsWith('D'));
-    
+    const isDM =
+      message.metadata.isDM === true ||
+      (message.platform === 'slack' && message.channelId.startsWith('D'));
+
     if (isDM) {
       return { createThread: false };
     }
-    
+
     // Already in thread: continue thread
     if (message.threadId) {
       return { threadId: message.threadId, createThread: false };
     }
-    
+
     // Channel message: always create/use thread
     // Use message timestamp/id as thread_ts to create thread
     return { threadId: message.id, createThread: true };
@@ -62,23 +70,32 @@ export class ConversationManager {
         message.threadId,
         orgId
       );
-      
+
       // Get conversation history
       const history = await this.getConversationHistory(
         message.platform,
         message.threadId || message.channelId,
         orgId
       );
-      
+
       // Use unified conversational handler with function calling
-      const response = await this.handler.handle(message, history, orgId, isQuiet, isMention);
-      
+      const response = await this.handler.handle(
+        message,
+        history,
+        orgId,
+        isQuiet,
+        isMention
+      );
+
       // If response is null, handler decided not to respond (e.g., quiet mode + low relevance)
       if (!response) {
-        logger?.info({ messageId: message.id, isQuiet }, 'Handler returned null, skipping response');
+        logger?.info(
+          { messageId: message.id, isQuiet },
+          'Handler returned null, skipping response'
+        );
         return;
       }
-      
+
       // Handle quiet mode commands
       if (response.metadata?.quietModeCommand) {
         const quiet = response.metadata.quietModeCommand === 'enable';
@@ -89,16 +106,19 @@ export class ConversationManager {
           orgId,
           quiet
         );
-        logger?.info({ quiet, channelId: message.channelId, threadId: message.threadId }, 'Quiet mode updated');
+        logger?.info(
+          { quiet, channelId: message.channelId, threadId: message.threadId },
+          'Quiet mode updated'
+        );
       }
-      
+
       // Determine response location (thread vs channel)
       const location = this.determineResponseLocation(message);
       response.threadId = location.threadId || response.threadId;
-      
+
       // Send response
       await adapter.sendMessage(response);
-      
+
       // Store conversation
       await this.storeConversation(message, response, orgId);
     } catch (error) {
@@ -106,7 +126,7 @@ export class ConversationManager {
       await this.handleError(message, adapter, error);
     }
   }
-  
+
   /**
    * Get conversation history from database
    */
@@ -126,14 +146,14 @@ export class ConversationManager {
         )
       )
       .limit(1);
-    
+
     if (result.length === 0) {
       return [];
     }
-    
+
     return (result[0].messages as ConversationMessage[]) || [];
   }
-  
+
   /**
    * Store conversation in database
    */
@@ -143,7 +163,7 @@ export class ConversationManager {
     orgId: string
   ): Promise<void> {
     const threadId = message.threadId || message.channelId;
-    
+
     // Get existing conversation
     const existing = await db
       .select()
@@ -156,27 +176,27 @@ export class ConversationManager {
         )
       )
       .limit(1);
-    
+
     const userMessage: ConversationMessage = {
       role: 'user',
       content: message.text,
       timestamp: message.timestamp,
     };
-    
+
     const assistantMessage: ConversationMessage = {
       role: 'assistant',
       content: response.text,
       timestamp: new Date().toISOString(),
     };
-    
+
     if (existing.length > 0) {
       // Update existing conversation
       const messages = (existing[0].messages as ConversationMessage[]) || [];
       messages.push(userMessage, assistantMessage);
-      
+
       // Keep only last 20 messages
       const trimmedMessages = messages.slice(-20);
-      
+
       await db
         .update(schema.conversations)
         .set({
@@ -188,7 +208,7 @@ export class ConversationManager {
       // Create new conversation
       // Use message.userId if available, otherwise fallback to 'system' for bot/system messages
       const userId = message.userId || 'system';
-      
+
       await db.insert(schema.conversations).values({
         id: uuidv4(),
         platform: message.platform,
@@ -201,7 +221,7 @@ export class ConversationManager {
       });
     }
   }
-  
+
   /**
    * Handle errors gracefully
    */
@@ -213,9 +233,9 @@ export class ConversationManager {
     const response: OutgoingMessage = {
       channelId: message.channelId,
       threadId: message.threadId,
-      text: "Sorry, I encountered an error processing your request. Please try again or contact support if the issue persists.",
+      text: 'Sorry, I encountered an error processing your request. Please try again or contact support if the issue persists.',
     };
-    
+
     await adapter.sendMessage(response);
   }
 }

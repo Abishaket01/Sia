@@ -18,7 +18,8 @@ export const mockJobs: Job[] = [
     updated_at: new Date().toISOString(),
     created_by: 'system',
     updated_by: 'system',
-    code_generation_logs: '[10:23:45] Starting job execution\n[10:23:47] Cloning repository\n[10:23:52] Analyzing codebase\n[10:24:15] Found potential issue in auth/oauth.ts',
+    code_generation_logs:
+      '[10:23:45] Starting job execution\n[10:23:47] Cloning repository\n[10:23:52] Analyzing codebase\n[10:24:15] Found potential issue in auth/oauth.ts',
     code_verification_logs: undefined,
     user_comments: undefined,
     confidence_score: '87',
@@ -241,14 +242,16 @@ export const supportedIntegrations: Integration[] = [
   {
     id: 'github',
     name: 'GitHub',
-    description: 'Connect your GitHub repositories to automatically pull issues and create pull requests',
+    description:
+      'Connect your GitHub repositories to automatically pull issues and create pull requests',
     status: 'disconnected',
     icon: 'github',
   },
   {
     id: 'linear',
     name: 'Linear',
-    description: 'Sync issues from Linear and track progress across your workflow',
+    description:
+      'Sync issues from Linear and track progress across your workflow',
     status: 'disconnected',
     icon: 'linear',
   },
@@ -276,7 +279,8 @@ export const supportedIntegrations: Integration[] = [
   {
     id: 'claude-code',
     name: 'Claude Agent',
-    description: 'Integrate Claude Agent for advanced code generation capabilities',
+    description:
+      'Integrate Claude Agent for advanced code generation capabilities',
     status: 'disconnected',
     icon: 'claude-code',
   },
@@ -290,7 +294,8 @@ export const supportedIntegrations: Integration[] = [
   {
     id: 'gitlab',
     name: 'GitLab',
-    description: 'Connect your GitLab repositories to automatically pull issues and create pull requests',
+    description:
+      'Connect your GitLab repositories to automatically pull issues and create pull requests',
     status: 'disconnected',
     icon: 'gitlab',
   },
@@ -326,4 +331,3 @@ export const mockActivityEvents: ActivityEvent[] = [
     jobId: '7',
   },
 ];
-

@@ -1,27 +1,26 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useActivities } from '@/hooks/use-activities'
-import { ActivityList } from './activity-list'
-import { ActivityDetail } from './activity-detail'
+import { useState, useEffect } from 'react';
+import { useActivities } from '@/hooks/use-activities';
+import { ActivityList } from './activity-list';
+import { ActivityDetail } from './activity-detail';
 
 export default function RecentsPage() {
-  const {
-    data: activities = [],
-    isLoading,
-    isError,
-  } = useActivities()
+  const { data: activities = [], isLoading, isError } = useActivities();
 
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
+    null
+  );
 
   // Auto-select the first activity when activities load
   useEffect(() => {
     if (activities.length > 0 && !selectedActivityId) {
-      setSelectedActivityId(activities[0].id)
+      setSelectedActivityId(activities[0].id);
     }
-  }, [activities, selectedActivityId])
+  }, [activities, selectedActivityId]);
 
-  const selectedActivity = activities.find((a) => a.id === selectedActivityId) || null
+  const selectedActivity =
+    activities.find(a => a.id === selectedActivityId) || null;
 
   if (isLoading && activities.length === 0) {
     return (
@@ -30,7 +29,7 @@ export default function RecentsPage() {
           Loading...
         </div>
       </div>
-    )
+    );
   }
 
   if (isError && activities.length === 0) {
@@ -40,7 +39,7 @@ export default function RecentsPage() {
           Failed to load activities
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -64,6 +63,5 @@ export default function RecentsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
-

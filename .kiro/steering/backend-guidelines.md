@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: "apps/api/**/*"
+fileMatchPattern: 'apps/api/**/*'
 ---
 
 # Backend Development Guidelines (apps/api)
@@ -21,17 +21,21 @@ fileMatchPattern: "apps/api/**/*"
 // routes/jobs/index.ts
 import { FastifyPluginAsync } from 'fastify';
 
-const jobRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get('/', {
-    schema: {
-      response: {
-        200: JobListSchema
-      }
+const jobRoutes: FastifyPluginAsync = async fastify => {
+  fastify.get(
+    '/',
+    {
+      schema: {
+        response: {
+          200: JobListSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const jobs = await jobService.list(request.orgId);
+      return jobs;
     }
-  }, async (request, reply) => {
-    const jobs = await jobService.list(request.orgId);
-    return jobs;
-  });
+  );
 };
 ```
 
@@ -93,7 +97,7 @@ export const jobs = pgTable('jobs', {
 
 // Usage
 const job = await db.query.jobs.findFirst({
-  where: eq(jobs.id, jobId)
+  where: eq(jobs.id, jobId),
 });
 ```
 

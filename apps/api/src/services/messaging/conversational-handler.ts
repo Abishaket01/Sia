@@ -1,9 +1,25 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText, tool, zodSchema } from 'ai';
 import { z } from 'zod';
-import type { IncomingMessage, OutgoingMessage, ConversationMessage } from './messaging-types';
+import type {
+  IncomingMessage,
+  OutgoingMessage,
+  ConversationMessage,
+} from './messaging-types';
 import { db, schema } from '../../db/index';
-import { eq, and, asc, desc, gt, lte, lt, gte, sql, or, ilike } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  asc,
+  desc,
+  gt,
+  lte,
+  lt,
+  gte,
+  sql,
+  or,
+  ilike,
+} from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { gcsStorage } from '../storage/gcs-storage';
 import { jobExecutionService } from '../job-execution';
@@ -12,7 +28,10 @@ import * as fs from 'fs';
 
 const MAX_FILE_SIZE_MB = parseInt(process.env.MAX_FILE_SIZE_MB || '10', 10);
 const MAX_FILES_PER_JOB = parseInt(process.env.MAX_FILES_PER_JOB || '10', 10);
-const MAX_TOTAL_STORAGE_MB = parseInt(process.env.MAX_TOTAL_STORAGE_MB || '100', 10);
+const MAX_TOTAL_STORAGE_MB = parseInt(
+  process.env.MAX_TOTAL_STORAGE_MB || '100',
+  10
+);
 
 /**
  * Unified conversational handler using function calling
@@ -21,7 +40,7 @@ const MAX_TOTAL_STORAGE_MB = parseInt(process.env.MAX_TOTAL_STORAGE_MB || '100',
 export class ConversationalHandler {
   private model = openai(process.env.OPENAI_RESPONSE_MODEL || 'gpt-4o-mini');
   private logger?: any; // Fastify logger instance
-  
+
   /**
    * Enhanced keyword/pattern detection with confidence scoring
    * Returns confidence level and whether question is related
@@ -32,19 +51,61 @@ export class ConversationalHandler {
     isRelated: boolean | null; // null means uncertain (needs LLM check)
   } {
     const userMessageLower = userMessage.toLowerCase().trim();
-    
+
     // Positive signals (definitely related to task management)
     const relatedKeywords = [
-      'task', 'tasks', 'job', 'jobs', 'issue', 'issues', 'work', 'work item',
-      'queue', 'queued', 'status', 'create', 'add', 'cancel', 'delete',
-      'priority', 'prioritize', 'pause', 'resume', 'pr', 'pull request',
-      'repository', 'repo', 'settings', 'page', 'sia', 'platform',
-      'help', 'what can you', 'capabilities', 'list', 'show', 'get',
-      'update', 'modify', 'change', 'execute', 'running', 'executing',
-      'completed', 'finished', 'done', 'link', 'url', 'search', 'find',
-      'working on', 'currently working', 'what are you', 'what are you doing',
+      'task',
+      'tasks',
+      'job',
+      'jobs',
+      'issue',
+      'issues',
+      'work',
+      'work item',
+      'queue',
+      'queued',
+      'status',
+      'create',
+      'add',
+      'cancel',
+      'delete',
+      'priority',
+      'prioritize',
+      'pause',
+      'resume',
+      'pr',
+      'pull request',
+      'repository',
+      'repo',
+      'settings',
+      'page',
+      'sia',
+      'platform',
+      'help',
+      'what can you',
+      'capabilities',
+      'list',
+      'show',
+      'get',
+      'update',
+      'modify',
+      'change',
+      'execute',
+      'running',
+      'executing',
+      'completed',
+      'finished',
+      'done',
+      'link',
+      'url',
+      'search',
+      'find',
+      'working on',
+      'currently working',
+      'what are you',
+      'what are you doing',
     ];
-    
+
     // Negative patterns (definitely unrelated)
     const unrelatedPatterns = [
       // General knowledge question patterns
@@ -62,23 +123,37 @@ export class ConversationalHandler {
       // Specific unrelated phrases
       /(sun rises|sun sets|sun rise|sun set|east|west|north|south)/i,
     ];
-    
+
     // Count related keyword matches
-    const relatedMatches = relatedKeywords.filter(keyword => 
+    const relatedMatches = relatedKeywords.filter(keyword =>
       userMessageLower.includes(keyword)
     ).length;
-    
+
     // Check for unrelated patterns
-    const hasUnrelatedPattern = unrelatedPatterns.some(pattern => 
+    const hasUnrelatedPattern = unrelatedPatterns.some(pattern =>
       pattern.test(userMessageLower)
     );
-    
+
     // Check for question words without related context
-    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who', 'does', 'is', 'are', 'was', 'were'];
-    const hasQuestionWord = questionWords.some(word => 
-      userMessageLower.startsWith(word) || userMessageLower.includes(` ${word} `)
+    const questionWords = [
+      'what',
+      'how',
+      'why',
+      'when',
+      'where',
+      'who',
+      'does',
+      'is',
+      'are',
+      'was',
+      'were',
+    ];
+    const hasQuestionWord = questionWords.some(
+      word =>
+        userMessageLower.startsWith(word) ||
+        userMessageLower.includes(` ${word} `)
     );
-    
+
     // Confidence scoring
     if (relatedMatches >= 2) {
       // Strong positive signal - definitely related
@@ -87,7 +162,7 @@ export class ConversationalHandler {
         isRelated: true,
       };
     }
-    
+
     if (hasUnrelatedPattern) {
       // Strong negative signal - definitely unrelated
       return {
@@ -95,7 +170,7 @@ export class ConversationalHandler {
         isRelated: false,
       };
     }
-    
+
     if (relatedMatches === 1 && !hasQuestionWord) {
       // Single related keyword, no question word - likely related
       return {
@@ -103,7 +178,7 @@ export class ConversationalHandler {
         isRelated: true,
       };
     }
-    
+
     if (hasQuestionWord && relatedMatches === 0) {
       // Question word but no related keywords - likely unrelated but check
       return {
@@ -111,7 +186,7 @@ export class ConversationalHandler {
         isRelated: null,
       };
     }
-    
+
     // Default: allow through (greetings, casual chat, etc.)
     return {
       confidence: 'high_related',
@@ -123,7 +198,9 @@ export class ConversationalHandler {
    * LLM-based classification for ambiguous questions
    * Only called when keyword detection is uncertain
    */
-  private async classifyQuestionRelevance(userMessage: string): Promise<'related' | 'unrelated'> {
+  private async classifyQuestionRelevance(
+    userMessage: string
+  ): Promise<'related' | 'unrelated'> {
     try {
       const result = await generateText({
         model: this.model,
@@ -150,19 +227,25 @@ A question is UNRELATED if it's about:
         temperature: 0.1, // Low temperature for consistent classification
         maxOutputTokens: 10, // Only need one word
       });
-      
+
       const classification = result.text.trim().toLowerCase();
-      if (classification === 'unrelated' || classification.includes('unrelated')) {
+      if (
+        classification === 'unrelated' ||
+        classification.includes('unrelated')
+      ) {
         return 'unrelated';
       }
       return 'related'; // Default to related to avoid blocking legitimate questions
     } catch (error) {
-      this.logger?.error({ err: error, userMessage }, 'Failed to classify question relevance, defaulting to related');
+      this.logger?.error(
+        { err: error, userMessage },
+        'Failed to classify question relevance, defaulting to related'
+      );
       // On error, allow through to avoid blocking legitimate questions
       return 'related';
     }
   }
-  
+
   private getSystemPrompt(): string {
     return `You are Sia, a friendly junior dev intern on the team. Your personality:
 
@@ -248,115 +331,249 @@ When you need to perform actions, use the available tools. Always respond natura
     return {
       addTask: tool({
         description: 'Add a new task/job/issue to the queue.',
-        inputSchema: zodSchema(z.object({
-          taskDescription: z.string().describe('What task/job/issue to work on - describe what needs to be done'),
-          priority: z.enum(['low', 'medium', 'high']).optional().describe('Priority level (defaults to medium)'),
-          repo: z.string().optional().describe('Repository ID if the task is for a specific repo'),
-        })),
+        inputSchema: zodSchema(
+          z.object({
+            taskDescription: z
+              .string()
+              .describe(
+                'What task/job/issue to work on - describe what needs to be done'
+              ),
+            priority: z
+              .enum(['low', 'medium', 'high'])
+              .optional()
+              .describe('Priority level (defaults to medium)'),
+            repo: z
+              .string()
+              .optional()
+              .describe('Repository ID if the task is for a specific repo'),
+          })
+        ),
         execute: async ({ taskDescription, priority, repo }) => {
-          this.logger?.info({ tool: 'addTask', args: { taskDescription, priority, repo } }, 'Tool called: addTask');
-          const result = await this.addTask(taskDescription, priority, repo, orgId, userId, message);
-          this.logger?.info({ tool: 'addTask', result }, 'Tool response: addTask');
+          this.logger?.info(
+            { tool: 'addTask', args: { taskDescription, priority, repo } },
+            'Tool called: addTask'
+          );
+          const result = await this.addTask(
+            taskDescription,
+            priority,
+            repo,
+            orgId,
+            userId,
+            message
+          );
+          this.logger?.info(
+            { tool: 'addTask', result },
+            'Tool response: addTask'
+          );
           return result;
         },
       }),
 
       checkStatus: tool({
-        description: 'Check the status of a job/task/issue. Can search by job ID (starts with "job-") or by text in the job name or description.',
-        inputSchema: zodSchema(z.object({
-          jobId: z.string().describe('The job/task/issue ID (starts with "job-") or search text to find a job by name/description'),
-        })),
+        description:
+          'Check the status of a job/task/issue. Can search by job ID (starts with "job-") or by text in the job name or description.',
+        inputSchema: zodSchema(
+          z.object({
+            jobId: z
+              .string()
+              .describe(
+                'The job/task/issue ID (starts with "job-") or search text to find a job by name/description'
+              ),
+          })
+        ),
         execute: async ({ jobId }) => {
-          this.logger?.info({ tool: 'checkStatus', args: { jobId } }, 'Tool called: checkStatus');
+          this.logger?.info(
+            { tool: 'checkStatus', args: { jobId } },
+            'Tool called: checkStatus'
+          );
           const result = await this.checkStatus(jobId, orgId);
-          this.logger?.info({ tool: 'checkStatus', result }, 'Tool response: checkStatus');
+          this.logger?.info(
+            { tool: 'checkStatus', result },
+            'Tool response: checkStatus'
+          );
           return result;
         },
       }),
 
-        listExecutingTasks: tool({
-          description: 'List all tasks/jobs/issues that are currently executing or in progress (status: "in-progress"). Use this tool when the user asks about current work, active tasks, what is being worked on right now, tasks that are running, or anything related to ongoing/active work.',
-          inputSchema: zodSchema(z.object({})),
+      listExecutingTasks: tool({
+        description:
+          'List all tasks/jobs/issues that are currently executing or in progress (status: "in-progress"). Use this tool when the user asks about current work, active tasks, what is being worked on right now, tasks that are running, or anything related to ongoing/active work.',
+        inputSchema: zodSchema(z.object({})),
         execute: async () => {
-          this.logger?.info({ tool: 'listExecutingTasks', args: {} }, 'Tool called: listExecutingTasks');
+          this.logger?.info(
+            { tool: 'listExecutingTasks', args: {} },
+            'Tool called: listExecutingTasks'
+          );
           const result = await this.listExecutingTasks(orgId);
-          this.logger?.info({ tool: 'listExecutingTasks', result: { success: result.success, count: result.count, jobsCount: result.jobs?.length } }, 'Tool response: listExecutingTasks');
+          this.logger?.info(
+            {
+              tool: 'listExecutingTasks',
+              result: {
+                success: result.success,
+                count: result.count,
+                jobsCount: result.jobs?.length,
+              },
+            },
+            'Tool response: listExecutingTasks'
+          );
           return result;
         },
       }),
 
       listQueuedTasks: tool({
-        description: 'List all tasks/jobs/issues in the queue waiting to be started (status: "queued"). Use this tool when the user asks about pending tasks, tasks waiting in queue, what\'s next, backlog items, or tasks that haven\'t started yet.',
+        description:
+          'List all tasks/jobs/issues in the queue waiting to be started (status: "queued"). Use this tool when the user asks about pending tasks, tasks waiting in queue, what\'s next, backlog items, or tasks that haven\'t started yet.',
         inputSchema: zodSchema(z.object({})),
         execute: async () => {
-          this.logger?.info({ tool: 'listQueuedTasks', args: {} }, 'Tool called: listQueuedTasks');
+          this.logger?.info(
+            { tool: 'listQueuedTasks', args: {} },
+            'Tool called: listQueuedTasks'
+          );
           const result = await this.listQueuedTasks(orgId);
-          this.logger?.info({ tool: 'listQueuedTasks', result: { success: result.success, count: result.count, jobsCount: result.jobs?.length } }, 'Tool response: listQueuedTasks');
+          this.logger?.info(
+            {
+              tool: 'listQueuedTasks',
+              result: {
+                success: result.success,
+                count: result.count,
+                jobsCount: result.jobs?.length,
+              },
+            },
+            'Tool response: listQueuedTasks'
+          );
           return result;
         },
       }),
 
       listCompletedTasks: tool({
-        description: 'List all completed tasks/jobs/issues (status: "completed"). Use this tool when the user asks about finished tasks, completed work, what\'s been done, or historical task information.',
+        description:
+          'List all completed tasks/jobs/issues (status: "completed"). Use this tool when the user asks about finished tasks, completed work, what\'s been done, or historical task information.',
         inputSchema: zodSchema(z.object({})),
         execute: async () => {
-          this.logger?.info({ tool: 'listCompletedTasks', args: {} }, 'Tool called: listCompletedTasks');
+          this.logger?.info(
+            { tool: 'listCompletedTasks', args: {} },
+            'Tool called: listCompletedTasks'
+          );
           const result = await this.listCompletedTasks(orgId);
-          this.logger?.info({ tool: 'listCompletedTasks', result: { success: result.success, count: result.count, jobsCount: result.jobs?.length } }, 'Tool response: listCompletedTasks');
+          this.logger?.info(
+            {
+              tool: 'listCompletedTasks',
+              result: {
+                success: result.success,
+                count: result.count,
+                jobsCount: result.jobs?.length,
+              },
+            },
+            'Tool response: listCompletedTasks'
+          );
           return result;
         },
       }),
 
       cancelTask: tool({
         description: 'Cancel a task/job/issue.',
-        inputSchema: zodSchema(z.object({
-          jobId: z.string().describe('The job/task/issue ID to cancel'),
-        })),
+        inputSchema: zodSchema(
+          z.object({
+            jobId: z.string().describe('The job/task/issue ID to cancel'),
+          })
+        ),
         execute: async ({ jobId }) => {
-          this.logger?.info({ tool: 'cancelTask', args: { jobId } }, 'Tool called: cancelTask');
-          const result = await this.cancelTask(jobId, orgId, message.userName || userId);
-          this.logger?.info({ tool: 'cancelTask', result }, 'Tool response: cancelTask');
+          this.logger?.info(
+            { tool: 'cancelTask', args: { jobId } },
+            'Tool called: cancelTask'
+          );
+          const result = await this.cancelTask(
+            jobId,
+            orgId,
+            message.userName || userId
+          );
+          this.logger?.info(
+            { tool: 'cancelTask', result },
+            'Tool response: cancelTask'
+          );
           return result;
         },
       }),
 
       reprioritizeTask: tool({
-        description: 'Change the priority or queue position of a task/job/issue.',
-        inputSchema: zodSchema(z.object({
-          jobId: z.string().describe('The job/task/issue ID to reprioritize'),
-          newPriority: z.enum(['low', 'medium', 'high']).optional().describe('New priority level'),
-          newPosition: z.number().int().positive().optional().describe('New position in queue (1-based)'),
-        })),
+        description:
+          'Change the priority or queue position of a task/job/issue.',
+        inputSchema: zodSchema(
+          z.object({
+            jobId: z.string().describe('The job/task/issue ID to reprioritize'),
+            newPriority: z
+              .enum(['low', 'medium', 'high'])
+              .optional()
+              .describe('New priority level'),
+            newPosition: z
+              .number()
+              .int()
+              .positive()
+              .optional()
+              .describe('New position in queue (1-based)'),
+          })
+        ),
         execute: async ({ jobId, newPriority, newPosition }) => {
-          this.logger?.info({ tool: 'reprioritizeTask', args: { jobId, newPriority, newPosition } }, 'Tool called: reprioritizeTask');
-          const result = await this.reprioritizeTask(jobId, newPriority, newPosition, orgId, message.userName || userId);
-          this.logger?.info({ tool: 'reprioritizeTask', result }, 'Tool response: reprioritizeTask');
+          this.logger?.info(
+            {
+              tool: 'reprioritizeTask',
+              args: { jobId, newPriority, newPosition },
+            },
+            'Tool called: reprioritizeTask'
+          );
+          const result = await this.reprioritizeTask(
+            jobId,
+            newPriority,
+            newPosition,
+            orgId,
+            message.userName || userId
+          );
+          this.logger?.info(
+            { tool: 'reprioritizeTask', result },
+            'Tool response: reprioritizeTask'
+          );
           return result;
         },
       }),
 
       pauseExecution: tool({
         description: 'Pause a running job/task/issue.',
-        inputSchema: zodSchema(z.object({
-          jobId: z.string().describe('The job/task/issue ID to pause'),
-        })),
+        inputSchema: zodSchema(
+          z.object({
+            jobId: z.string().describe('The job/task/issue ID to pause'),
+          })
+        ),
         execute: async ({ jobId }) => {
-          this.logger?.info({ tool: 'pauseExecution', args: { jobId } }, 'Tool called: pauseExecution');
+          this.logger?.info(
+            { tool: 'pauseExecution', args: { jobId } },
+            'Tool called: pauseExecution'
+          );
           const result = await this.pauseExecution(jobId, orgId);
-          this.logger?.info({ tool: 'pauseExecution', result }, 'Tool response: pauseExecution');
+          this.logger?.info(
+            { tool: 'pauseExecution', result },
+            'Tool response: pauseExecution'
+          );
           return result;
         },
       }),
 
       resumeExecution: tool({
         description: 'Resume a paused job/task/issue.',
-        inputSchema: zodSchema(z.object({
-          jobId: z.string().describe('The job/task/issue ID to resume'),
-        })),
+        inputSchema: zodSchema(
+          z.object({
+            jobId: z.string().describe('The job/task/issue ID to resume'),
+          })
+        ),
         execute: async ({ jobId }) => {
-          this.logger?.info({ tool: 'resumeExecution', args: { jobId } }, 'Tool called: resumeExecution');
+          this.logger?.info(
+            { tool: 'resumeExecution', args: { jobId } },
+            'Tool called: resumeExecution'
+          );
           const result = await this.resumeExecution(jobId, orgId);
-          this.logger?.info({ tool: 'resumeExecution', result }, 'Tool response: resumeExecution');
+          this.logger?.info(
+            { tool: 'resumeExecution', result },
+            'Tool response: resumeExecution'
+          );
           return result;
         },
       }),
@@ -365,22 +582,44 @@ When you need to perform actions, use the available tools. Always respond natura
         description: 'List pull requests that need review.',
         inputSchema: zodSchema(z.object({})),
         execute: async () => {
-          this.logger?.info({ tool: 'listPRReviews', args: {} }, 'Tool called: listPRReviews');
+          this.logger?.info(
+            { tool: 'listPRReviews', args: {} },
+            'Tool called: listPRReviews'
+          );
           const result = await this.listPRReviews(orgId);
-          this.logger?.info({ tool: 'listPRReviews', result: { success: result.success, count: result.count } }, 'Tool response: listPRReviews');
+          this.logger?.info(
+            {
+              tool: 'listPRReviews',
+              result: { success: result.success, count: result.count },
+            },
+            'Tool response: listPRReviews'
+          );
           return result;
         },
       }),
 
       getJobLink: tool({
-        description: 'Get the full URL/link for a job/task/issue. Can search by job ID (starts with "job-") or by text in the job name or description.',
-        inputSchema: zodSchema(z.object({
-          jobIdOrSearchText: z.string().describe('The job/task/issue ID (starts with "job-") or search text to find a job by name/description'),
-        })),
+        description:
+          'Get the full URL/link for a job/task/issue. Can search by job ID (starts with "job-") or by text in the job name or description.',
+        inputSchema: zodSchema(
+          z.object({
+            jobIdOrSearchText: z
+              .string()
+              .describe(
+                'The job/task/issue ID (starts with "job-") or search text to find a job by name/description'
+              ),
+          })
+        ),
         execute: async ({ jobIdOrSearchText }) => {
-          this.logger?.info({ tool: 'getJobLink', args: { jobIdOrSearchText } }, 'Tool called: getJobLink');
+          this.logger?.info(
+            { tool: 'getJobLink', args: { jobIdOrSearchText } },
+            'Tool called: getJobLink'
+          );
           const result = await this.getJobLink(jobIdOrSearchText, orgId);
-          this.logger?.info({ tool: 'getJobLink', result }, 'Tool response: getJobLink');
+          this.logger?.info(
+            { tool: 'getJobLink', result },
+            'Tool response: getJobLink'
+          );
           return result;
         },
       }),
@@ -400,18 +639,33 @@ When you need to perform actions, use the available tools. Always respond natura
   ): 'enable' | 'disable' | null {
     const lower = message.toLowerCase().trim();
     const botName = 'sia';
-    
+
     // Check if message mentions the bot name
     const mentionsBotName = lower.includes(botName);
-    
+
     // Only proceed if @mentioned OR bot name is explicitly mentioned
     if (!isMention && !mentionsBotName) {
       return null;
     }
-    
-    const quietCommands = ['pause', 'shut up', 'quiet', 'be quiet', 'stop talking', 'silence', 'hush'];
-    const resumeCommands = ['resume', 'unpause', 'speak', 'wake up', 'start talking', 'continue'];
-    
+
+    const quietCommands = [
+      'pause',
+      'shut up',
+      'quiet',
+      'be quiet',
+      'stop talking',
+      'silence',
+      'hush',
+    ];
+    const resumeCommands = [
+      'resume',
+      'unpause',
+      'speak',
+      'wake up',
+      'start talking',
+      'continue',
+    ];
+
     // Check for quiet commands - must be near bot name if not @mentioned
     if (isMention) {
       // If @mentioned, any command word triggers it
@@ -421,18 +675,18 @@ When you need to perform actions, use the available tools. Always respond natura
       // If not @mentioned, command must be near bot name (within 10 words)
       const words = lower.split(/\s+/);
       const botNameIndex = words.findIndex(w => w.includes(botName));
-      
+
       if (botNameIndex !== -1) {
         // Check words around bot name (within 10 words)
         const start = Math.max(0, botNameIndex - 5);
         const end = Math.min(words.length, botNameIndex + 6);
         const context = words.slice(start, end).join(' ');
-        
+
         if (quietCommands.some(cmd => context.includes(cmd))) return 'enable';
         if (resumeCommands.some(cmd => context.includes(cmd))) return 'disable';
       }
     }
-    
+
     return null;
   }
 
@@ -455,7 +709,7 @@ When you need to perform actions, use the available tools. Always respond natura
 
     // Build messages array from conversation history
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
-    
+
     // Add conversation history (last 20 messages)
     const recentHistory = history.slice(-20);
     for (const msg of recentHistory) {
@@ -479,76 +733,95 @@ When you need to perform actions, use the available tools. Always respond natura
       return {
         channelId: message.channelId,
         threadId: message.threadId,
-        text: quietCommand === 'enable' 
-          ? "Got it! I'll be quiet. I'll only respond to direct mentions or very relevant questions. Say 'resume' or 'speak' when you want me to be more active again."
-          : "I'm back! I'll respond to relevant conversations again.",
+        text:
+          quietCommand === 'enable'
+            ? "Got it! I'll be quiet. I'll only respond to direct mentions or very relevant questions. Say 'resume' or 'speak' when you want me to be more active again."
+            : "I'm back! I'll respond to relevant conversations again.",
         metadata: { quietModeCommand: quietCommand },
       };
     }
 
     // Pre-filter: Check question relevance before expensive LLM call
     const relevanceCheck = this.detectQuestionRelevance(message.text);
-    
+
     // In quiet mode, only respond to high relevance or if explicitly mentioned
     if (isQuietMode && relevanceCheck.confidence !== 'high_related') {
-      this.logger?.info({ 
-        userMessage: message.text,
-        confidence: relevanceCheck.confidence,
-        isQuietMode: true
-      }, 'Skipping message in quiet mode (low relevance)');
-      
+      this.logger?.info(
+        {
+          userMessage: message.text,
+          confidence: relevanceCheck.confidence,
+          isQuietMode: true,
+        },
+        'Skipping message in quiet mode (low relevance)'
+      );
+
       return null; // Don't respond
     }
-    
+
     // If high confidence unrelated, block immediately
     if (relevanceCheck.confidence === 'high_unrelated') {
-      this.logger?.info({ 
-        userMessage: message.text,
-        confidence: 'high_unrelated',
-        method: 'keyword_detection'
-      }, 'Blocked unrelated question with pre-filter (high confidence)');
-      
+      this.logger?.info(
+        {
+          userMessage: message.text,
+          confidence: 'high_unrelated',
+          method: 'keyword_detection',
+        },
+        'Blocked unrelated question with pre-filter (high confidence)'
+      );
+
       return {
         channelId: message.channelId,
         threadId: message.threadId,
         text: "I'm focused on helping with task management and our coding platform. Is there something specific about tasks or jobs I can help with?",
       };
     }
-    
+
     // If medium confidence (uncertain), use LLM classifier
     if (relevanceCheck.confidence === 'medium') {
-      this.logger?.info({
-        userMessage: message.text,
-        confidence: 'medium'
-      }, 'Question relevance uncertain, using LLM classifier');
-      
-      const classification = await this.classifyQuestionRelevance(message.text);
-      
-      if (classification === 'unrelated') {
-        this.logger?.info({ 
+      this.logger?.info(
+        {
           userMessage: message.text,
-          classification: 'unrelated',
-          method: 'llm_classifier'
-        }, 'Blocked unrelated question with LLM classifier');
-        
+          confidence: 'medium',
+        },
+        'Question relevance uncertain, using LLM classifier'
+      );
+
+      const classification = await this.classifyQuestionRelevance(message.text);
+
+      if (classification === 'unrelated') {
+        this.logger?.info(
+          {
+            userMessage: message.text,
+            classification: 'unrelated',
+            method: 'llm_classifier',
+          },
+          'Blocked unrelated question with LLM classifier'
+        );
+
         return {
           channelId: message.channelId,
           threadId: message.threadId,
           text: "I'm focused on helping with task management and our coding platform. Is there something specific about tasks or jobs I can help with?",
         };
       }
-      
-      this.logger?.info({ 
-        userMessage: message.text,
-        classification: 'related',
-        method: 'llm_classifier'
-      }, 'Question classified as related, proceeding');
+
+      this.logger?.info(
+        {
+          userMessage: message.text,
+          classification: 'related',
+          method: 'llm_classifier',
+        },
+        'Question classified as related, proceeding'
+      );
     } else {
-      this.logger?.info({ 
-        userMessage: message.text,
-        confidence: 'high_related',
-        method: 'keyword_detection'
-      }, 'Question detected as related, proceeding');
+      this.logger?.info(
+        {
+          userMessage: message.text,
+          confidence: 'high_related',
+          method: 'keyword_detection',
+        },
+        'Question detected as related, proceeding'
+      );
     }
 
     // Get tools
@@ -565,63 +838,90 @@ When you need to perform actions, use the available tools. Always respond natura
 
       // Log tool calls
       if (result.toolCalls && result.toolCalls.length > 0) {
-        this.logger?.info({ 
-          toolCalls: result.toolCalls.map(tc => ({ name: tc.toolName })) 
-        }, 'LLM made tool calls');
+        this.logger?.info(
+          {
+            toolCalls: result.toolCalls.map(tc => ({ name: tc.toolName })),
+          },
+          'LLM made tool calls'
+        );
       }
-      
+
       // Build response text
       let responseText = result.text?.trim();
-      
+
       // If text is empty after tool calls, generate a response from tool results
       // Only do this if the response is truly empty - if there's already text, use it
-      if ((!responseText || responseText.length === 0) && result.toolCalls && result.toolCalls.length > 0) {
-        this.logger?.info('Tool calls made but no text response, generating final response from tool results');
-        
+      if (
+        (!responseText || responseText.length === 0) &&
+        result.toolCalls &&
+        result.toolCalls.length > 0
+      ) {
+        this.logger?.info(
+          'Tool calls made but no text response, generating final response from tool results'
+        );
+
         // Extract tool results from steps
-        if ('steps' in result && Array.isArray(result.steps) && result.steps.length > 0) {
+        if (
+          'steps' in result &&
+          Array.isArray(result.steps) &&
+          result.steps.length > 0
+        ) {
           const toolResults = result.steps
             .flatMap(step => step.toolResults || [])
             .filter(r => r && typeof r === 'object');
-          
+
           if (toolResults.length > 0) {
             // Generate a response based on tool results
             const toolResultsMessage = {
               role: 'user' as const,
-              content: `The user asked: "${message.text}". Based on these tool results: ${JSON.stringify(toolResults)}, provide a natural, conversational response.`,
+              content: `The user asked: "${
+                message.text
+              }". Based on these tool results: ${JSON.stringify(
+                toolResults
+              )}, provide a natural, conversational response.`,
             };
-            
+
             const finalResult = await generateText({
               model: this.model,
               system: this.getSystemPrompt(),
               messages: [...messages, toolResultsMessage],
               tools: {}, // Don't allow more tool calls in the final response to avoid duplicates
             });
-            
+
             responseText = finalResult.text?.trim();
-            this.logger?.info({ 
-              responseText: responseText?.substring(0, 200) || 'EMPTY',
-            }, 'Generated response from tool results');
+            this.logger?.info(
+              {
+                responseText: responseText?.substring(0, 200) || 'EMPTY',
+              },
+              'Generated response from tool results'
+            );
           }
         }
-        
+
         // Final fallback if still empty
         if (!responseText || responseText.length === 0) {
-          responseText = 'I processed your request, but couldn\'t generate a response. Please try again.';
+          responseText =
+            "I processed your request, but couldn't generate a response. Please try again.";
         }
       }
-      
+
       // Log the final response
-      this.logger?.info({ 
-        responseText: responseText?.substring(0, 200) || 'EMPTY',
-        hasToolCalls: !!(result.toolCalls && result.toolCalls.length > 0),
-        hasText: !!(responseText && responseText.length > 0)
-      }, 'LLM response generated');
-      
+      this.logger?.info(
+        {
+          responseText: responseText?.substring(0, 200) || 'EMPTY',
+          hasToolCalls: !!(result.toolCalls && result.toolCalls.length > 0),
+          hasText: !!(responseText && responseText.length > 0),
+        },
+        'LLM response generated'
+      );
+
       // Build blocks from tool calls if any
-      const blocks = 'steps' in result && Array.isArray(result.steps) && result.steps.length > 0
-        ? this.buildBlocksFromSteps(result.steps as any)
-        : [];
+      const blocks =
+        'steps' in result &&
+        Array.isArray(result.steps) &&
+        result.steps.length > 0
+          ? this.buildBlocksFromSteps(result.steps as any)
+          : [];
 
       return {
         channelId: message.channelId,
@@ -634,7 +934,7 @@ When you need to perform actions, use the available tools. Always respond natura
       return {
         channelId: message.channelId,
         threadId: message.threadId,
-        text: "Sorry, I encountered an error processing your request. Please try again.",
+        text: 'Sorry, I encountered an error processing your request. Please try again.',
       };
     }
   }
@@ -642,17 +942,26 @@ When you need to perform actions, use the available tools. Always respond natura
   /**
    * Build message blocks from tool execution steps for rich formatting
    */
-  private buildBlocksFromSteps(steps: Array<{ toolCalls?: Array<{ toolName: string; args: any }>; toolResults?: Array<any> }>): any[] {
+  private buildBlocksFromSteps(
+    steps: Array<{
+      toolCalls?: Array<{ toolName: string; args: any }>;
+      toolResults?: Array<any>;
+    }>
+  ): any[] {
     const blocks: any[] = [];
-    
+
     for (const step of steps) {
       if (!step.toolCalls || !step.toolResults) continue;
-      
+
       for (let i = 0; i < step.toolCalls.length; i++) {
         const toolCall = step.toolCalls[i];
         const result = step.toolResults[i];
-        
-        if (!result || (typeof result === 'object' && 'error' in result && result.error)) continue;
+
+        if (
+          !result ||
+          (typeof result === 'object' && 'error' in result && result.error)
+        )
+          continue;
 
         switch (toolCall.toolName) {
           case 'addTask':
@@ -668,9 +977,14 @@ When you need to perform actions, use the available tools. Always respond natura
               });
             }
             break;
-          
+
           case 'checkStatus':
-            if (result && typeof result === 'object' && 'job' in result && result.job) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'job' in result &&
+              result.job
+            ) {
               const statusEmoji = this.getStatusEmoji(result.job.status);
               const fields: Array<{ type: string; text: string }> = [
                 {
@@ -687,10 +1001,14 @@ When you need to perform actions, use the available tools. Always respond natura
                 },
                 {
                   type: 'mrkdwn',
-                  text: `*Created:*\n<!date^${Math.floor(new Date(result.job.createdAt).getTime() / 1000)}^{date_short_pretty} {time}|${new Date(result.job.createdAt).toISOString()}>`,
+                  text: `*Created:*\n<!date^${Math.floor(
+                    new Date(result.job.createdAt).getTime() / 1000
+                  )}^{date_short_pretty} {time}|${new Date(
+                    result.job.createdAt
+                  ).toISOString()}>`,
                 },
               ];
-              
+
               // Add job link if available
               if (result.job.link) {
                 fields.push({
@@ -698,7 +1016,7 @@ When you need to perform actions, use the available tools. Always respond natura
                   text: `*Link:*\n<${result.job.link}|View Job>`,
                 });
               }
-              
+
               // Add PR link if available
               if (result.job.prLink) {
                 fields.push({
@@ -706,33 +1024,48 @@ When you need to perform actions, use the available tools. Always respond natura
                   text: `*PR:*\n<${result.job.prLink}|View Pull Request>`,
                 });
               }
-              
+
               blocks.push({
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: `${statusEmoji} *${result.job.generatedName || result.job.id}*`,
+                  text: `${statusEmoji} *${
+                    result.job.generatedName || result.job.id
+                  }*`,
                 },
                 fields,
               });
             }
             break;
-          
+
           case 'cancelTask':
-            if (result && typeof result === 'object' && 'success' in result && result.success) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'success' in result &&
+              result.success
+            ) {
               blocks.push({
                 type: 'section',
                 text: '🗑️ Task Cancelled',
                 fields: [
                   { title: 'Job ID', value: `\`${result.jobId}\`` },
-                  { title: 'Previous Status', value: result.previousStatus || 'unknown' },
+                  {
+                    title: 'Previous Status',
+                    value: result.previousStatus || 'unknown',
+                  },
                 ],
               });
             }
             break;
-          
+
           case 'reprioritizeTask':
-            if (result && typeof result === 'object' && 'success' in result && result.success) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'success' in result &&
+              result.success
+            ) {
               blocks.push({
                 type: 'section',
                 text: '🔄 Task Updated',
@@ -743,9 +1076,14 @@ When you need to perform actions, use the available tools. Always respond natura
               });
             }
             break;
-          
+
           case 'listQueuedTasks':
-            if (result && typeof result === 'object' && 'jobs' in result && Array.isArray(result.jobs)) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'jobs' in result &&
+              Array.isArray(result.jobs)
+            ) {
               if (result.jobs.length === 0) {
                 blocks.push({
                   type: 'section',
@@ -772,21 +1110,32 @@ When you need to perform actions, use the available tools. Always respond natura
                     },
                     {
                       type: 'mrkdwn',
-                      text: `*Queue Position:*\n${job.orderInQueue !== undefined ? job.orderInQueue + 1 : 'N/A'}`,
+                      text: `*Queue Position:*\n${
+                        job.orderInQueue !== undefined
+                          ? job.orderInQueue + 1
+                          : 'N/A'
+                      }`,
                     },
                     {
                       type: 'mrkdwn',
-                      text: `*Created:*\n<!date^${Math.floor(new Date(job.createdAt).getTime() / 1000)}^{date_short_pretty} {time}|${new Date(job.createdAt).toISOString()}>`,
+                      text: `*Created:*\n<!date^${Math.floor(
+                        new Date(job.createdAt).getTime() / 1000
+                      )}^{date_short_pretty} {time}|${new Date(
+                        job.createdAt
+                      ).toISOString()}>`,
                     },
                   ];
-                  
+
                   if (job.description) {
                     fields.push({
                       type: 'mrkdwn',
-                      text: `*Description:*\n${job.description.substring(0, 200)}${job.description.length > 200 ? '...' : ''}`,
+                      text: `*Description:*\n${job.description.substring(
+                        0,
+                        200
+                      )}${job.description.length > 200 ? '...' : ''}`,
                     });
                   }
-                  
+
                   blocks.push({
                     type: 'section',
                     text: {
@@ -796,7 +1145,7 @@ When you need to perform actions, use the available tools. Always respond natura
                     fields,
                   });
                 }
-                
+
                 if (result.jobs.length > 10) {
                   blocks.push({
                     type: 'context',
@@ -811,9 +1160,14 @@ When you need to perform actions, use the available tools. Always respond natura
               }
             }
             break;
-          
+
           case 'listExecutingTasks':
-            if (result && typeof result === 'object' && 'jobs' in result && Array.isArray(result.jobs)) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'jobs' in result &&
+              Array.isArray(result.jobs)
+            ) {
               if (result.jobs.length === 0) {
                 blocks.push({
                   type: 'section',
@@ -840,17 +1194,24 @@ When you need to perform actions, use the available tools. Always respond natura
                     },
                     {
                       type: 'mrkdwn',
-                      text: `*Updated:*\n<!date^${Math.floor(new Date(job.updatedAt).getTime() / 1000)}^{date_short_pretty} {time}|${new Date(job.updatedAt).toISOString()}>`,
+                      text: `*Updated:*\n<!date^${Math.floor(
+                        new Date(job.updatedAt).getTime() / 1000
+                      )}^{date_short_pretty} {time}|${new Date(
+                        job.updatedAt
+                      ).toISOString()}>`,
                     },
                   ];
-                  
+
                   if (job.description) {
                     fields.push({
                       type: 'mrkdwn',
-                      text: `*Description:*\n${job.description.substring(0, 200)}${job.description.length > 200 ? '...' : ''}`,
+                      text: `*Description:*\n${job.description.substring(
+                        0,
+                        200
+                      )}${job.description.length > 200 ? '...' : ''}`,
                     });
                   }
-                  
+
                   blocks.push({
                     type: 'section',
                     text: {
@@ -860,7 +1221,7 @@ When you need to perform actions, use the available tools. Always respond natura
                     fields,
                   });
                 }
-                
+
                 if (result.jobs.length > 10) {
                   blocks.push({
                     type: 'context',
@@ -875,9 +1236,14 @@ When you need to perform actions, use the available tools. Always respond natura
               }
             }
             break;
-          
+
           case 'listCompletedTasks':
-            if (result && typeof result === 'object' && 'jobs' in result && Array.isArray(result.jobs)) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'jobs' in result &&
+              Array.isArray(result.jobs)
+            ) {
               if (result.jobs.length === 0) {
                 blocks.push({
                   type: 'section',
@@ -904,24 +1270,31 @@ When you need to perform actions, use the available tools. Always respond natura
                     },
                     {
                       type: 'mrkdwn',
-                      text: `*Completed:*\n<!date^${Math.floor(new Date(job.completedAt).getTime() / 1000)}^{date_short_pretty} {time}|${new Date(job.completedAt).toISOString()}>`,
+                      text: `*Completed:*\n<!date^${Math.floor(
+                        new Date(job.completedAt).getTime() / 1000
+                      )}^{date_short_pretty} {time}|${new Date(
+                        job.completedAt
+                      ).toISOString()}>`,
                     },
                   ];
-                  
+
                   if (job.description) {
                     fields.push({
                       type: 'mrkdwn',
-                      text: `*Description:*\n${job.description.substring(0, 200)}${job.description.length > 200 ? '...' : ''}`,
+                      text: `*Description:*\n${job.description.substring(
+                        0,
+                        200
+                      )}${job.description.length > 200 ? '...' : ''}`,
                     });
                   }
-                  
+
                   if (job.prLink) {
                     fields.push({
                       type: 'mrkdwn',
                       text: `*PR:*\n<${job.prLink}|View Pull Request>`,
                     });
                   }
-                  
+
                   blocks.push({
                     type: 'section',
                     text: {
@@ -931,7 +1304,7 @@ When you need to perform actions, use the available tools. Always respond natura
                     fields,
                   });
                 }
-                
+
                 if (result.jobs.length > 10) {
                   blocks.push({
                     type: 'context',
@@ -946,9 +1319,15 @@ When you need to perform actions, use the available tools. Always respond natura
               }
             }
             break;
-          
+
           case 'listPRReviews':
-            if (result && typeof result === 'object' && 'prs' in result && Array.isArray(result.prs) && result.prs.length > 0) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'prs' in result &&
+              Array.isArray(result.prs) &&
+              result.prs.length > 0
+            ) {
               blocks.push({
                 type: 'section',
                 text: `📋 *${result.prs.length} PR(s) Pending Review*`,
@@ -959,9 +1338,14 @@ When you need to perform actions, use the available tools. Always respond natura
               });
             }
             break;
-          
+
           case 'getJobLink':
-            if (result && typeof result === 'object' && 'link' in result && result.link) {
+            if (
+              result &&
+              typeof result === 'object' &&
+              'link' in result &&
+              result.link
+            ) {
               blocks.push({
                 type: 'section',
                 text: {
@@ -980,7 +1364,7 @@ When you need to perform actions, use the available tools. Always respond natura
         }
       }
     }
-    
+
     return blocks;
   }
 
@@ -998,7 +1382,11 @@ When you need to perform actions, use the available tools. Always respond natura
     let fileIds: string[] = [];
     if (message.attachments && message.attachments.length > 0) {
       try {
-        fileIds = await this.processAttachments(message.attachments, orgId, userId);
+        fileIds = await this.processAttachments(
+          message.attachments,
+          orgId,
+          userId
+        );
       } catch (error: any) {
         return {
           error: true,
@@ -1008,17 +1396,21 @@ When you need to perform actions, use the available tools. Always respond natura
     }
 
     // Generate title and description from task description
-    const { title, description } = await generateJobTitleAndDescription(taskDescription);
+    const { title, description } = await generateJobTitleAndDescription(
+      taskDescription
+    );
 
     // Get next position in backlog queue
     const backlogJobs = await db
       .select()
       .from(schema.jobs)
-      .where(and(
-        eq(schema.jobs.orgId, orgId),
-        eq(schema.jobs.status, 'queued'),
-        eq(schema.jobs.queueType, 'backlog')
-      ))
+      .where(
+        and(
+          eq(schema.jobs.orgId, orgId),
+          eq(schema.jobs.status, 'queued'),
+          eq(schema.jobs.queueType, 'backlog')
+        )
+      )
       .orderBy(asc(schema.jobs.orderInQueue));
 
     const nextBacklogPosition = backlogJobs.length;
@@ -1064,21 +1456,26 @@ When you need to perform actions, use the available tools. Always respond natura
   private async checkStatus(jobIdOrSearchText: string, orgId: string) {
     // Check if input is a job ID (must start with "job-")
     const isJobId = jobIdOrSearchText.startsWith('job-');
-    
+
     let jobResult;
-    
+
     if (isJobId) {
       // Direct job ID lookup
       jobResult = await db
         .select()
         .from(schema.jobs)
-        .where(and(eq(schema.jobs.id, jobIdOrSearchText), eq(schema.jobs.orgId, orgId)))
+        .where(
+          and(
+            eq(schema.jobs.id, jobIdOrSearchText),
+            eq(schema.jobs.orgId, orgId)
+          )
+        )
         .orderBy(desc(schema.jobs.version))
         .limit(1);
     } else {
       // Text search in name, description, and userInput.prompt using ILIKE (case-insensitive pattern matching)
       const searchPattern = `%${jobIdOrSearchText}%`;
-      
+
       jobResult = await db
         .select()
         .from(schema.jobs)
@@ -1100,7 +1497,7 @@ When you need to perform actions, use the available tools. Always respond natura
     if (jobResult.length === 0) {
       return {
         error: true,
-        message: isJobId 
+        message: isJobId
           ? `Job ${jobIdOrSearchText} not found`
           : `No jobs found matching "${jobIdOrSearchText}"`,
       };
@@ -1108,14 +1505,17 @@ When you need to perform actions, use the available tools. Always respond natura
 
     // If text search returned multiple results, return the first one (most recent)
     const job = jobResult[0];
-    
+
     // If multiple matches found, log it
     if (!isJobId && jobResult.length > 1) {
-      this.logger?.info({ 
-        searchText: jobIdOrSearchText,
-        matchesFound: jobResult.length,
-        selectedJobId: job.id
-      }, 'Multiple job matches found, using most recent');
+      this.logger?.info(
+        {
+          searchText: jobIdOrSearchText,
+          matchesFound: jobResult.length,
+          selectedJobId: job.id,
+        },
+        'Multiple job matches found, using most recent'
+      );
     }
 
     // Get recent logs from job
@@ -1125,12 +1525,18 @@ When you need to perform actions, use the available tools. Always respond natura
         codeVerificationLogs: schema.jobs.codeVerificationLogs,
       })
       .from(schema.jobs)
-      .where(and(eq(schema.jobs.id, job.id), eq(schema.jobs.version, job.version)))
+      .where(
+        and(eq(schema.jobs.id, job.id), eq(schema.jobs.version, job.version))
+      )
       .limit(1);
 
     // Combine and get recent logs
-    const allLogs: Array<{ level: string; timestamp: string; message: string }> = [];
-    
+    const allLogs: Array<{
+      level: string;
+      timestamp: string;
+      message: string;
+    }> = [];
+
     if (jobWithLogs[0]) {
       if (Array.isArray(jobWithLogs[0].codeGenerationLogs)) {
         allLogs.push(...jobWithLogs[0].codeGenerationLogs);
@@ -1141,7 +1547,10 @@ When you need to perform actions, use the available tools. Always respond natura
     }
 
     // Sort by timestamp and get most recent 5
-    allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    allLogs.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
     const logs = allLogs.slice(0, 5);
 
     // Generate job link
@@ -1165,15 +1574,21 @@ When you need to perform actions, use the available tools. Always respond natura
         timestamp: log.timestamp,
       })),
       // Include match info for text searches
-      ...(isJobId ? {} : { 
-        searchInfo: {
-          searchText: jobIdOrSearchText,
-          totalMatches: jobResult.length,
-          ...(jobResult.length > 1 ? { 
-            otherMatches: jobResult.slice(1, 5).map(j => ({ id: j.id, name: j.generatedName }))
-          } : {})
-        }
-      }),
+      ...(isJobId
+        ? {}
+        : {
+            searchInfo: {
+              searchText: jobIdOrSearchText,
+              totalMatches: jobResult.length,
+              ...(jobResult.length > 1
+                ? {
+                    otherMatches: jobResult
+                      .slice(1, 5)
+                      .map(j => ({ id: j.id, name: j.generatedName })),
+                  }
+                : {}),
+            },
+          }),
     };
   }
 
@@ -1221,14 +1636,16 @@ When you need to perform actions, use the available tools. Always respond natura
         .update(schema.jobs)
         .set({
           orderInQueue: sql`${schema.jobs.orderInQueue} - 1`,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
-        .where(and(
-          eq(schema.jobs.orgId, orgId),
-          eq(schema.jobs.status, 'queued'),
-          eq(schema.jobs.queueType, job.queueType),
-          gt(schema.jobs.orderInQueue, job.orderInQueue)
-        ));
+        .where(
+          and(
+            eq(schema.jobs.orgId, orgId),
+            eq(schema.jobs.status, 'queued'),
+            eq(schema.jobs.queueType, job.queueType),
+            gt(schema.jobs.orderInQueue, job.orderInQueue)
+          )
+        );
     }
 
     // Update job status
@@ -1241,11 +1658,13 @@ When you need to perform actions, use the available tools. Always respond natura
         updatedAt: new Date(),
         updatedBy: userId,
       })
-      .where(and(
-        eq(schema.jobs.id, jobId),
-        eq(schema.jobs.version, job.version),
-        eq(schema.jobs.orgId, orgId)
-      ));
+      .where(
+        and(
+          eq(schema.jobs.id, jobId),
+          eq(schema.jobs.version, job.version),
+          eq(schema.jobs.orgId, orgId)
+        )
+      );
 
     return {
       success: true,
@@ -1287,7 +1706,10 @@ When you need to perform actions, use the available tools. Always respond natura
     const job = jobResult[0];
 
     // Validate job is in a queue if position is being changed
-    if (newPosition !== undefined && (job.status !== 'queued' || !job.queueType)) {
+    if (
+      newPosition !== undefined &&
+      (job.status !== 'queued' || !job.queueType)
+    ) {
       return {
         error: true,
         message: `Job ${jobId} is not in a queue (current status: ${job.status})`,
@@ -1308,7 +1730,11 @@ When you need to perform actions, use the available tools. Always respond natura
     }
 
     // Update other jobs' positions in the SAME queue if position changed
-    if (newPosition !== undefined && newPosition !== job.orderInQueue && job.queueType) {
+    if (
+      newPosition !== undefined &&
+      newPosition !== job.orderInQueue &&
+      job.queueType
+    ) {
       const oldPosition = job.orderInQueue;
       const queueType = job.queueType;
 
@@ -1318,30 +1744,34 @@ When you need to perform actions, use the available tools. Always respond natura
           .update(schema.jobs)
           .set({
             orderInQueue: sql`${schema.jobs.orderInQueue} + 1`,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           })
-          .where(and(
-            eq(schema.jobs.orgId, orgId),
-            eq(schema.jobs.status, 'queued'),
-            eq(schema.jobs.queueType, queueType),
-            gte(schema.jobs.orderInQueue, newPosition),
-            lt(schema.jobs.orderInQueue, oldPosition)
-          ));
+          .where(
+            and(
+              eq(schema.jobs.orgId, orgId),
+              eq(schema.jobs.status, 'queued'),
+              eq(schema.jobs.queueType, queueType),
+              gte(schema.jobs.orderInQueue, newPosition),
+              lt(schema.jobs.orderInQueue, oldPosition)
+            )
+          );
       } else {
         // Moving down in queue
         await db
           .update(schema.jobs)
           .set({
             orderInQueue: sql`${schema.jobs.orderInQueue} - 1`,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           })
-          .where(and(
-            eq(schema.jobs.orgId, orgId),
-            eq(schema.jobs.status, 'queued'),
-            eq(schema.jobs.queueType, queueType),
-            gt(schema.jobs.orderInQueue, oldPosition),
-            lte(schema.jobs.orderInQueue, newPosition)
-          ));
+          .where(
+            and(
+              eq(schema.jobs.orgId, orgId),
+              eq(schema.jobs.status, 'queued'),
+              eq(schema.jobs.queueType, queueType),
+              gt(schema.jobs.orderInQueue, oldPosition),
+              lte(schema.jobs.orderInQueue, newPosition)
+            )
+          );
       }
     }
 
@@ -1349,11 +1779,13 @@ When you need to perform actions, use the available tools. Always respond natura
     await db
       .update(schema.jobs)
       .set(updates)
-      .where(and(
-        eq(schema.jobs.id, jobId),
-        eq(schema.jobs.version, job.version),
-        eq(schema.jobs.orgId, orgId)
-      ));
+      .where(
+        and(
+          eq(schema.jobs.id, jobId),
+          eq(schema.jobs.version, job.version),
+          eq(schema.jobs.orgId, orgId)
+        )
+      );
 
     const changes = [];
     if (newPriority) {
@@ -1449,10 +1881,7 @@ When you need to perform actions, use the available tools. Always respond natura
       .select()
       .from(schema.jobs)
       .where(
-        and(
-          eq(schema.jobs.orgId, orgId),
-          eq(schema.jobs.status, 'in-progress')
-        )
+        and(eq(schema.jobs.orgId, orgId), eq(schema.jobs.status, 'in-progress'))
       )
       .orderBy(desc(schema.jobs.updatedAt))
       .limit(20);
@@ -1490,10 +1919,7 @@ When you need to perform actions, use the available tools. Always respond natura
       .select()
       .from(schema.jobs)
       .where(
-        and(
-          eq(schema.jobs.orgId, orgId),
-          eq(schema.jobs.status, 'queued')
-        )
+        and(eq(schema.jobs.orgId, orgId), eq(schema.jobs.status, 'queued'))
       )
       .orderBy(asc(schema.jobs.orderInQueue))
       .limit(20);
@@ -1531,10 +1957,7 @@ When you need to perform actions, use the available tools. Always respond natura
       .select()
       .from(schema.jobs)
       .where(
-        and(
-          eq(schema.jobs.orgId, orgId),
-          eq(schema.jobs.status, 'completed')
-        )
+        and(eq(schema.jobs.orgId, orgId), eq(schema.jobs.status, 'completed'))
       )
       .orderBy(desc(schema.jobs.updatedAt))
       .limit(20);
@@ -1572,10 +1995,7 @@ When you need to perform actions, use the available tools. Always respond natura
       .select()
       .from(schema.jobs)
       .where(
-        and(
-          eq(schema.jobs.orgId, orgId),
-          eq(schema.jobs.status, 'in-review')
-        )
+        and(eq(schema.jobs.orgId, orgId), eq(schema.jobs.status, 'in-review'))
       )
       .limit(10);
 
@@ -1603,19 +2023,24 @@ When you need to perform actions, use the available tools. Always respond natura
     // Check if input is a job ID (must start with "job-")
     const isJobId = jobIdOrSearchText.startsWith('job-');
     let jobResult;
-    
+
     if (isJobId) {
       // Direct job ID lookup
       jobResult = await db
         .select()
         .from(schema.jobs)
-        .where(and(eq(schema.jobs.id, jobIdOrSearchText), eq(schema.jobs.orgId, orgId)))
+        .where(
+          and(
+            eq(schema.jobs.id, jobIdOrSearchText),
+            eq(schema.jobs.orgId, orgId)
+          )
+        )
         .orderBy(desc(schema.jobs.version))
         .limit(1);
     } else {
       // Text search in name and description using ILIKE (case-insensitive pattern matching)
       const searchPattern = `%${jobIdOrSearchText}%`;
-      
+
       jobResult = await db
         .select()
         .from(schema.jobs)
@@ -1637,7 +2062,7 @@ When you need to perform actions, use the available tools. Always respond natura
     if (jobResult.length === 0) {
       return {
         error: true,
-        message: isJobId 
+        message: isJobId
           ? `Job ${jobIdOrSearchText} not found`
           : `No jobs found matching "${jobIdOrSearchText}"`,
       };
@@ -1645,7 +2070,7 @@ When you need to perform actions, use the available tools. Always respond natura
 
     // If text search returned multiple results, return the first one (most recent)
     const job = jobResult[0];
-    
+
     // Generate job link
     const frontendUrl = process.env.FRONT_END_URL || '';
     const jobLink = frontendUrl ? `${frontendUrl}/jobs/${job.id}` : null;
@@ -1653,7 +2078,8 @@ When you need to perform actions, use the available tools. Always respond natura
     if (!jobLink) {
       return {
         error: true,
-        message: 'Frontend URL is not configured. Please set FRONT_END_URL environment variable.',
+        message:
+          'Frontend URL is not configured. Please set FRONT_END_URL environment variable.',
       };
     }
 
@@ -1663,12 +2089,14 @@ When you need to perform actions, use the available tools. Always respond natura
       jobName: job.generatedName || job.id,
       link: jobLink,
       message: `Job link for "${job.generatedName || job.id}"`,
-      ...(isJobId ? {} : { 
-        searchInfo: {
-          searchText: jobIdOrSearchText,
-          totalMatches: jobResult.length,
-        }
-      }),
+      ...(isJobId
+        ? {}
+        : {
+            searchInfo: {
+              searchText: jobIdOrSearchText,
+              totalMatches: jobResult.length,
+            },
+          }),
     };
   }
 
@@ -1697,7 +2125,9 @@ When you need to perform actions, use the available tools. Always respond natura
       const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
 
       if (fileSizeBytes > maxFileSizeBytes) {
-        throw new Error(`File ${attachment.fileName} exceeds ${MAX_FILE_SIZE_MB}MB limit`);
+        throw new Error(
+          `File ${attachment.fileName} exceeds ${MAX_FILE_SIZE_MB}MB limit`
+        );
       }
 
       if (!attachment.localPath) {
@@ -1734,13 +2164,12 @@ When you need to perform actions, use the available tools. Always respond natura
 
   private getStatusEmoji(status: string): string {
     const emojiMap: Record<string, string> = {
-      'queued': '⏳',
+      queued: '⏳',
       'in-progress': '🔄',
-      'completed': '✅',
-      'failed': '❌',
-      'archived': '📦',
+      completed: '✅',
+      failed: '❌',
+      archived: '📦',
     };
     return emojiMap[status] || '📋';
   }
 }
-

@@ -4,28 +4,32 @@ export default function Integrations() {
   const features = [
     {
       title: 'Job Board Dashboard',
-      description: 'Visualize your entire workflow at a glance. Track tasks from queue to completion with our intuitive job board. See what Sia is working on, what\'s in the pipeline, and what\'s been delivered.',
+      description:
+        "Visualize your entire workflow at a glance. Track tasks from queue to completion with our intuitive job board. See what Sia is working on, what's in the pipeline, and what's been delivered.",
       image: '/sia-homepage.webp',
-      imageAlt: 'Sia Job Board Dashboard'
+      imageAlt: 'Sia Job Board Dashboard',
     },
     {
       title: 'Recent Activity Feed',
-      description: 'Stay updated with real-time activity tracking. Monitor every action Sia takes, from code commits to PR creation. Never miss a beat with detailed activity logs and notifications.',
+      description:
+        'Stay updated with real-time activity tracking. Monitor every action Sia takes, from code commits to PR creation. Never miss a beat with detailed activity logs and notifications.',
       image: '/sia-recentspage.webp',
-      imageAlt: 'Sia Recent Activity Page'
+      imageAlt: 'Sia Recent Activity Page',
     },
     {
       title: 'Agent Management',
-      description: 'Configure and manage your AI agents with precision. Set up custom workflows, define task priorities, and optimize agent performance. Full control over your autonomous development team.',
+      description:
+        'Configure and manage your AI agents with precision. Set up custom workflows, define task priorities, and optimize agent performance. Full control over your autonomous development team.',
       image: '/sia-agentspage.webp',
-      imageAlt: 'Sia Agents Management Page'
+      imageAlt: 'Sia Agents Management Page',
     },
     {
       title: 'Seamless Integrations',
-      description: 'Connect with your favorite tools effortlessly. Slack, Discord, GitHub, and more. Sia fits right into your existing workflow, no disruption required.',
+      description:
+        'Connect with your favorite tools effortlessly. Slack, Discord, GitHub, and more. Sia fits right into your existing workflow, no disruption required.',
       image: '/sia-integrationspage.webp',
-      imageAlt: 'Sia Integration Page'
-    }
+      imageAlt: 'Sia Integration Page',
+    },
   ];
 
   return (
@@ -34,12 +38,18 @@ export default function Integrations() {
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-20">
-            <h2 className="text-heading md:text-heading-md lg:text-heading-lg font-medium text-text mb-6" style={{ paddingBottom: '0.1em' }}>
-              Powerful Features,  Seamless Experience
-
+            <h2
+              className="text-heading md:text-heading-md lg:text-heading-lg font-medium text-text mb-6"
+              style={{ paddingBottom: '0.1em' }}
+            >
+              Powerful Features, Seamless Experience
             </h2>
-            <p className="text-subheading md:text-subheading-md lg:text-subheading-lg font-extralight text-text/70 max-w-3xl mx-auto leading-relaxed" style={{ paddingBottom: '0.1em' }}>
-              Everything you need to manage your autonomous development workflow, all in one place.
+            <p
+              className="text-subheading md:text-subheading-md lg:text-subheading-lg font-extralight text-text/70 max-w-3xl mx-auto leading-relaxed"
+              style={{ paddingBottom: '0.1em' }}
+            >
+              Everything you need to manage your autonomous development
+              workflow, all in one place.
             </p>
           </div>
 

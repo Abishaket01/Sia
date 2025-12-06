@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: "**/routes/**/*.ts,**/proto/**/*.proto,**/*.proto,**/grpc/**/*.ts"
+fileMatchPattern: '**/routes/**/*.ts,**/proto/**/*.proto,**/*.proto,**/grpc/**/*.ts'
 ---
 
 # API Changes Guidelines
@@ -63,10 +63,18 @@ interface Job {
 
 ```typescript
 // SDK functions (for API calls)
-import { getJobs, postJobs, putJobsById } from '@sia/models/generated/api-client/sdk.gen';
+import {
+  getJobs,
+  postJobs,
+  putJobsById,
+} from '@sia/models/generated/api-client/sdk.gen';
 
 // Types
-import type { Job, Agent, Organization } from '@sia/models/generated/api-client/types.gen';
+import type {
+  Job,
+  Agent,
+  Organization,
+} from '@sia/models/generated/api-client/types.gen';
 
 // Proto types (for gRPC)
 import { LogMessage, ExecuteJobRequest } from '@sia/models/proto';

@@ -1,22 +1,32 @@
-import { JobExecutor, type JobExecutionConfig } from '../executor/job-executor.js';
+import {
+  JobExecutor,
+  type JobExecutionConfig,
+} from '../executor/job-executor.js';
 import type { LogMessage } from '@sia/models';
 import type { VibeCodingPlatform } from './vibe-coding-platform.js';
 
 export class JobVibePlatform implements VibeCodingPlatform {
   private executor: JobExecutor;
-  private activeJobs: Map<string, { cancelled: boolean; hints: string[]; executor: JobExecutor }> = new Map();
+  private activeJobs: Map<
+    string,
+    { cancelled: boolean; hints: string[]; executor: JobExecutor }
+  > = new Map();
 
   constructor(config?: JobExecutionConfig) {
     this.executor = new JobExecutor(config);
   }
 
-  async* executeJob(
+  async *executeJob(
     jobId: string,
     prompt: string,
     repoId?: string,
     jobDetails?: Record<string, string>
   ): AsyncGenerator<LogMessage> {
-    const jobState = { cancelled: false, hints: [] as string[], executor: this.executor };
+    const jobState = {
+      cancelled: false,
+      hints: [] as string[],
+      executor: this.executor,
+    };
     this.activeJobs.set(jobId, jobState);
 
     try {
@@ -26,7 +36,12 @@ export class JobVibePlatform implements VibeCodingPlatform {
         prompt = `${prompt}\n\nAdditional hints:\n${allHints}`;
       }
 
-      const logStream = this.executor.executeJob(jobId, prompt, repoId, jobDetails);
+      const logStream = this.executor.executeJob(
+        jobId,
+        prompt,
+        repoId,
+        jobDetails
+      );
 
       for await (const logMessage of logStream) {
         if (jobState.cancelled) {
@@ -47,35 +62,48 @@ export class JobVibePlatform implements VibeCodingPlatform {
     }
   }
 
-  async hintJob(jobId: string, hint: string): Promise<{ success: boolean; message: string }> {
+  async hintJob(
+    jobId: string,
+    hint: string
+  ): Promise<{ success: boolean; message: string }> {
     const jobState = this.activeJobs.get(jobId);
     if (!jobState) {
-      return { success: false, message: `Job ${jobId} not found or not executing` };
+      return {
+        success: false,
+        message: `Job ${jobId} not found or not executing`,
+      };
     }
     jobState.hints.push(hint);
     return { success: true, message: `Hint applied to job ${jobId}` };
   }
 
-  async cancelJob(jobId: string): Promise<{ success: boolean; message: string }> {
+  async cancelJob(
+    jobId: string
+  ): Promise<{ success: boolean; message: string }> {
     const jobState = this.activeJobs.get(jobId);
     if (!jobState) {
-      return { success: false, message: `Job ${jobId} not found or not executing` };
+      return {
+        success: false,
+        message: `Job ${jobId} not found or not executing`,
+      };
     }
     jobState.cancelled = true;
     return { success: true, message: `Job ${jobId} cancelled` };
   }
 
-  async runVerification(jobId: string): Promise<{ success: boolean; message: string; errors?: string[] }> {
+  async runVerification(
+    jobId: string
+  ): Promise<{ success: boolean; message: string; errors?: string[] }> {
     try {
       // Get workspace path from executor
       const workspacePath = this.executor.getWorkspacePath(jobId, 1); // Default to attempt 1
       const { BuildService } = await import('../build/build-service.js');
       const buildService = new BuildService(workspacePath);
-      
+
       // Run verification commands (build, test, lint, etc.)
       const buildCommands = ['npm install', 'npm run build', 'npm test'];
       const result = await buildService.executeBuild(buildCommands);
-      
+
       return {
         success: result.success,
         message: result.success ? 'Verification passed' : 'Verification failed',
@@ -101,7 +129,7 @@ export class JobVibePlatform implements VibeCodingPlatform {
       const workspacePath = this.executor.getWorkspacePath(jobId, 1);
       const { GitService } = await import('../git/git-service.js');
       const gitService = new GitService(workspacePath);
-      
+
       // Create PR using GitHub API
       const prLink = await gitService.createPullRequest(
         repoId,
@@ -109,7 +137,7 @@ export class JobVibePlatform implements VibeCodingPlatform {
         title,
         body
       );
-      
+
       return {
         success: true,
         prLink,
@@ -124,7 +152,9 @@ export class JobVibePlatform implements VibeCodingPlatform {
     }
   }
 
-  async cleanupWorkspace(jobId: string): Promise<{ success: boolean; message: string }> {
+  async cleanupWorkspace(
+    jobId: string
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.executor.cleanupWorkspace(jobId);
       return {
@@ -134,9 +164,11 @@ export class JobVibePlatform implements VibeCodingPlatform {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to cleanup workspace',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Failed to cleanup workspace',
       };
     }
   }
 }
-

@@ -1,4 +1,8 @@
-import { mockAgents, supportedIntegrations, mockActivityEvents } from './mockData';
+import {
+  mockAgents,
+  supportedIntegrations,
+  mockActivityEvents,
+} from './mockData';
 import {
   client,
   getJobs,
@@ -24,7 +28,15 @@ import {
   getQueuesByQueueTypeStatus,
   getJobsByIdLogs,
 } from '@sia/models/api-client';
-import type { Job, CreateJobRequest, RepoProvider, Activity, ApiKey, CreateApiKeyRequest, CreateApiKeyResponse } from '@sia/models';
+import type {
+  Job,
+  CreateJobRequest,
+  RepoProvider,
+  Activity,
+  ApiKey,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+} from '@sia/models';
 import type { JobResponse } from '@/types';
 import type { Agent, Integration, ActivityEvent } from '@/types';
 
@@ -53,14 +65,20 @@ let userIdGetter: UserIdGetter | null = null;
 
 export const setTokenGetter = (getter: TokenGetter) => {
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-    console.log('[API] setTokenGetter called', getter !== null ? 'with function' : 'with null');
+    console.log(
+      '[API] setTokenGetter called',
+      getter !== null ? 'with function' : 'with null'
+    );
   }
   tokenGetter = getter;
 };
 
 export const setUserIdGetter = (getter: UserIdGetter) => {
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-    console.log('[API] setUserIdGetter called', getter !== null ? 'with function' : 'with null');
+    console.log(
+      '[API] setUserIdGetter called',
+      getter !== null ? 'with function' : 'with null'
+    );
   }
   userIdGetter = getter;
 };
@@ -87,8 +105,15 @@ export const getAuthHeaders = async (): Promise<Record<string, string>> => {
   let retries = 0;
 
   while (!tokenGetter && retries < maxRetries) {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log(`[API] Waiting for tokenGetter to be set... (attempt ${retries + 1}/${maxRetries})`);
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.log(
+        `[API] Waiting for tokenGetter to be set... (attempt ${
+          retries + 1
+        }/${maxRetries})`
+      );
     }
     await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
     retries++;
@@ -100,30 +125,52 @@ export const getAuthHeaders = async (): Promise<Record<string, string>> => {
   }
 
   if (!tokenGetter) {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.warn('[API] tokenGetter is not set after waiting - auth provider may not be initialized');
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.warn(
+        '[API] tokenGetter is not set after waiting - auth provider may not be initialized'
+      );
     }
     return headers;
   }
 
   try {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
       console.log('[API] Calling tokenGetter...');
     }
     const token = await tokenGetter();
 
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log('[API] Token received:', token ? `${token.substring(0, 20)}...` : 'null/undefined');
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.log(
+        '[API] Token received:',
+        token ? `${token.substring(0, 20)}...` : 'null/undefined'
+      );
     }
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      if (
+        typeof window !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
         console.log('[API] Authorization header added successfully');
       }
     } else {
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        console.warn('[API] No token returned from tokenGetter - user may not be authenticated');
+      if (
+        typeof window !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
+        console.warn(
+          '[API] No token returned from tokenGetter - user may not be authenticated'
+        );
       }
     }
   } catch (error) {
@@ -140,7 +187,8 @@ export const getAuthHeaders = async (): Promise<Record<string, string>> => {
 
 // Configure API client base URL
 if (typeof window !== 'undefined') {
-  const baseUrl = process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
   client.setConfig({ baseUrl });
 }
 
@@ -171,12 +219,17 @@ export const api = {
     }
   },
 
-  async getJobLogs(jobId: string, version?: number): Promise<Array<{
-    level: string;
-    timestamp: string;
-    message: string;
-    stage?: string;
-  }>> {
+  async getJobLogs(
+    jobId: string,
+    version?: number
+  ): Promise<
+    Array<{
+      level: string;
+      timestamp: string;
+      message: string;
+      stage?: string;
+    }>
+  > {
     try {
       const headers = await getAuthHeaders();
       const result = await getJobsByIdLogs({
@@ -184,12 +237,14 @@ export const api = {
         query: version ? { version: version.toString() } : undefined,
         headers,
       });
-      return (result.data as Array<{
-        level: string;
-        timestamp: string;
-        message: string;
-        stage?: string;
-      }>) || [];
+      return (
+        (result.data as Array<{
+          level: string;
+          timestamp: string;
+          message: string;
+          stage?: string;
+        }>) || []
+      );
     } catch (error) {
       console.error('Failed to fetch job logs:', error);
       return [];
@@ -202,10 +257,13 @@ export const api = {
       body: job,
       headers,
     });
-      return result.data as JobResponse;
+    return result.data as JobResponse;
   },
 
-  async updateJobStatus(id: string, status: 'queued' | 'in-progress' | 'completed' | 'failed' | 'archived'): Promise<JobResponse | undefined> {
+  async updateJobStatus(
+    id: string,
+    status: 'queued' | 'in-progress' | 'completed' | 'failed' | 'archived'
+  ): Promise<JobResponse | undefined> {
     try {
       const headers = await getAuthHeaders();
       const apiStatus = status === 'archived' ? 'failed' : status;
@@ -224,7 +282,10 @@ export const api = {
     }
   },
 
-  async updateJob(id: string, updates: Partial<Job>): Promise<JobResponse | undefined> {
+  async updateJob(
+    id: string,
+    updates: Partial<Job>
+  ): Promise<JobResponse | undefined> {
     try {
       const headers = await getAuthHeaders();
       const result = await putJobsById({
@@ -246,9 +307,14 @@ export const api = {
     const headers = await getAuthHeaders();
     // Update priority based on position
     const updatePromises = reorderedJobs.map((job, index) => {
-      const priority = index === 0 ? 'high' :
-        index === 1 ? 'medium' :
-          index < reorderedJobs.length - 1 ? 'medium' : 'low';
+      const priority =
+        index === 0
+          ? 'high'
+          : index === 1
+          ? 'medium'
+          : index < reorderedJobs.length - 1
+          ? 'medium'
+          : 'low';
       return putJobsById({
         path: { id: job.id },
         body: {
@@ -265,7 +331,10 @@ export const api = {
     return result.data as JobResponse[];
   },
 
-  async reprioritizeJob(jobId: string, position: number): Promise<{ message: string; job: JobResponse } | undefined> {
+  async reprioritizeJob(
+    jobId: string,
+    position: number
+  ): Promise<{ message: string; job: JobResponse } | undefined> {
     try {
       const headers = await getAuthHeaders();
       const result = await postJobsByIdReprioritize({
@@ -283,7 +352,7 @@ export const api = {
   },
 
   async getQueueStatus(
-    queueType: 'rework' | 'backlog',
+    queueType: 'rework' | 'backlog'
   ): Promise<{ isPaused: boolean }> {
     const headers = await getAuthHeaders();
     const result = await getQueuesByQueueTypeStatus({
@@ -295,7 +364,7 @@ export const api = {
   },
 
   async pauseQueue(
-    queueType: 'rework' | 'backlog',
+    queueType: 'rework' | 'backlog'
   ): Promise<{ message?: string }> {
     const headers = await getAuthHeaders();
     const result = await postQueuesByQueueTypePause({
@@ -306,7 +375,7 @@ export const api = {
   },
 
   async resumeQueue(
-    queueType: 'rework' | 'backlog',
+    queueType: 'rework' | 'backlog'
   ): Promise<{ message?: string }> {
     const headers = await getAuthHeaders();
     const result = await postQueuesByQueueTypeResume({
@@ -326,8 +395,12 @@ export const api = {
     await delay(300);
     const agent = agents.find(a => a.id === id);
     if (agent) {
-      agent.status = agent.status === 'active' ? 'idle' :
-        agent.status === 'idle' ? 'offline' : 'active';
+      agent.status =
+        agent.status === 'active'
+          ? 'idle'
+          : agent.status === 'idle'
+          ? 'offline'
+          : 'active';
       agent.lastActive = new Date().toISOString();
     }
     return agent;
@@ -343,7 +416,8 @@ export const api = {
     await delay(800); // Simulate OAuth flow
     const integration = integrations.find(i => i.id === id);
     if (integration) {
-      integration.status = integration.status === 'connected' ? 'disconnected' : 'connected';
+      integration.status =
+        integration.status === 'connected' ? 'disconnected' : 'connected';
     }
     return integration;
   },
@@ -377,7 +451,10 @@ export const api = {
     }
   },
 
-  async updateActivityReadStatus(activityId: string, readStatus: 'read' | 'unread'): Promise<{ message: string; read_status: string }> {
+  async updateActivityReadStatus(
+    activityId: string,
+    readStatus: 'read' | 'unread'
+  ): Promise<{ message: string; read_status: string }> {
     try {
       const headers = await getAuthHeaders();
       const result = await putActivitiesByIdReadStatus({
@@ -385,7 +462,12 @@ export const api = {
         headers,
         body: { is_read: readStatus === 'read' },
       });
-      return (result.data as { message: string; read_status: string }) || { message: 'Success', read_status: readStatus };
+      return (
+        (result.data as { message: string; read_status: string }) || {
+          message: 'Success',
+          read_status: readStatus,
+        }
+      );
     } catch (error) {
       console.error('Failed to update activity read status:', error);
       throw error;
@@ -395,7 +477,8 @@ export const api = {
   // GitHub Providers
   async getGitHubProviders(): Promise<RepoProvider[]> {
     const authHeaders = await getAuthHeaders();
-    const baseUrl = process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/repos/github/providers`, {
       headers: {
         'Content-Type': 'application/json',
@@ -410,12 +493,16 @@ export const api = {
 
   async connectGitHub(): Promise<string> {
     const authHeaders = await getAuthHeaders();
-    const baseUrl = process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
     // Use fetch with redirect: 'manual' to handle the 302 redirect from the backend
     // The SDK client would automatically follow redirects, which we don't want here
     const url = `${baseUrl}/repos/github/connect`;
 
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
       console.log('Connecting to GitHub via:', url);
     }
 
@@ -423,14 +510,17 @@ export const api = {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           ...authHeaders,
         },
         redirect: 'manual',
         credentials: 'include',
       });
 
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      if (
+        typeof window !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
         console.log('[API] Response status:', response.status);
         console.log('[API] Response type:', response.type);
         console.log('[API] Response URL:', response.url);
@@ -441,8 +531,14 @@ export const api = {
         try {
           const data = await response.json();
           if (data.redirectUrl) {
-            if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-              console.log('[API] Redirect URL from JSON response:', data.redirectUrl);
+            if (
+              typeof window !== 'undefined' &&
+              process.env.NODE_ENV === 'development'
+            ) {
+              console.log(
+                '[API] Redirect URL from JSON response:',
+                data.redirectUrl
+              );
             }
             return data.redirectUrl;
           }
@@ -452,9 +548,16 @@ export const api = {
       }
 
       // Handle redirect responses (302, 307, 308) - fallback for direct browser access
-      if (response.status === 302 || response.status === 307 || response.status === 308) {
+      if (
+        response.status === 302 ||
+        response.status === 307 ||
+        response.status === 308
+      ) {
         const location = response.headers.get('Location');
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        if (
+          typeof window !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
           console.log('[API] Redirect Location header:', location);
         }
         if (location) {
@@ -462,7 +565,10 @@ export const api = {
         }
         // If Location header is not accessible (CORS), try response.url
         if (response.url && response.url !== url) {
-          if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+          if (
+            typeof window !== 'undefined' &&
+            process.env.NODE_ENV === 'development'
+          ) {
             console.log('[API] Using response.url as redirect:', response.url);
           }
           return response.url;
@@ -472,13 +578,21 @@ export const api = {
       // Handle opaque redirect (status 0) - CORS blocked Location header access
       // This happens when the redirect goes to a different origin
       if (response.status === 0 || response.type === 'opaqueredirect') {
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-          console.log('[API] Opaque redirect detected, response.url:', response.url);
+        if (
+          typeof window !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          console.log(
+            '[API] Opaque redirect detected, response.url:',
+            response.url
+          );
         }
         if (response.url && response.url.startsWith('https://github.com')) {
           return response.url;
         }
-        throw new Error('Unable to redirect to GitHub. Please try again or contact support.');
+        throw new Error(
+          'Unable to redirect to GitHub. Please try again or contact support.'
+        );
       }
 
       // Check for error responses
@@ -492,17 +606,23 @@ export const api = {
         }
 
         if (response.status === 404) {
-          throw new Error(`Route not found: ${url}. Please check that the backend server is running and the route is registered.`);
+          throw new Error(
+            `Route not found: ${url}. Please check that the backend server is running and the route is registered.`
+          );
         }
 
         throw new Error(errorMessage);
       }
 
       // Unexpected response
-      throw new Error(`Unexpected response: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Unexpected response: ${response.status} ${response.statusText}`
+      );
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(`Failed to connect to backend at ${baseUrl}. Please check that the server is running.`);
+        throw new Error(
+          `Failed to connect to backend at ${baseUrl}. Please check that the server is running.`
+        );
       }
       throw error;
     }
@@ -517,15 +637,18 @@ export const api = {
   },
 
   // Slack Providers
-  async getSlackProviders(): Promise<Array<{
-    id: string;
-    name: string;
-    provider_team_id?: string;
-    management_url?: string;
-    [key: string]: unknown;
-  }>> {
+  async getSlackProviders(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      provider_team_id?: string;
+      management_url?: string;
+      [key: string]: unknown;
+    }>
+  > {
     const authHeaders = await getAuthHeaders();
-    const baseUrl = process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/integrations/slack/providers`, {
       headers: {
         'Content-Type': 'application/json',
@@ -540,11 +663,19 @@ export const api = {
 
   async connectSlack(): Promise<string> {
     const authHeaders = await getAuthHeaders();
-    const baseUrl = process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
-    const redirectUri = `${process.env.NEXT_PUBLIC_FRONT_END_URL || 'http://localhost:3000'}/integrations/slack/callback`;
-    const url = `${baseUrl}/integrations/slack/connect?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
+    const redirectUri = `${
+      process.env.NEXT_PUBLIC_FRONT_END_URL || 'http://localhost:3000'
+    }/integrations/slack/callback`;
+    const url = `${baseUrl}/integrations/slack/connect?redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}`;
 
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (
+      typeof window !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
       console.log('Connecting to Slack via:', url);
       console.log('Redirect URI:', redirectUri);
     }
@@ -553,14 +684,17 @@ export const api = {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           ...authHeaders,
         },
         redirect: 'manual',
         credentials: 'include',
       });
 
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      if (
+        typeof window !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
         console.log('[API] Slack response status:', response.status);
         console.log('[API] Slack response type:', response.type);
         console.log('[API] Slack response URL:', response.url);
@@ -571,8 +705,14 @@ export const api = {
         try {
           const data = await response.json();
           if (data.redirectUrl) {
-            if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-              console.log('[API] Slack redirect URL from JSON response:', data.redirectUrl);
+            if (
+              typeof window !== 'undefined' &&
+              process.env.NODE_ENV === 'development'
+            ) {
+              console.log(
+                '[API] Slack redirect URL from JSON response:',
+                data.redirectUrl
+              );
             }
             return data.redirectUrl;
           }
@@ -582,16 +722,26 @@ export const api = {
       }
 
       // Handle redirect responses (302, 307, 308)
-      if (response.status === 302 || response.status === 307 || response.status === 308) {
+      if (
+        response.status === 302 ||
+        response.status === 307 ||
+        response.status === 308
+      ) {
         const location = response.headers.get('Location');
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        if (
+          typeof window !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
           console.log('[API] Slack redirect Location header:', location);
         }
         if (location) {
           return location;
         }
         if (response.url && response.url !== url) {
-          if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+          if (
+            typeof window !== 'undefined' &&
+            process.env.NODE_ENV === 'development'
+          ) {
             console.log('[API] Using response.url as redirect:', response.url);
           }
           return response.url;
@@ -600,13 +750,21 @@ export const api = {
 
       // Handle opaque redirect
       if (response.status === 0 || response.type === 'opaqueredirect') {
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-          console.log('[API] Opaque redirect detected, response.url:', response.url);
+        if (
+          typeof window !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          console.log(
+            '[API] Opaque redirect detected, response.url:',
+            response.url
+          );
         }
         if (response.url && response.url.startsWith('https://slack.com')) {
           return response.url;
         }
-        throw new Error('Unable to redirect to Slack. Please try again or contact support.');
+        throw new Error(
+          'Unable to redirect to Slack. Please try again or contact support.'
+        );
       }
 
       // Check for error responses
@@ -620,17 +778,23 @@ export const api = {
         }
 
         if (response.status === 404) {
-          throw new Error(`Route not found: ${url}. Please check that the backend server is running and the route is registered.`);
+          throw new Error(
+            `Route not found: ${url}. Please check that the backend server is running and the route is registered.`
+          );
         }
 
         throw new Error(errorMessage);
       }
 
       // Unexpected response
-      throw new Error(`Unexpected response: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Unexpected response: ${response.status} ${response.statusText}`
+      );
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(`Failed to connect to backend at ${baseUrl}. Please check that the server is running.`);
+        throw new Error(
+          `Failed to connect to backend at ${baseUrl}. Please check that the server is running.`
+        );
       }
       throw error;
     }
@@ -645,21 +809,8 @@ export const api = {
   },
 
   // GitHub Repos
-  async getGitHubRepos(providerId: string): Promise<Array<{
-    id: string;
-    name: string;
-    description?: string;
-    url: string;
-    repo_provider_id: string;
-    created_at: string;
-    updated_at: string;
-  }>> {
-    const authHeaders = await getAuthHeaders();
-    const result = await getReposGithubProvidersByProviderIdRepos({
-      path: { providerId },
-      headers: authHeaders,
-    });
-    return (result.data as Array<{
+  async getGitHubRepos(providerId: string): Promise<
+    Array<{
       id: string;
       name: string;
       description?: string;
@@ -667,7 +818,24 @@ export const api = {
       repo_provider_id: string;
       created_at: string;
       updated_at: string;
-    }>) || [];
+    }>
+  > {
+    const authHeaders = await getAuthHeaders();
+    const result = await getReposGithubProvidersByProviderIdRepos({
+      path: { providerId },
+      headers: authHeaders,
+    });
+    return (
+      (result.data as Array<{
+        id: string;
+        name: string;
+        description?: string;
+        url: string;
+        repo_provider_id: string;
+        created_at: string;
+        updated_at: string;
+      }>) || []
+    );
   },
 
   async getAllRepos(): Promise<Repo[]> {
@@ -679,7 +847,10 @@ export const api = {
     return (response.data as Repo[]) || [];
   },
 
-  async updateRepoDescription(repoId: string, description: string): Promise<Repo> {
+  async updateRepoDescription(
+    repoId: string,
+    description: string
+  ): Promise<Repo> {
     const authHeaders = await getAuthHeaders();
     const response = await client.patch({
       url: `/repos/${repoId}`,
@@ -689,27 +860,31 @@ export const api = {
     return response.data as Repo;
   },
 
-  async getIntegrationSecrets(providerType?: string): Promise<Array<{
-    id: string;
-    providerType: string;
-    name: string;
-    storageType: 'gcp' | 'encrypted_local';
-    createdAt: string;
-    updatedAt: string;
-  }>> {
-    const headers = await getAuthHeaders();
-    const result = await getIntegrationsSecrets({
-      headers,
-      ...(providerType ? { query: { providerType } } : {}),
-    });
-    return (result.data as Array<{
+  async getIntegrationSecrets(providerType?: string): Promise<
+    Array<{
       id: string;
       providerType: string;
       name: string;
       storageType: 'gcp' | 'encrypted_local';
       createdAt: string;
       updatedAt: string;
-    }>) || [];
+    }>
+  > {
+    const headers = await getAuthHeaders();
+    const result = await getIntegrationsSecrets({
+      headers,
+      ...(providerType ? { query: { providerType } } : {}),
+    });
+    return (
+      (result.data as Array<{
+        id: string;
+        providerType: string;
+        name: string;
+        storageType: 'gcp' | 'encrypted_local';
+        createdAt: string;
+        updatedAt: string;
+      }>) || []
+    );
   },
 
   async storeIntegrationSecret(data: {
@@ -765,7 +940,11 @@ export const api = {
       throw new Error('Invalid response from API: missing data');
     }
     const responseData = result.data;
-    if (!responseData || typeof responseData !== 'object' || !('apiKey' in responseData)) {
+    if (
+      !responseData ||
+      typeof responseData !== 'object' ||
+      !('apiKey' in responseData)
+    ) {
       console.error('Unexpected API response structure:', responseData);
       throw new Error('Invalid response from API: missing apiKey field');
     }
@@ -785,7 +964,9 @@ export const api = {
  * Start job execution using the API
  * This triggers the backend to execute the job
  */
-export const startJobExecution = async (jobId: string): Promise<{ message?: string; jobId?: string } | undefined> => {
+export const startJobExecution = async (
+  jobId: string
+): Promise<{ message?: string; jobId?: string } | undefined> => {
   try {
     const headers = await getAuthHeaders();
     const result = await postJobsByIdExecute({

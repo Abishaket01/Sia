@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import { usePathname } from 'next/navigation'
-import { Bell } from 'lucide-react'
-import { Button } from './ui/button'
-import { SidebarTrigger } from './ui/sidebar'
-import { ThemeToggle } from './theme-toggle'
-import { ProfileAvatar } from './profileavatar'
+import { usePathname } from 'next/navigation';
+import { Bell } from 'lucide-react';
+import { Button } from './ui/button';
+import { SidebarTrigger } from './ui/sidebar';
+import { ThemeToggle } from './theme-toggle';
+import { ProfileAvatar } from './profileavatar';
 
 const navigation = [
   { name: 'Home', href: '/' },
@@ -13,10 +13,10 @@ const navigation = [
   { name: 'Agents', href: '/agents' },
   { name: 'Integrations', href: '/integrations' },
   { name: 'Developer Settings', href: '/developer-settings' },
-]
+];
 
 export function Navbar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-sidebar px-6">
@@ -34,6 +34,5 @@ export function Navbar() {
         <ProfileAvatar />
       </div>
     </header>
-  )
+  );
 }
-

@@ -12,7 +12,7 @@ export class WorkspaceManager {
 
   async createWorkspace(jobId: string, attemptNumber: number): Promise<string> {
     const workspacePath = join(this.basePath, jobId, attemptNumber.toString());
-    
+
     if (!existsSync(workspacePath)) {
       await mkdir(workspacePath, { recursive: true });
     }
@@ -20,13 +20,13 @@ export class WorkspaceManager {
     return workspacePath;
   }
 
-  async* createWorkspaceWithLogs(
+  async *createWorkspaceWithLogs(
     jobId: string,
     attemptNumber: number
   ): AsyncGenerator<LogMessage, string> {
     try {
       const workspacePath = await this.createWorkspace(jobId, attemptNumber);
-      
+
       yield {
         level: 'info',
         message: `Created workspace at ${workspacePath}`,
@@ -39,7 +39,9 @@ export class WorkspaceManager {
     } catch (error) {
       yield {
         level: 'error',
-        message: `Failed to create workspace: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to create workspace: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
         timestamp: new Date().toISOString(),
         jobId,
         stage: 'setup',
@@ -50,7 +52,7 @@ export class WorkspaceManager {
 
   async cleanupWorkspace(jobId: string, attemptNumber: number): Promise<void> {
     const workspacePath = join(this.basePath, jobId, attemptNumber.toString());
-    
+
     if (existsSync(workspacePath)) {
       await rm(workspacePath, { recursive: true, force: true });
     }
@@ -60,4 +62,3 @@ export class WorkspaceManager {
     return join(this.basePath, jobId, attemptNumber.toString());
   }
 }
-

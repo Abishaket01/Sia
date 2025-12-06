@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-
 export default function Footer() {
   return (
     <footer className="bg-black border-t border-white/10 py-12">
@@ -41,7 +40,11 @@ export default function Footer() {
               className="w-10 h-10 rounded-lg bg-text  flex items-center justify-center transition-colors"
               aria-label="GitHub"
             >
-              <img src="/github.svg" alt="GitHub" className="w-5 h-5 text-white " />
+              <img
+                src="/github.svg"
+                alt="GitHub"
+                className="w-5 h-5 text-white "
+              />
             </a>
             <a
               href="https://x.com/getpullrequest"
@@ -50,14 +53,20 @@ export default function Footer() {
               className="w-10 h-10 rounded-lg bg-text flex items-center justify-center transition-colors"
               aria-label="Twitter"
             >
-              <img src="/x_icon.svg" alt="Twitter" className="w-5 h-5 text-white" />
+              <img
+                src="/x_icon.svg"
+                alt="Twitter"
+                className="w-5 h-5 text-white"
+              />
             </a>
-
           </div>
         </div>
 
         <div className="pt-8 border-t border-white/10 text-center text-base font-extralight text-text/70">
-          <p>&copy; {new Date().getFullYear()} GetPullRequest. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} GetPullRequest. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>

@@ -1,8 +1,5 @@
-import RecentsPage from '@/components/recents'
+import RecentsPage from '@/components/recents';
 
 export default function Recents() {
-  return <RecentsPage />
+  return <RecentsPage />;
 }
-
-
-

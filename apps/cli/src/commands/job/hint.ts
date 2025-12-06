@@ -2,7 +2,8 @@ import { Command, Args, Flags } from '@oclif/core';
 import { AgentClient } from '../../client.js';
 
 export default class JobHint extends Command {
-  static override description = 'Send a hint to an executing job to change its course';
+  static override description =
+    'Send a hint to an executing job to change its course';
 
   static override examples = [
     '<%= config.bin %> <%= command.id %> <job-id> --hint "Use TypeScript instead of JavaScript"',
@@ -34,17 +35,20 @@ export default class JobHint extends Command {
 
     try {
       const result = await client.hintJob(args['job-id'], flags.hint);
-      
+
       if (result.success) {
         this.log(result.message);
       } else {
         this.error(result.message);
       }
     } catch (error) {
-      this.error(`Failed to hint job: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.error(
+        `Failed to hint job: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     } finally {
       client.close();
     }
   }
 }
-

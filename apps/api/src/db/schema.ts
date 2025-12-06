@@ -1,4 +1,15 @@
-import { pgTable, varchar, integer, timestamp, jsonb, pgEnum, primaryKey, index, uuid, boolean } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  varchar,
+  integer,
+  timestamp,
+  jsonb,
+  pgEnum,
+  primaryKey,
+  index,
+  uuid,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
 export const jobStatusEnum = pgEnum('gpr_job_status', [
@@ -10,11 +21,19 @@ export const jobStatusEnum = pgEnum('gpr_job_status', [
   'archived',
 ]);
 
-export const jobPriorityEnum = pgEnum('gpr_job_priority', ['low', 'medium', 'high']);
+export const jobPriorityEnum = pgEnum('gpr_job_priority', [
+  'low',
+  'medium',
+  'high',
+]);
 
 export const queueTypeEnum = pgEnum('gpr_queue_type', ['rework', 'backlog']);
 
-export const agentStatusEnum = pgEnum('gpr_agent_status', ['active', 'idle', 'offline']);
+export const agentStatusEnum = pgEnum('gpr_agent_status', [
+  'active',
+  'idle',
+  'offline',
+]);
 
 export const userInputSourceEnum = pgEnum('gpr_user_input_source', [
   'slack',
@@ -30,9 +49,17 @@ export const userAcceptanceStatusEnum = pgEnum('gpr_user_acceptance_status', [
   'rejected',
 ]);
 
-export const repoProviderAppNameEnum = pgEnum('gpr_repo_provider_app_name', ['github', 'gitlab', 'bitbucket']);
+export const repoProviderAppNameEnum = pgEnum('gpr_repo_provider_app_name', [
+  'github',
+  'gitlab',
+  'bitbucket',
+]);
 
-export const vibeAgentEnum = pgEnum('gpr_vibe_agent', ['cursor', 'kiro-cli', 'claude-code']);
+export const vibeAgentEnum = pgEnum('gpr_vibe_agent', [
+  'cursor',
+  'kiro-cli',
+  'claude-code',
+]);
 
 // Activity status enum is now only for read/unread tracking per user
 // Job details are stored in the summary field
@@ -41,7 +68,12 @@ export const activityReadStatusEnum = pgEnum('gpr_activity_read_status', [
   'unread',
 ]);
 
-export type SourceMetadata = SlackMetadata | DiscordMetadata | MobileMetadata | GhIssuesMetadata | null;
+export type SourceMetadata =
+  | SlackMetadata
+  | DiscordMetadata
+  | MobileMetadata
+  | GhIssuesMetadata
+  | null;
 
 export type SlackMetadata = {
   channelId: string;
@@ -87,21 +119,27 @@ export const jobs = pgTable(
       .defaultNow(),
     createdBy: varchar('created_by', { length: 255 }).notNull(),
     updatedBy: varchar('updated_by', { length: 255 }).notNull(),
-    codeGenerationLogs: jsonb('code_generation_logs').$type<Array<{
-      level: 'debug' | 'info' | 'warning' | 'error' | 'fatal';
-      timestamp: string; // UTC ISO timestamp
-      message: string;
-    }>>(),
-    codeVerificationLogs: jsonb('code_verification_logs').$type<Array<{
-      level: 'debug' | 'info' | 'warning' | 'error' | 'fatal';
-      timestamp: string; // UTC ISO timestamp
-      message: string;
-    }>>(),
-    codeGenerationDetailLogs: jsonb('code_generation_detail_logs').$type<Array<{
-      level: 'debug' | 'info' | 'warning' | 'error' | 'fatal';
-      timestamp: string; // UTC ISO timestamp
-      message: string;
-    }>>(),
+    codeGenerationLogs: jsonb('code_generation_logs').$type<
+      Array<{
+        level: 'debug' | 'info' | 'warning' | 'error' | 'fatal';
+        timestamp: string; // UTC ISO timestamp
+        message: string;
+      }>
+    >(),
+    codeVerificationLogs: jsonb('code_verification_logs').$type<
+      Array<{
+        level: 'debug' | 'info' | 'warning' | 'error' | 'fatal';
+        timestamp: string; // UTC ISO timestamp
+        message: string;
+      }>
+    >(),
+    codeGenerationDetailLogs: jsonb('code_generation_detail_logs').$type<
+      Array<{
+        level: 'debug' | 'info' | 'warning' | 'error' | 'fatal';
+        timestamp: string; // UTC ISO timestamp
+        message: string;
+      }>
+    >(),
     userInput: jsonb('user_input').$type<{
       source: 'slack' | 'discord' | 'mobile' | 'gh-issues';
       prompt: string;
@@ -126,10 +164,13 @@ export const jobs = pgTable(
   (table: any) => [
     primaryKey({ columns: [table.id, table.version] }),
     index('jobs_org_id_idx').on(table.orgId),
-    index('jobs_queue_type_idx').on(table.orgId, table.queueType, table.orderInQueue),
+    index('jobs_queue_type_idx').on(
+      table.orgId,
+      table.queueType,
+      table.orderInQueue
+    ),
   ]
 );
-
 
 export const repos = pgTable(
   'gpr_repos',
@@ -140,13 +181,15 @@ export const repos = pgTable(
     description: varchar('description', { length: 2000 }),
     url: varchar('url', { length: 255 }).notNull(),
     repo_provider_id: varchar('repo_provider_id', { length: 255 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (table: any) => [
-    index('repos_org_id_idx').on(table.orgId),
-  ]
+  (table: any) => [index('repos_org_id_idx').on(table.orgId)]
 );
 
 export const repoProviders = pgTable(
@@ -165,14 +208,18 @@ export const repoProviders = pgTable(
       app_id?: string;
       [key: string]: unknown;
     }>(),
-    repo_provider_app_name: repoProviderAppNameEnum('repo_provider_app_name').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    repo_provider_app_name: repoProviderAppNameEnum(
+      'repo_provider_app_name'
+    ).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (table: any) => [
-    index('repo_providers_org_id_idx').on(table.orgId),
-  ]
+  (table: any) => [index('repo_providers_org_id_idx').on(table.orgId)]
 );
 
 export const integrations = pgTable(
@@ -190,8 +237,12 @@ export const integrations = pgTable(
     tokenCreatedAt: timestamp('token_created_at', { withTimezone: true }),
     managementUrl: varchar('management_url', { length: 500 }),
     metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
@@ -235,7 +286,9 @@ export const activityReadStatus = pgTable(
     activityId: varchar('activity_id', { length: 255 }).notNull(),
     userId: varchar('user_id', { length: 255 }).notNull(),
     orgId: varchar('org_id', { length: 255 }).notNull(),
-    readStatus: activityReadStatusEnum('read_status').notNull().default('unread'),
+    readStatus: activityReadStatusEnum('read_status')
+      .notNull()
+      .default('unread'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -245,8 +298,14 @@ export const activityReadStatus = pgTable(
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
-    index('user_activity_read_status_activity_user_idx').on(table.activityId, table.userId),
-    index('user_activity_read_status_org_user_idx').on(table.orgId, table.userId),
+    index('user_activity_read_status_activity_user_idx').on(
+      table.activityId,
+      table.userId
+    ),
+    index('user_activity_read_status_org_user_idx').on(
+      table.orgId,
+      table.userId
+    ),
   ]
 );
 
@@ -261,7 +320,9 @@ export const files = pgTable(
     size: integer('size').notNull(),
     gcsPath: varchar('gcs_path', { length: 1000 }).notNull(),
     uploadedBy: varchar('uploaded_by', { length: 255 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
@@ -279,18 +340,27 @@ export const conversations = pgTable(
     threadId: varchar('thread_id', { length: 255 }),
     userId: varchar('user_id', { length: 255 }).notNull(),
     orgId: varchar('org_id', { length: 255 }).notNull(),
-    messages: jsonb('messages').$type<Array<{
-      role: 'user' | 'assistant';
-      content: string;
-      timestamp: string;
-      intent?: string;
-    }>>(),
-    lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    messages: jsonb('messages').$type<
+      Array<{
+        role: 'user' | 'assistant';
+        content: string;
+        timestamp: string;
+        intent?: string;
+      }>
+    >(),
+    lastMessageAt: timestamp('last_message_at', {
+      withTimezone: true,
+    }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
-    index('conversations_platform_thread_idx').on(table.platform, table.threadId),
+    index('conversations_platform_thread_idx').on(
+      table.platform,
+      table.threadId
+    ),
     index('conversations_org_id_idx').on(table.orgId),
     index('conversations_channel_id_idx').on(table.channelId),
   ]
@@ -306,12 +376,21 @@ export const channelSettings = pgTable(
     orgId: varchar('org_id', { length: 255 }).notNull(),
     isQuiet: boolean('is_quiet').notNull().default(false),
     quietUntil: timestamp('quiet_until', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
-    index('channel_settings_lookup_idx').on(table.platform, table.channelId, table.threadId, table.orgId),
+    index('channel_settings_lookup_idx').on(
+      table.platform,
+      table.channelId,
+      table.threadId,
+      table.orgId
+    ),
   ]
 );
 
@@ -321,7 +400,9 @@ export const queueStates = pgTable(
     orgId: varchar('org_id', { length: 255 }).notNull(),
     queueType: queueTypeEnum('queue_type').notNull(),
     isPaused: boolean('is_paused').notNull().default(false),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
@@ -341,13 +422,21 @@ export const agents = pgTable(
     host: varchar('host', { length: 255 }),
     port: integer('port').notNull(),
     vibeAgent: vibeAgentEnum('vibe_agent'),
-    vibeAgentExecutablePath: varchar('vibe_agent_executable_path', { length: 500 }),
+    vibeAgentExecutablePath: varchar('vibe_agent_executable_path', {
+      length: 500,
+    }),
     lastActive: timestamp('last_active', { withTimezone: true }),
     consecutiveFailures: integer('consecutive_failures').notNull().default(0),
     registeredAt: timestamp('registered_at', { withTimezone: true }),
-    lastStreamConnectedAt: timestamp('last_stream_connected_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    lastStreamConnectedAt: timestamp('last_stream_connected_at', {
+      withTimezone: true,
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
@@ -364,8 +453,12 @@ export const queueSchedules = pgTable(
     queueType: queueTypeEnum('queue_type').notNull(),
     scheduleId: varchar('schedule_id', { length: 255 }).notNull(),
     orgId: varchar('org_id', { length: 255 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [
@@ -387,8 +480,12 @@ export const apiKeys = pgTable(
     secretValue: varchar('secret_value', { length: 2000 }).notNull(),
     storageType: varchar('storage_type', { length: 20 }).notNull(),
     lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (table: any) => [

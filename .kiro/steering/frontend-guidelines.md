@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: "apps/web/**/*"
+fileMatchPattern: 'apps/web/**/*'
 ---
 
 # Frontend Development Guidelines (apps/web)
@@ -42,7 +42,7 @@ export function useJobs(orgId: string) {
 // Mutation for creating/updating data
 export function useCreateJob() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateJobInput) => api.createJob(data),
     onSuccess: () => {
@@ -131,6 +131,7 @@ apps/web/
 ## Common Patterns
 
 ### Page Component
+
 ```typescript
 // app/jobs/page.tsx
 import { JobsList } from '@/components/jobs/jobs-list';
@@ -146,6 +147,7 @@ export default function JobsPage() {
 ```
 
 ### Data Fetching Component
+
 ```typescript
 // components/jobs/jobs-list.tsx
 'use client';
@@ -166,7 +168,7 @@ export function JobsList() {
 
   return (
     <div className="space-y-4">
-      {jobs?.map((job) => (
+      {jobs?.map(job => (
         <JobCard key={job.id} job={job} />
       ))}
     </div>

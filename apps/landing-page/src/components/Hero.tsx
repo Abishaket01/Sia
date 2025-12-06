@@ -7,7 +7,8 @@ export default function Hero() {
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  const fullText = "Hey buddy, in our @web project, can you update job-card file. Right now the card drags only when you grab that tiny vertical handle. I want the whole card to be draggable.";
+  const fullText =
+    'Hey buddy, in our @web project, can you update job-card file. Right now the card drags only when you grab that tiny vertical handle. I want the whole card to be draggable.';
 
   useEffect(() => {
     // Start typing animation after a delay
@@ -19,7 +20,10 @@ export default function Hero() {
         if (currentIndex < fullText.length) {
           // Simulate LLM chunking - add 1-5 characters at a time
           const chunkSize = Math.floor(Math.random() * 4) + 1;
-          const nextChunk = fullText.slice(currentIndex, currentIndex + chunkSize);
+          const nextChunk = fullText.slice(
+            currentIndex,
+            currentIndex + chunkSize
+          );
 
           setDisplayedText(prev => prev + nextChunk);
           currentIndex += chunkSize;
@@ -61,12 +65,24 @@ export default function Hero() {
     <>
       <section className="relative overflow-hidden w-full">
         {/* Git branch-like network pattern */}
-        <svg className="absolute inset-0 w-full h-full opacity-10" style={{ zIndex: 1 }}>
+        <svg
+          className="absolute inset-0 w-full h-full opacity-10"
+          style={{ zIndex: 1 }}
+        >
           <defs>
             <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style={{ stopColor: 'rgb(255, 255, 255)', stopOpacity: 0 }} />
-              <stop offset="50%" style={{ stopColor: 'rgb(255, 255, 255)', stopOpacity: 0.5 }} />
-              <stop offset="100%" style={{ stopColor: 'rgb(255, 255, 255)', stopOpacity: 0 }} />
+              <stop
+                offset="0%"
+                style={{ stopColor: 'rgb(255, 255, 255)', stopOpacity: 0 }}
+              />
+              <stop
+                offset="50%"
+                style={{ stopColor: 'rgb(255, 255, 255)', stopOpacity: 0.5 }}
+              />
+              <stop
+                offset="100%"
+                style={{ stopColor: 'rgb(255, 255, 255)', stopOpacity: 0 }}
+              />
             </linearGradient>
           </defs>
           <path
@@ -93,13 +109,36 @@ export default function Hero() {
             className="animate-git-branch"
             style={{ strokeDasharray: 1000, animationDelay: '4s' }}
           />
-          <circle cx="400" cy="100" r="4" fill="rgb(255, 255, 255)" className="animate-pulse-glow" />
-          <circle cx="800" cy="100" r="4" fill="rgb(255, 255, 255)" className="animate-pulse-glow" style={{ animationDelay: '1s' }} />
-          <circle cx="500" cy="200" r="4" fill="rgb(255, 255, 255)" className="animate-pulse-glow" style={{ animationDelay: '2s' }} />
+          <circle
+            cx="400"
+            cy="100"
+            r="4"
+            fill="rgb(255, 255, 255)"
+            className="animate-pulse-glow"
+          />
+          <circle
+            cx="800"
+            cy="100"
+            r="4"
+            fill="rgb(255, 255, 255)"
+            className="animate-pulse-glow"
+            style={{ animationDelay: '1s' }}
+          />
+          <circle
+            cx="500"
+            cy="200"
+            r="4"
+            fill="rgb(255, 255, 255)"
+            className="animate-pulse-glow"
+            style={{ animationDelay: '2s' }}
+          />
         </svg>
 
         {/* Code stream columns - lighter subtle effect */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
+        <div
+          className="absolute inset-0 overflow-hidden pointer-events-none"
+          style={{ zIndex: 1 }}
+        >
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -122,26 +161,50 @@ export default function Hero() {
         </div>
 
         {/* Terminal scan line effect */}
-        <div className="hidden md:block absolute inset-0 pointer-events-none opacity-10" style={{ zIndex: 1 }}>
+        <div
+          className="hidden md:block absolute inset-0 pointer-events-none opacity-10"
+          style={{ zIndex: 1 }}
+        >
           <div className="absolute w-full h-px bg-white/5 animate-scan-line" />
         </div>
 
         {/* Code blocks background */}
         <div className="absolute inset-0 opacity-5" style={{ zIndex: 0 }}>
-          <div className="absolute top-20 left-10 w-64 h-32 bg-white/10 rounded-lg animate-pulse-code" style={{ animationDelay: '0s' }} />
-          <div className="absolute top-40 right-20 w-48 h-24 bg-white/10 rounded-lg animate-pulse-code" style={{ animationDelay: '1s' }} />
-          <div className="absolute bottom-32 left-1/3 w-56 h-28 bg-white/10 rounded-lg animate-pulse-code" style={{ animationDelay: '2s' }} />
-          <div className="absolute top-1/2 right-1/4 w-40 h-20 bg-white/10 rounded-lg animate-pulse-code" style={{ animationDelay: '1.5s' }} />
+          <div
+            className="absolute top-20 left-10 w-64 h-32 bg-white/10 rounded-lg animate-pulse-code"
+            style={{ animationDelay: '0s' }}
+          />
+          <div
+            className="absolute top-40 right-20 w-48 h-24 bg-white/10 rounded-lg animate-pulse-code"
+            style={{ animationDelay: '1s' }}
+          />
+          <div
+            className="absolute bottom-32 left-1/3 w-56 h-28 bg-white/10 rounded-lg animate-pulse-code"
+            style={{ animationDelay: '2s' }}
+          />
+          <div
+            className="absolute top-1/2 right-1/4 w-40 h-20 bg-white/10 rounded-lg animate-pulse-code"
+            style={{ animationDelay: '1.5s' }}
+          />
         </div>
 
         {/* Grid pattern - subtle */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(139,92,246,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(139,92,246,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" style={{ zIndex: 0 }} />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(139,92,246,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(139,92,246,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"
+          style={{ zIndex: 0 }}
+        />
 
         {/* Terminal cursor dots */}
         <div className="absolute inset-0" style={{ zIndex: 1 }}>
           <div className="absolute top-[15%] left-[20%] w-2 h-4 bg-white/10 animate-blink" />
-          <div className="absolute top-[35%] right-[25%] w-2 h-4 bg-white/10 animate-blink" style={{ animationDelay: '0.5s' }} />
-          <div className="absolute bottom-[25%] left-[30%] w-2 h-4 bg-white/10 animate-blink" style={{ animationDelay: '0.3s' }} />
+          <div
+            className="absolute top-[35%] right-[25%] w-2 h-4 bg-white/10 animate-blink"
+            style={{ animationDelay: '0.5s' }}
+          />
+          <div
+            className="absolute bottom-[25%] left-[30%] w-2 h-4 bg-white/10 animate-blink"
+            style={{ animationDelay: '0.3s' }}
+          />
         </div>
 
         {/* Subtle gradient orbs for depth */}
@@ -153,21 +216,37 @@ export default function Hero() {
 
         <div className=" mx-auto px-6 relative z-10 py-24">
           <div className="max-w-5xl mx-auto text-center">
-
-
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fadeInUp" style={{ animationDelay: '100ms', lineHeight: '1.3', paddingBottom: '0.1em' }}>
+            <h1
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fadeInUp"
+              style={{
+                animationDelay: '100ms',
+                lineHeight: '1.3',
+                paddingBottom: '0.1em',
+              }}
+            >
               Wake Up To Ready
-              <span className="block mt-2 text-white animate-gradient" style={{ paddingBottom: '0.15em' }}>
+              <span
+                className="block mt-2 text-white animate-gradient"
+                style={{ paddingBottom: '0.15em' }}
+              >
                 Pull Requests
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-white/70 mb-12 leading-relaxed max-w-3xl mx-auto animate-fadeInUp" style={{ animationDelay: '200ms', paddingBottom: '0.1em' }}>
-              Delegate coding tasks to <span className="font-semibold text-white">Sia</span> through Slack or Discord.
-              She queues them, executes via AI coding tools, and creates pull requests while you sleep.
+            <p
+              className="text-xl md:text-2xl text-white/70 mb-12 leading-relaxed max-w-3xl mx-auto animate-fadeInUp"
+              style={{ animationDelay: '200ms', paddingBottom: '0.1em' }}
+            >
+              Delegate coding tasks to{' '}
+              <span className="font-semibold text-white">Sia</span> through
+              Slack or Discord. She queues them, executes via AI coding tools,
+              and creates pull requests while you sleep.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fadeInUp" style={{ animationDelay: '300ms' }}>
+            <div
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fadeInUp"
+              style={{ animationDelay: '300ms' }}
+            >
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="group relative px-8 py-4 bg-primary text-black font-semibold rounded-xl hover:brightness-75 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:shadow-primary/50  hover:scale-105"
@@ -183,35 +262,51 @@ export default function Hero() {
               </a>
             </div>
 
-            <div className="flex flex-wrap gap-8 justify-center text-white/70 mb-16 animate-fadeInUp" style={{ animationDelay: '400ms' }}>
+            <div
+              className="flex flex-wrap gap-8 justify-center text-white/70 mb-16 animate-fadeInUp"
+              style={{ animationDelay: '400ms' }}
+            >
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                 <span>Slack & Discord</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '200ms' }} />
+                <div
+                  className="w-2 h-2 rounded-full bg-green-500 animate-pulse"
+                  style={{ animationDelay: '200ms' }}
+                />
                 <span>24/7 Execution</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" style={{ animationDelay: '400ms' }} />
+                <div
+                  className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"
+                  style={{ animationDelay: '400ms' }}
+                />
                 <span>Mobile Control</span>
               </div>
             </div>
 
-            <div className="max-w-2xl mx-auto animate-fadeInUp" style={{ animationDelay: '500ms' }}>
+            <div
+              className="max-w-2xl mx-auto animate-fadeInUp"
+              style={{ animationDelay: '500ms' }}
+            >
               <div className="relative bg-card backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/10 transition-all group overflow-hidden">
                 <div className="absolute inset-0 bg-white/5 animate-shimmer" />
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
                     <Terminal className="w-5 h-5 text-white" />
-                    <span className="text-sm font-medium text-white/70">Example task</span>
+                    <span className="text-sm font-medium text-white/70">
+                      Example task
+                    </span>
                   </div>
                   <code className="block text-left gap-2 text-white/70 font-mono text-sm md:text-base">
                     <span className="text-white">@sia-</span>
                     <span className="pl-1">
                       {displayedText}
-                      {isTyping && <span className="inline-block w-2 h-4 bg-white/70 ml-0.5 animate-blink"></span>}
+                      {isTyping && (
+                        <span className="inline-block w-2 h-4 bg-white/70 ml-0.5 animate-blink"></span>
+                      )}
                     </span>
                   </code>
                   <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2 text-sm text-white/70">
@@ -227,7 +322,10 @@ export default function Hero() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-white/5" />
       </section>
 
-      <WaitlistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <WaitlistModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </>
   );
 }

@@ -10,11 +10,21 @@ interface LogMessage {
 }
 
 interface WebSocketMessage {
-  type: 'log' | 'subscribed' | 'unsubscribed' | 'historical-logs' | 'error' | 'job-completed' | 'logs-updated';
-  data?: LogMessage | LogMessage[] | { 
-    codeGenerationLogs?: LogMessage[] | null; 
-    codeVerificationLogs?: LogMessage[] | null;
-  };
+  type:
+    | 'log'
+    | 'subscribed'
+    | 'unsubscribed'
+    | 'historical-logs'
+    | 'error'
+    | 'job-completed'
+    | 'logs-updated';
+  data?:
+    | LogMessage
+    | LogMessage[]
+    | {
+        codeGenerationLogs?: LogMessage[] | null;
+        codeVerificationLogs?: LogMessage[] | null;
+      };
   jobId?: string;
   message?: string;
 }
@@ -77,15 +87,23 @@ export function useJobLogsWebSocket({
     const currentJobId = jobIdRef.current;
     const currentJobVersion = jobVersionRef.current;
     const currentEnabled = enabledRef.current;
-    
-    if (!currentJobId || !currentEnabled || isConnectingRef.current || isDisconnectingRef.current) {
+
+    if (
+      !currentJobId ||
+      !currentEnabled ||
+      isConnectingRef.current ||
+      isDisconnectingRef.current
+    ) {
       return;
     }
 
     // Check if already connected to the same job and version
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      const wsJobId = (wsRef.current as WebSocket & { __jobId?: string }).__jobId;
-      const wsJobVersion = (wsRef.current as WebSocket & { __jobVersion?: number }).__jobVersion;
+      const wsJobId = (wsRef.current as WebSocket & { __jobId?: string })
+        .__jobId;
+      const wsJobVersion = (
+        wsRef.current as WebSocket & { __jobVersion?: number }
+      ).__jobVersion;
       if (wsJobId === currentJobId && wsJobVersion === currentJobVersion) {
         return; // Already connected to same job/version
       }
@@ -102,14 +120,19 @@ export function useJobLogsWebSocket({
       // Get auth token to pass as query parameter (WebSocket can't send headers)
       const headers = await getAuthHeaders();
       const token = headers['Authorization']?.replace('Bearer ', '') || '';
-      
+
       // Check if jobId/version changed while we were getting the token
-      if (jobIdRef.current !== connectingJobId || jobVersionRef.current !== connectingJobVersion || !enabledRef.current) {
+      if (
+        jobIdRef.current !== connectingJobId ||
+        jobVersionRef.current !== connectingJobVersion ||
+        !enabledRef.current
+      ) {
         isConnectingRef.current = false;
         return;
       }
-      
-      const baseUrl = process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_SIA_BACKEND_URL || 'http://localhost:3001';
       const queryParams = new URLSearchParams();
       if (token) {
         queryParams.set('token', token);
@@ -118,26 +141,44 @@ export function useJobLogsWebSocket({
         queryParams.set('version', connectingJobVersion.toString());
       }
       const queryString = queryParams.toString();
-      const wsUrl = baseUrl.replace(/^http/, 'ws') + `/jobs/${connectingJobId}/logs/stream${queryString ? `?${queryString}` : ''}`;
+      const wsUrl =
+        baseUrl.replace(/^http/, 'ws') +
+        `/jobs/${connectingJobId}/logs/stream${
+          queryString ? `?${queryString}` : ''
+        }`;
 
       const ws = new WebSocket(wsUrl);
-      
+
       // Store jobId and version with the socket to verify it's still valid
-      (ws as WebSocket & { __jobId?: string; __jobVersion?: number }).__jobId = connectingJobId;
-      (ws as WebSocket & { __jobId?: string; __jobVersion?: number }).__jobVersion = connectingJobVersion ?? undefined;
+      (ws as WebSocket & { __jobId?: string; __jobVersion?: number }).__jobId =
+        connectingJobId;
+      (
+        ws as WebSocket & { __jobId?: string; __jobVersion?: number }
+      ).__jobVersion = connectingJobVersion ?? undefined;
 
       ws.onopen = () => {
         // Verify this is still the correct job and version
-        if (jobIdRef.current !== connectingJobId || jobVersionRef.current !== connectingJobVersion || !enabledRef.current) {
-          console.log('[WebSocket] Connection opened but jobId/version/enabled changed, closing');
+        if (
+          jobIdRef.current !== connectingJobId ||
+          jobVersionRef.current !== connectingJobVersion ||
+          !enabledRef.current
+        ) {
+          console.log(
+            '[WebSocket] Connection opened but jobId/version/enabled changed, closing'
+          );
           ws.close();
           isConnectingRef.current = false;
           connectingJobIdRef.current = null;
           connectingJobVersionRef.current = null;
           return;
         }
-        
-        console.log('[WebSocket] Connected to job:', connectingJobId, 'version:', connectingJobVersion);
+
+        console.log(
+          '[WebSocket] Connected to job:',
+          connectingJobId,
+          'version:',
+          connectingJobVersion
+        );
         isConnectingRef.current = false;
         connectingJobIdRef.current = null;
         connectingJobVersionRef.current = null;
@@ -146,64 +187,102 @@ export function useJobLogsWebSocket({
         reconnectAttemptsRef.current = 0;
 
         // Subscribe to logs with jobId and version
-        const subscribeMessage: { type: 'subscribe'; jobId: string; version?: number } = { 
-          type: 'subscribe', 
+        const subscribeMessage: {
+          type: 'subscribe';
+          jobId: string;
+          version?: number;
+        } = {
+          type: 'subscribe',
           jobId: connectingJobId,
         };
         // Include version if it's a number (including 0), only exclude if null or undefined
         if (typeof connectingJobVersion === 'number') {
           subscribeMessage.version = connectingJobVersion;
         }
-        
+
         // Also update the socket's stored version
-        (ws as WebSocket & { __jobVersion?: number }).__jobVersion = connectingJobVersion ?? undefined;
+        (ws as WebSocket & { __jobVersion?: number }).__jobVersion =
+          connectingJobVersion ?? undefined;
         console.log('[WebSocket] Sending subscribe message:', subscribeMessage);
         ws.send(JSON.stringify(subscribeMessage));
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = event => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
           console.log('[WebSocket] Received message:', message.type, message);
 
           // Verify this message is for the current job and version
-          if (jobIdRef.current !== connectingJobId || jobVersionRef.current !== connectingJobVersion || !enabledRef.current) {
-            console.log('[WebSocket] Ignoring message for different job/version or disabled connection');
+          if (
+            jobIdRef.current !== connectingJobId ||
+            jobVersionRef.current !== connectingJobVersion ||
+            !enabledRef.current
+          ) {
+            console.log(
+              '[WebSocket] Ignoring message for different job/version or disabled connection'
+            );
             return;
           }
 
           switch (message.type) {
             case 'subscribed':
-              console.log('[WebSocket] Subscribed to logs for job:', message.jobId);
+              console.log(
+                '[WebSocket] Subscribed to logs for job:',
+                message.jobId
+              );
               break;
 
             case 'unsubscribed': {
-              console.log('[WebSocket] Unsubscribed from logs for job:', message.jobId);
+              console.log(
+                '[WebSocket] Unsubscribed from logs for job:',
+                message.jobId
+              );
               // Clear any pending close timeout since we got the confirmation
               const wsForUnsubscribe = wsRef.current;
               if (wsForUnsubscribe) {
-                const closeTimeout = (wsForUnsubscribe as WebSocket & { __closeTimeout?: NodeJS.Timeout }).__closeTimeout;
+                const closeTimeout = (
+                  wsForUnsubscribe as WebSocket & {
+                    __closeTimeout?: NodeJS.Timeout;
+                  }
+                ).__closeTimeout;
                 if (closeTimeout) {
                   clearTimeout(closeTimeout);
-                  delete (wsForUnsubscribe as WebSocket & { __closeTimeout?: NodeJS.Timeout }).__closeTimeout;
+                  delete (
+                    wsForUnsubscribe as WebSocket & {
+                      __closeTimeout?: NodeJS.Timeout;
+                    }
+                  ).__closeTimeout;
                 }
               }
               // Close the WebSocket connection after receiving unsubscribed confirmation
-              if (wsForUnsubscribe && (wsForUnsubscribe.readyState === WebSocket.OPEN || wsForUnsubscribe.readyState === WebSocket.CONNECTING)) {
-                console.log('[WebSocket] Closing connection after unsubscribe confirmation');
+              if (
+                wsForUnsubscribe &&
+                (wsForUnsubscribe.readyState === WebSocket.OPEN ||
+                  wsForUnsubscribe.readyState === WebSocket.CONNECTING)
+              ) {
+                console.log(
+                  '[WebSocket] Closing connection after unsubscribe confirmation'
+                );
                 wsForUnsubscribe.close();
               }
               break;
             }
 
             case 'log':
-              if (message.data && !Array.isArray(message.data) && 'level' in message.data && 'message' in message.data) {
+              if (
+                message.data &&
+                !Array.isArray(message.data) &&
+                'level' in message.data &&
+                'message' in message.data
+              ) {
                 const log = message.data as LogMessage;
                 console.log('[WebSocket] Received log:', log);
                 // Add new log at the beginning (newest first) and avoid duplicates
-                setLogs((prev) => {
+                setLogs(prev => {
                   const key = `${log.timestamp}-${log.message}`;
-                  const exists = prev.some(l => `${l.timestamp}-${l.message}` === key);
+                  const exists = prev.some(
+                    l => `${l.timestamp}-${l.message}` === key
+                  );
                   if (exists) {
                     return prev; // Don't add duplicate
                   }
@@ -216,20 +295,34 @@ export function useJobLogsWebSocket({
 
             case 'historical-logs':
               if (message.data && Array.isArray(message.data)) {
-                console.log('[WebSocket] Received historical logs:', message.data.length, 'logs');
+                console.log(
+                  '[WebSocket] Received historical logs:',
+                  message.data.length,
+                  'logs'
+                );
                 // Merge with existing logs, avoiding duplicates based on timestamp and message
-                setLogs((prev) => {
-                  const existingKeys = new Set(prev.map(log => `${log.timestamp}-${log.message}`));
-                  const newLogs = (message.data as LogMessage[]).filter((log: LogMessage) => 
-                    !existingKeys.has(`${log.timestamp}-${log.message}`)
+                setLogs(prev => {
+                  const existingKeys = new Set(
+                    prev.map(log => `${log.timestamp}-${log.message}`)
+                  );
+                  const newLogs = (message.data as LogMessage[]).filter(
+                    (log: LogMessage) =>
+                      !existingKeys.has(`${log.timestamp}-${log.message}`)
                   );
                   // Combine and sort by timestamp (newest first)
                   const combined = [...prev, ...newLogs];
-                  combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                  combined.sort(
+                    (a, b) =>
+                      new Date(b.timestamp).getTime() -
+                      new Date(a.timestamp).getTime()
+                  );
                   return combined;
                 });
               } else {
-                console.warn('[WebSocket] historical-logs data is not an array:', message.data);
+                console.warn(
+                  '[WebSocket] historical-logs data is not an array:',
+                  message.data
+                );
               }
               break;
 
@@ -254,11 +347,15 @@ export function useJobLogsWebSocket({
               console.warn('[WebSocket] Unknown message type:', message.type);
           }
         } catch (err) {
-          console.error('[WebSocket] Failed to parse message:', err, event.data);
+          console.error(
+            '[WebSocket] Failed to parse message:',
+            err,
+            event.data
+          );
         }
       };
 
-      ws.onerror = (event) => {
+      ws.onerror = event => {
         console.error('[WebSocket] Error:', event);
         isConnectingRef.current = false;
         connectingJobIdRef.current = null;
@@ -267,19 +364,26 @@ export function useJobLogsWebSocket({
         onErrorRef.current?.(wsError);
       };
 
-      ws.onclose = (event) => {
+      ws.onclose = event => {
         console.log('[WebSocket] Closed:', event.code, event.reason);
         isConnectingRef.current = false;
         connectingJobIdRef.current = null;
         setIsConnected(false);
-        
+
         // Only attempt reconnection if this socket is still the current one
         // (prevents reconnecting after intentional disconnect)
-        if (wsRef.current === ws && enabledRef.current && !isDisconnectingRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
+        if (
+          wsRef.current === ws &&
+          enabledRef.current &&
+          !isDisconnectingRef.current &&
+          reconnectAttemptsRef.current < maxReconnectAttempts
+        ) {
           wsRef.current = null;
           reconnectAttemptsRef.current += 1;
           const delay = reconnectDelay * reconnectAttemptsRef.current;
-          console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
+          console.log(
+            `[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`
+          );
 
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
@@ -287,7 +391,9 @@ export function useJobLogsWebSocket({
         } else {
           wsRef.current = null;
           if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-            const maxAttemptsError = new Error('Max reconnection attempts reached');
+            const maxAttemptsError = new Error(
+              'Max reconnection attempts reached'
+            );
             setError(maxAttemptsError);
             onErrorRef.current?.(maxAttemptsError);
           }
@@ -298,7 +404,8 @@ export function useJobLogsWebSocket({
     } catch (err) {
       isConnectingRef.current = false;
       connectingJobIdRef.current = null;
-      const connectionError = err instanceof Error ? err : new Error('Failed to create WebSocket');
+      const connectionError =
+        err instanceof Error ? err : new Error('Failed to create WebSocket');
       setError(connectionError);
       onErrorRef.current?.(connectionError);
     }
@@ -311,9 +418,12 @@ export function useJobLogsWebSocket({
 
     // Don't disconnect if we're currently connecting to the current jobId/version
     // Unless force is true (e.g., on unmount) or jobId/version changed
-    if (!force && isConnectingRef.current && 
-        connectingJobIdRef.current === jobIdRef.current && 
-        connectingJobVersionRef.current === jobVersionRef.current) {
+    if (
+      !force &&
+      isConnectingRef.current &&
+      connectingJobIdRef.current === jobIdRef.current &&
+      connectingJobVersionRef.current === jobVersionRef.current
+    ) {
       return;
     }
 
@@ -334,35 +444,55 @@ export function useJobLogsWebSocket({
           console.log('[WebSocket] Sending unsubscribe message');
           const currentJobId = jobIdRef.current;
           if (currentJobId) {
-            const unsubscribeMessage: { type: 'unsubscribe'; jobId: string; version?: number } = {
+            const unsubscribeMessage: {
+              type: 'unsubscribe';
+              jobId: string;
+              version?: number;
+            } = {
               type: 'unsubscribe',
               jobId: currentJobId,
             };
-            if (jobVersionRef.current !== null && jobVersionRef.current !== undefined) {
+            if (
+              jobVersionRef.current !== null &&
+              jobVersionRef.current !== undefined
+            ) {
               unsubscribeMessage.version = jobVersionRef.current;
             }
             ws.send(JSON.stringify(unsubscribeMessage));
           }
           // Wait for unsubscribed confirmation before closing, but set a timeout as fallback
           const closeTimeout = setTimeout(() => {
-            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-              console.log('[WebSocket] Closing connection after unsubscribe timeout (no confirmation received)');
+            if (
+              ws.readyState === WebSocket.OPEN ||
+              ws.readyState === WebSocket.CONNECTING
+            ) {
+              console.log(
+                '[WebSocket] Closing connection after unsubscribe timeout (no confirmation received)'
+              );
               ws.close();
             }
           }, 500); // 500ms timeout to wait for unsubscribed message
-          
+
           // Store timeout to clear if we get unsubscribed message
-          (ws as WebSocket & { __closeTimeout?: NodeJS.Timeout }).__closeTimeout = closeTimeout;
+          (
+            ws as WebSocket & { __closeTimeout?: NodeJS.Timeout }
+          ).__closeTimeout = closeTimeout;
         } catch (error) {
           console.error('[WebSocket] Failed to send unsubscribe:', error);
           // Close immediately if send failed
-          if ((ws.readyState as number) !== WebSocket.CLOSED && (ws.readyState as number) !== WebSocket.CLOSING) {
+          if (
+            (ws.readyState as number) !== WebSocket.CLOSED &&
+            (ws.readyState as number) !== WebSocket.CLOSING
+          ) {
             ws.close();
           }
         }
       } else {
         // Close the connection if not already closed or closing
-        if (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN) {
+        if (
+          ws.readyState === WebSocket.CONNECTING ||
+          ws.readyState === WebSocket.OPEN
+        ) {
           ws.close();
         }
       }
@@ -398,7 +528,11 @@ export function useJobLogsWebSocket({
     return () => {
       // Only disconnect if this effect's jobId/version/enabled matches current refs
       // This prevents disconnecting a new connection that was just established
-      if (jobIdRef.current === jobId && jobVersionRef.current === jobVersion && enabledRef.current === enabled) {
+      if (
+        jobIdRef.current === jobId &&
+        jobVersionRef.current === jobVersion &&
+        enabledRef.current === enabled
+      ) {
         disconnect(true);
       }
     };
@@ -417,4 +551,3 @@ export function useJobLogsWebSocket({
     reconnect: connect,
   };
 }
-

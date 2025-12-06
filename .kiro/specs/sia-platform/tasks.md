@@ -14,6 +14,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
 ## High-Level Tasks
 
 - [x] 1. Monorepo Setup and Configuration
+
   - [x] 1.1 Initialize Nx workspace with npm workspaces
     - Configure nx.json with plugins for Next.js, Jest, ESLint, Vite
     - Set up shared TypeScript configuration
@@ -24,6 +25,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 1.3, 1.4_
 
 - [x] 2. Shared Models Library (`libs/models`)
+
   - [x] 2.1 Set up protobuf definitions for gRPC
     - Define agent service proto files
     - Configure ts-proto for TypeScript generation
@@ -36,6 +38,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 6.1_
 
 - [x] 3. Backend API Server (`apps/api`)
+
   - [x] 3.1 Set up Fastify server with REST routes
     - Configure CORS, authentication middleware
     - Implement job, queue, organization routes
@@ -61,6 +64,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 7.1, 7.2, 7.3_
 
 - [x] 4. Web Frontend (`apps/web`)
+
   - [x] 4.1 Set up Next.js application with App Router
     - Configure TailwindCSS and shadcn/ui
     - Set up authentication with PropelAuth
@@ -79,6 +83,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 3.4_
 
 - [x] 5. SIA Agent (`apps/agent`)
+
   - [x] 5.1 Set up gRPC client for backend communication
     - Connection management
     - Bidirectional streaming
@@ -101,6 +106,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 4.5_
 
 - [ ] 6. CLI Application (`apps/cli`)
+
   - [ ] 6.1 Set up CLI framework
     - Command parsing with Commander.js
     - Configuration management
@@ -116,6 +122,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 5.2, 5.3_
 
 - [x] 7. Landing Page (`apps/landing-page`)
+
   - [x] 7.1 Set up Vite application
     - Configure TailwindCSS
     - _Requirements: 11.1_
@@ -125,6 +132,7 @@ This is the high-level implementation plan for the SIA platform. Each major comp
     - _Requirements: 11.1, 11.2_
 
 - [ ] 8. Chat App Integration
+
   - [ ] 8.1 Implement Slack integration
     - Slash commands
     - Job notifications
@@ -149,14 +157,14 @@ This is the high-level implementation plan for the SIA platform. Each major comp
 
 Each major component has detailed specifications in separate directories:
 
-| Component | Spec Location | Status |
-|-----------|---------------|--------|
-| Temporal Task Queue | `.kiro/specs/temporal-task-queue/` | ✅ Complete |
-| API Server | `.kiro/specs/api-server/` | 📋 To Create |
-| Web Frontend | `.kiro/specs/web-frontend/` | 📋 To Create |
-| SIA Agent | `.kiro/specs/sia-agent/` | 📋 To Create |
-| CLI App | `.kiro/specs/cli-app/` | 📋 To Create |
-| Shared Models | `.kiro/specs/shared-models/` | 📋 To Create |
+| Component           | Spec Location                      | Status       |
+| ------------------- | ---------------------------------- | ------------ |
+| Temporal Task Queue | `.kiro/specs/temporal-task-queue/` | ✅ Complete  |
+| API Server          | `.kiro/specs/api-server/`          | 📋 To Create |
+| Web Frontend        | `.kiro/specs/web-frontend/`        | 📋 To Create |
+| SIA Agent           | `.kiro/specs/sia-agent/`           | 📋 To Create |
+| CLI App             | `.kiro/specs/cli-app/`             | 📋 To Create |
+| Shared Models       | `.kiro/specs/shared-models/`       | 📋 To Create |
 
 ## Dependency Graph
 
@@ -166,11 +174,11 @@ flowchart TD
     MODELS --> WEB[apps/web]
     MODELS --> AGENT[apps/agent]
     MODELS --> CLI[apps/cli]
-    
+
     API --> WEB
     API --> AGENT
     API --> CLI
-    
+
     TEMPORAL[Temporal Integration] --> API
 ```
 
@@ -179,4 +187,4 @@ flowchart TD
 - Tasks marked with [x] indicate completed implementation
 - Tasks marked with [ ] indicate pending implementation
 - Each component spec contains detailed sub-tasks and acceptance criteria
-- Property-based tests are marked with * and are optional for MVP
+- Property-based tests are marked with \* and are optional for MVP

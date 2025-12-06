@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -22,7 +22,7 @@ let browserQueryClient: QueryClient | undefined = undefined;
 
 // Have used singleton pattern
 function getQueryClient() {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     // Server: always make a new query client
     return makeQueryClient();
   } else {

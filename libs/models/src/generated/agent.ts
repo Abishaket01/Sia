@@ -5,7 +5,7 @@
 // source: agent.proto
 
 /* eslint-disable */
-import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { BinaryReader, BinaryWriter } from '@bufbuild/protobuf/wire';
 import {
   type CallOptions,
   type ChannelCredentials,
@@ -21,9 +21,9 @@ import {
   type Metadata,
   type ServiceError,
   type UntypedServiceImplementation,
-} from "@grpc/grpc-js";
+} from '@grpc/grpc-js';
 
-export const protobufPackage = "agent";
+export const protobufPackage = 'agent';
 
 export enum AgentStreamMessageType {
   LOG_MESSAGE = 0,
@@ -33,40 +33,44 @@ export enum AgentStreamMessageType {
   UNRECOGNIZED = -1,
 }
 
-export function agentStreamMessageTypeFromJSON(object: any): AgentStreamMessageType {
+export function agentStreamMessageTypeFromJSON(
+  object: any
+): AgentStreamMessageType {
   switch (object) {
     case 0:
-    case "LOG_MESSAGE":
+    case 'LOG_MESSAGE':
       return AgentStreamMessageType.LOG_MESSAGE;
     case 1:
-    case "HEARTBEAT":
+    case 'HEARTBEAT':
       return AgentStreamMessageType.HEARTBEAT;
     case 2:
-    case "TASK_RESPONSE":
+    case 'TASK_RESPONSE':
       return AgentStreamMessageType.TASK_RESPONSE;
     case 3:
-    case "STATUS_UPDATE":
+    case 'STATUS_UPDATE':
       return AgentStreamMessageType.STATUS_UPDATE;
     case -1:
-    case "UNRECOGNIZED":
+    case 'UNRECOGNIZED':
     default:
       return AgentStreamMessageType.UNRECOGNIZED;
   }
 }
 
-export function agentStreamMessageTypeToJSON(object: AgentStreamMessageType): string {
+export function agentStreamMessageTypeToJSON(
+  object: AgentStreamMessageType
+): string {
   switch (object) {
     case AgentStreamMessageType.LOG_MESSAGE:
-      return "LOG_MESSAGE";
+      return 'LOG_MESSAGE';
     case AgentStreamMessageType.HEARTBEAT:
-      return "HEARTBEAT";
+      return 'HEARTBEAT';
     case AgentStreamMessageType.TASK_RESPONSE:
-      return "TASK_RESPONSE";
+      return 'TASK_RESPONSE';
     case AgentStreamMessageType.STATUS_UPDATE:
-      return "STATUS_UPDATE";
+      return 'STATUS_UPDATE';
     case AgentStreamMessageType.UNRECOGNIZED:
     default:
-      return "UNRECOGNIZED";
+      return 'UNRECOGNIZED';
   }
 }
 
@@ -78,40 +82,44 @@ export enum BackendStreamMessageType {
   UNRECOGNIZED = -1,
 }
 
-export function backendStreamMessageTypeFromJSON(object: any): BackendStreamMessageType {
+export function backendStreamMessageTypeFromJSON(
+  object: any
+): BackendStreamMessageType {
   switch (object) {
     case 0:
-    case "TASK_ASSIGNMENT":
+    case 'TASK_ASSIGNMENT':
       return BackendStreamMessageType.TASK_ASSIGNMENT;
     case 1:
-    case "TASK_CANCEL":
+    case 'TASK_CANCEL':
       return BackendStreamMessageType.TASK_CANCEL;
     case 2:
-    case "HEALTH_CHECK_PING":
+    case 'HEALTH_CHECK_PING':
       return BackendStreamMessageType.HEALTH_CHECK_PING;
     case 3:
-    case "CONFIG_UPDATE":
+    case 'CONFIG_UPDATE':
       return BackendStreamMessageType.CONFIG_UPDATE;
     case -1:
-    case "UNRECOGNIZED":
+    case 'UNRECOGNIZED':
     default:
       return BackendStreamMessageType.UNRECOGNIZED;
   }
 }
 
-export function backendStreamMessageTypeToJSON(object: BackendStreamMessageType): string {
+export function backendStreamMessageTypeToJSON(
+  object: BackendStreamMessageType
+): string {
   switch (object) {
     case BackendStreamMessageType.TASK_ASSIGNMENT:
-      return "TASK_ASSIGNMENT";
+      return 'TASK_ASSIGNMENT';
     case BackendStreamMessageType.TASK_CANCEL:
-      return "TASK_CANCEL";
+      return 'TASK_CANCEL';
     case BackendStreamMessageType.HEALTH_CHECK_PING:
-      return "HEALTH_CHECK_PING";
+      return 'HEALTH_CHECK_PING';
     case BackendStreamMessageType.CONFIG_UPDATE:
-      return "CONFIG_UPDATE";
+      return 'CONFIG_UPDATE';
     case BackendStreamMessageType.UNRECOGNIZED:
     default:
-      return "UNRECOGNIZED";
+      return 'UNRECOGNIZED';
   }
 }
 
@@ -229,28 +237,35 @@ export interface AgentStreamMessage {
 }
 
 function createBaseExecuteJobRequest(): ExecuteJobRequest {
-  return { jobId: "", prompt: "", repoId: "", jobDetails: {} };
+  return { jobId: '', prompt: '', repoId: '', jobDetails: {} };
 }
 
 export const ExecuteJobRequest: MessageFns<ExecuteJobRequest> = {
-  encode(message: ExecuteJobRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.jobId !== "") {
+  encode(
+    message: ExecuteJobRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.jobId !== '') {
       writer.uint32(10).string(message.jobId);
     }
-    if (message.prompt !== "") {
+    if (message.prompt !== '') {
       writer.uint32(18).string(message.prompt);
     }
-    if (message.repoId !== "") {
+    if (message.repoId !== '') {
       writer.uint32(26).string(message.repoId);
     }
     Object.entries(message.jobDetails).forEach(([key, value]) => {
-      ExecuteJobRequest_JobDetailsEntry.encode({ key: key as any, value }, writer.uint32(34).fork()).join();
+      ExecuteJobRequest_JobDetailsEntry.encode(
+        { key: key as any, value },
+        writer.uint32(34).fork()
+      ).join();
     });
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): ExecuteJobRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseExecuteJobRequest();
     while (reader.pos < end) {
@@ -285,7 +300,10 @@ export const ExecuteJobRequest: MessageFns<ExecuteJobRequest> = {
             break;
           }
 
-          const entry4 = ExecuteJobRequest_JobDetailsEntry.decode(reader, reader.uint32());
+          const entry4 = ExecuteJobRequest_JobDetailsEntry.decode(
+            reader,
+            reader.uint32()
+          );
           if (entry4.value !== undefined) {
             message.jobDetails[entry4.key] = entry4.value;
           }
@@ -302,27 +320,30 @@ export const ExecuteJobRequest: MessageFns<ExecuteJobRequest> = {
 
   fromJSON(object: any): ExecuteJobRequest {
     return {
-      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "",
-      prompt: isSet(object.prompt) ? globalThis.String(object.prompt) : "",
-      repoId: isSet(object.repoId) ? globalThis.String(object.repoId) : "",
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+      prompt: isSet(object.prompt) ? globalThis.String(object.prompt) : '',
+      repoId: isSet(object.repoId) ? globalThis.String(object.repoId) : '',
       jobDetails: isObject(object.jobDetails)
-        ? Object.entries(object.jobDetails).reduce<{ [key: string]: string }>((acc, [key, value]) => {
-          acc[key] = String(value);
-          return acc;
-        }, {})
+        ? Object.entries(object.jobDetails).reduce<{ [key: string]: string }>(
+            (acc, [key, value]) => {
+              acc[key] = String(value);
+              return acc;
+            },
+            {}
+          )
         : {},
     };
   },
 
   toJSON(message: ExecuteJobRequest): unknown {
     const obj: any = {};
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
-    if (message.prompt !== "") {
+    if (message.prompt !== '') {
       obj.prompt = message.prompt;
     }
-    if (message.repoId !== "") {
+    if (message.repoId !== '') {
       obj.repoId = message.repoId;
     }
     if (message.jobDetails) {
@@ -337,124 +358,139 @@ export const ExecuteJobRequest: MessageFns<ExecuteJobRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ExecuteJobRequest>, I>>(base?: I): ExecuteJobRequest {
+  create<I extends Exact<DeepPartial<ExecuteJobRequest>, I>>(
+    base?: I
+  ): ExecuteJobRequest {
     return ExecuteJobRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ExecuteJobRequest>, I>>(object: I): ExecuteJobRequest {
+  fromPartial<I extends Exact<DeepPartial<ExecuteJobRequest>, I>>(
+    object: I
+  ): ExecuteJobRequest {
     const message = createBaseExecuteJobRequest();
-    message.jobId = object.jobId ?? "";
-    message.prompt = object.prompt ?? "";
-    message.repoId = object.repoId ?? "";
-    message.jobDetails = Object.entries(object.jobDetails ?? {}).reduce<{ [key: string]: string }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = globalThis.String(value);
-        }
-        return acc;
-      },
-      {},
-    );
+    message.jobId = object.jobId ?? '';
+    message.prompt = object.prompt ?? '';
+    message.repoId = object.repoId ?? '';
+    message.jobDetails = Object.entries(object.jobDetails ?? {}).reduce<{
+      [key: string]: string;
+    }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = globalThis.String(value);
+      }
+      return acc;
+    }, {});
     return message;
   },
 };
 
 function createBaseExecuteJobRequest_JobDetailsEntry(): ExecuteJobRequest_JobDetailsEntry {
-  return { key: "", value: "" };
+  return { key: '', value: '' };
 }
 
-export const ExecuteJobRequest_JobDetailsEntry: MessageFns<ExecuteJobRequest_JobDetailsEntry> = {
-  encode(message: ExecuteJobRequest_JobDetailsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-    if (message.value !== "") {
-      writer.uint32(18).string(message.value);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ExecuteJobRequest_JobDetailsEntry {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseExecuteJobRequest_JobDetailsEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.key = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = reader.string();
-          continue;
-        }
+export const ExecuteJobRequest_JobDetailsEntry: MessageFns<ExecuteJobRequest_JobDetailsEntry> =
+  {
+    encode(
+      message: ExecuteJobRequest_JobDetailsEntry,
+      writer: BinaryWriter = new BinaryWriter()
+    ): BinaryWriter {
+      if (message.key !== '') {
+        writer.uint32(10).string(message.key);
       }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
+      if (message.value !== '') {
+        writer.uint32(18).string(message.value);
       }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
+      return writer;
+    },
 
-  fromJSON(object: any): ExecuteJobRequest_JobDetailsEntry {
-    return {
-      key: isSet(object.key) ? globalThis.String(object.key) : "",
-      value: isSet(object.value) ? globalThis.String(object.value) : "",
-    };
-  },
+    decode(
+      input: BinaryReader | Uint8Array,
+      length?: number
+    ): ExecuteJobRequest_JobDetailsEntry {
+      const reader =
+        input instanceof BinaryReader ? input : new BinaryReader(input);
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseExecuteJobRequest_JobDetailsEntry();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
 
-  toJSON(message: ExecuteJobRequest_JobDetailsEntry): unknown {
-    const obj: any = {};
-    if (message.key !== "") {
-      obj.key = message.key;
-    }
-    if (message.value !== "") {
-      obj.value = message.value;
-    }
-    return obj;
-  },
+            message.key = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
 
-  create<I extends Exact<DeepPartial<ExecuteJobRequest_JobDetailsEntry>, I>>(
-    base?: I,
-  ): ExecuteJobRequest_JobDetailsEntry {
-    return ExecuteJobRequest_JobDetailsEntry.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ExecuteJobRequest_JobDetailsEntry>, I>>(
-    object: I,
-  ): ExecuteJobRequest_JobDetailsEntry {
-    const message = createBaseExecuteJobRequest_JobDetailsEntry();
-    message.key = object.key ?? "";
-    message.value = object.value ?? "";
-    return message;
-  },
-};
+            message.value = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    },
+
+    fromJSON(object: any): ExecuteJobRequest_JobDetailsEntry {
+      return {
+        key: isSet(object.key) ? globalThis.String(object.key) : '',
+        value: isSet(object.value) ? globalThis.String(object.value) : '',
+      };
+    },
+
+    toJSON(message: ExecuteJobRequest_JobDetailsEntry): unknown {
+      const obj: any = {};
+      if (message.key !== '') {
+        obj.key = message.key;
+      }
+      if (message.value !== '') {
+        obj.value = message.value;
+      }
+      return obj;
+    },
+
+    create<I extends Exact<DeepPartial<ExecuteJobRequest_JobDetailsEntry>, I>>(
+      base?: I
+    ): ExecuteJobRequest_JobDetailsEntry {
+      return ExecuteJobRequest_JobDetailsEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<
+      I extends Exact<DeepPartial<ExecuteJobRequest_JobDetailsEntry>, I>
+    >(object: I): ExecuteJobRequest_JobDetailsEntry {
+      const message = createBaseExecuteJobRequest_JobDetailsEntry();
+      message.key = object.key ?? '';
+      message.value = object.value ?? '';
+      return message;
+    },
+  };
 
 function createBaseHintJobRequest(): HintJobRequest {
-  return { jobId: "", hint: "" };
+  return { jobId: '', hint: '' };
 }
 
 export const HintJobRequest: MessageFns<HintJobRequest> = {
-  encode(message: HintJobRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.jobId !== "") {
+  encode(
+    message: HintJobRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.jobId !== '') {
       writer.uint32(10).string(message.jobId);
     }
-    if (message.hint !== "") {
+    if (message.hint !== '') {
       writer.uint32(18).string(message.hint);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): HintJobRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseHintJobRequest();
     while (reader.pos < end) {
@@ -487,50 +523,58 @@ export const HintJobRequest: MessageFns<HintJobRequest> = {
 
   fromJSON(object: any): HintJobRequest {
     return {
-      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "",
-      hint: isSet(object.hint) ? globalThis.String(object.hint) : "",
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+      hint: isSet(object.hint) ? globalThis.String(object.hint) : '',
     };
   },
 
   toJSON(message: HintJobRequest): unknown {
     const obj: any = {};
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
-    if (message.hint !== "") {
+    if (message.hint !== '') {
       obj.hint = message.hint;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HintJobRequest>, I>>(base?: I): HintJobRequest {
+  create<I extends Exact<DeepPartial<HintJobRequest>, I>>(
+    base?: I
+  ): HintJobRequest {
     return HintJobRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HintJobRequest>, I>>(object: I): HintJobRequest {
+  fromPartial<I extends Exact<DeepPartial<HintJobRequest>, I>>(
+    object: I
+  ): HintJobRequest {
     const message = createBaseHintJobRequest();
-    message.jobId = object.jobId ?? "";
-    message.hint = object.hint ?? "";
+    message.jobId = object.jobId ?? '';
+    message.hint = object.hint ?? '';
     return message;
   },
 };
 
 function createBaseHintJobResponse(): HintJobResponse {
-  return { success: false, message: "" };
+  return { success: false, message: '' };
 }
 
 export const HintJobResponse: MessageFns<HintJobResponse> = {
-  encode(message: HintJobResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: HintJobResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(18).string(message.message);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): HintJobResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseHintJobResponse();
     while (reader.pos < end) {
@@ -563,8 +607,10 @@ export const HintJobResponse: MessageFns<HintJobResponse> = {
 
   fromJSON(object: any): HintJobResponse {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
     };
   },
 
@@ -573,37 +619,45 @@ export const HintJobResponse: MessageFns<HintJobResponse> = {
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HintJobResponse>, I>>(base?: I): HintJobResponse {
+  create<I extends Exact<DeepPartial<HintJobResponse>, I>>(
+    base?: I
+  ): HintJobResponse {
     return HintJobResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HintJobResponse>, I>>(object: I): HintJobResponse {
+  fromPartial<I extends Exact<DeepPartial<HintJobResponse>, I>>(
+    object: I
+  ): HintJobResponse {
     const message = createBaseHintJobResponse();
     message.success = object.success ?? false;
-    message.message = object.message ?? "";
+    message.message = object.message ?? '';
     return message;
   },
 };
 
 function createBaseCancelJobRequest(): CancelJobRequest {
-  return { jobId: "" };
+  return { jobId: '' };
 }
 
 export const CancelJobRequest: MessageFns<CancelJobRequest> = {
-  encode(message: CancelJobRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.jobId !== "") {
+  encode(
+    message: CancelJobRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.jobId !== '') {
       writer.uint32(10).string(message.jobId);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): CancelJobRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCancelJobRequest();
     while (reader.pos < end) {
@@ -627,44 +681,54 @@ export const CancelJobRequest: MessageFns<CancelJobRequest> = {
   },
 
   fromJSON(object: any): CancelJobRequest {
-    return { jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "" };
+    return {
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+    };
   },
 
   toJSON(message: CancelJobRequest): unknown {
     const obj: any = {};
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CancelJobRequest>, I>>(base?: I): CancelJobRequest {
+  create<I extends Exact<DeepPartial<CancelJobRequest>, I>>(
+    base?: I
+  ): CancelJobRequest {
     return CancelJobRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CancelJobRequest>, I>>(object: I): CancelJobRequest {
+  fromPartial<I extends Exact<DeepPartial<CancelJobRequest>, I>>(
+    object: I
+  ): CancelJobRequest {
     const message = createBaseCancelJobRequest();
-    message.jobId = object.jobId ?? "";
+    message.jobId = object.jobId ?? '';
     return message;
   },
 };
 
 function createBaseCancelJobResponse(): CancelJobResponse {
-  return { success: false, message: "" };
+  return { success: false, message: '' };
 }
 
 export const CancelJobResponse: MessageFns<CancelJobResponse> = {
-  encode(message: CancelJobResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: CancelJobResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(18).string(message.message);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): CancelJobResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCancelJobResponse();
     while (reader.pos < end) {
@@ -697,8 +761,10 @@ export const CancelJobResponse: MessageFns<CancelJobResponse> = {
 
   fromJSON(object: any): CancelJobResponse {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
     };
   },
 
@@ -707,49 +773,57 @@ export const CancelJobResponse: MessageFns<CancelJobResponse> = {
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CancelJobResponse>, I>>(base?: I): CancelJobResponse {
+  create<I extends Exact<DeepPartial<CancelJobResponse>, I>>(
+    base?: I
+  ): CancelJobResponse {
     return CancelJobResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CancelJobResponse>, I>>(object: I): CancelJobResponse {
+  fromPartial<I extends Exact<DeepPartial<CancelJobResponse>, I>>(
+    object: I
+  ): CancelJobResponse {
     const message = createBaseCancelJobResponse();
     message.success = object.success ?? false;
-    message.message = object.message ?? "";
+    message.message = object.message ?? '';
     return message;
   },
 };
 
 function createBaseLogMessage(): LogMessage {
-  return { level: "", message: "", timestamp: "", jobId: "", stage: "" };
+  return { level: '', message: '', timestamp: '', jobId: '', stage: '' };
 }
 
 export const LogMessage: MessageFns<LogMessage> = {
-  encode(message: LogMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.level !== "") {
+  encode(
+    message: LogMessage,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.level !== '') {
       writer.uint32(10).string(message.level);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(18).string(message.message);
     }
-    if (message.timestamp !== "") {
+    if (message.timestamp !== '') {
       writer.uint32(26).string(message.timestamp);
     }
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       writer.uint32(34).string(message.jobId);
     }
-    if (message.stage !== "") {
+    if (message.stage !== '') {
       writer.uint32(42).string(message.stage);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): LogMessage {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseLogMessage();
     while (reader.pos < end) {
@@ -806,29 +880,31 @@ export const LogMessage: MessageFns<LogMessage> = {
 
   fromJSON(object: any): LogMessage {
     return {
-      level: isSet(object.level) ? globalThis.String(object.level) : "",
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
-      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "",
-      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "",
-      stage: isSet(object.stage) ? globalThis.String(object.stage) : "",
+      level: isSet(object.level) ? globalThis.String(object.level) : '',
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
+      timestamp: isSet(object.timestamp)
+        ? globalThis.String(object.timestamp)
+        : '',
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+      stage: isSet(object.stage) ? globalThis.String(object.stage) : '',
     };
   },
 
   toJSON(message: LogMessage): unknown {
     const obj: any = {};
-    if (message.level !== "") {
+    if (message.level !== '') {
       obj.level = message.level;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
-    if (message.timestamp !== "") {
+    if (message.timestamp !== '') {
       obj.timestamp = message.timestamp;
     }
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
-    if (message.stage !== "") {
+    if (message.stage !== '') {
       obj.stage = message.stage;
     }
     return obj;
@@ -837,31 +913,40 @@ export const LogMessage: MessageFns<LogMessage> = {
   create<I extends Exact<DeepPartial<LogMessage>, I>>(base?: I): LogMessage {
     return LogMessage.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<LogMessage>, I>>(object: I): LogMessage {
+  fromPartial<I extends Exact<DeepPartial<LogMessage>, I>>(
+    object: I
+  ): LogMessage {
     const message = createBaseLogMessage();
-    message.level = object.level ?? "";
-    message.message = object.message ?? "";
-    message.timestamp = object.timestamp ?? "";
-    message.jobId = object.jobId ?? "";
-    message.stage = object.stage ?? "";
+    message.level = object.level ?? '';
+    message.message = object.message ?? '';
+    message.timestamp = object.timestamp ?? '';
+    message.jobId = object.jobId ?? '';
+    message.stage = object.stage ?? '';
     return message;
   },
 };
 
 function createBaseVerificationRequest(): VerificationRequest {
-  return { jobId: "" };
+  return { jobId: '' };
 }
 
 export const VerificationRequest: MessageFns<VerificationRequest> = {
-  encode(message: VerificationRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.jobId !== "") {
+  encode(
+    message: VerificationRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.jobId !== '') {
       writer.uint32(10).string(message.jobId);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): VerificationRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): VerificationRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseVerificationRequest();
     while (reader.pos < end) {
@@ -885,37 +970,46 @@ export const VerificationRequest: MessageFns<VerificationRequest> = {
   },
 
   fromJSON(object: any): VerificationRequest {
-    return { jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "" };
+    return {
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+    };
   },
 
   toJSON(message: VerificationRequest): unknown {
     const obj: any = {};
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<VerificationRequest>, I>>(base?: I): VerificationRequest {
+  create<I extends Exact<DeepPartial<VerificationRequest>, I>>(
+    base?: I
+  ): VerificationRequest {
     return VerificationRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<VerificationRequest>, I>>(object: I): VerificationRequest {
+  fromPartial<I extends Exact<DeepPartial<VerificationRequest>, I>>(
+    object: I
+  ): VerificationRequest {
     const message = createBaseVerificationRequest();
-    message.jobId = object.jobId ?? "";
+    message.jobId = object.jobId ?? '';
     return message;
   },
 };
 
 function createBaseVerificationResponse(): VerificationResponse {
-  return { success: false, message: "", errors: [] };
+  return { success: false, message: '', errors: [] };
 }
 
 export const VerificationResponse: MessageFns<VerificationResponse> = {
-  encode(message: VerificationResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: VerificationResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(18).string(message.message);
     }
     for (const v of message.errors) {
@@ -924,8 +1018,12 @@ export const VerificationResponse: MessageFns<VerificationResponse> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): VerificationResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): VerificationResponse {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseVerificationResponse();
     while (reader.pos < end) {
@@ -966,9 +1064,13 @@ export const VerificationResponse: MessageFns<VerificationResponse> = {
 
   fromJSON(object: any): VerificationResponse {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => globalThis.String(e)) : [],
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
+      errors: globalThis.Array.isArray(object?.errors)
+        ? object.errors.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -977,7 +1079,7 @@ export const VerificationResponse: MessageFns<VerificationResponse> = {
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
     if (message.errors?.length) {
@@ -986,44 +1088,52 @@ export const VerificationResponse: MessageFns<VerificationResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<VerificationResponse>, I>>(base?: I): VerificationResponse {
+  create<I extends Exact<DeepPartial<VerificationResponse>, I>>(
+    base?: I
+  ): VerificationResponse {
     return VerificationResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<VerificationResponse>, I>>(object: I): VerificationResponse {
+  fromPartial<I extends Exact<DeepPartial<VerificationResponse>, I>>(
+    object: I
+  ): VerificationResponse {
     const message = createBaseVerificationResponse();
     message.success = object.success ?? false;
-    message.message = object.message ?? "";
-    message.errors = object.errors?.map((e) => e) || [];
+    message.message = object.message ?? '';
+    message.errors = object.errors?.map(e => e) || [];
     return message;
   },
 };
 
 function createBasePRRequest(): PRRequest {
-  return { jobId: "", repoId: "", branchName: "", title: "", body: "" };
+  return { jobId: '', repoId: '', branchName: '', title: '', body: '' };
 }
 
 export const PRRequest: MessageFns<PRRequest> = {
-  encode(message: PRRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.jobId !== "") {
+  encode(
+    message: PRRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.jobId !== '') {
       writer.uint32(10).string(message.jobId);
     }
-    if (message.repoId !== "") {
+    if (message.repoId !== '') {
       writer.uint32(18).string(message.repoId);
     }
-    if (message.branchName !== "") {
+    if (message.branchName !== '') {
       writer.uint32(26).string(message.branchName);
     }
-    if (message.title !== "") {
+    if (message.title !== '') {
       writer.uint32(34).string(message.title);
     }
-    if (message.body !== "") {
+    if (message.body !== '') {
       writer.uint32(42).string(message.body);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PRRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePRRequest();
     while (reader.pos < end) {
@@ -1080,29 +1190,31 @@ export const PRRequest: MessageFns<PRRequest> = {
 
   fromJSON(object: any): PRRequest {
     return {
-      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "",
-      repoId: isSet(object.repoId) ? globalThis.String(object.repoId) : "",
-      branchName: isSet(object.branchName) ? globalThis.String(object.branchName) : "",
-      title: isSet(object.title) ? globalThis.String(object.title) : "",
-      body: isSet(object.body) ? globalThis.String(object.body) : "",
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+      repoId: isSet(object.repoId) ? globalThis.String(object.repoId) : '',
+      branchName: isSet(object.branchName)
+        ? globalThis.String(object.branchName)
+        : '',
+      title: isSet(object.title) ? globalThis.String(object.title) : '',
+      body: isSet(object.body) ? globalThis.String(object.body) : '',
     };
   },
 
   toJSON(message: PRRequest): unknown {
     const obj: any = {};
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
-    if (message.repoId !== "") {
+    if (message.repoId !== '') {
       obj.repoId = message.repoId;
     }
-    if (message.branchName !== "") {
+    if (message.branchName !== '') {
       obj.branchName = message.branchName;
     }
-    if (message.title !== "") {
+    if (message.title !== '') {
       obj.title = message.title;
     }
-    if (message.body !== "") {
+    if (message.body !== '') {
       obj.body = message.body;
     }
     return obj;
@@ -1111,37 +1223,43 @@ export const PRRequest: MessageFns<PRRequest> = {
   create<I extends Exact<DeepPartial<PRRequest>, I>>(base?: I): PRRequest {
     return PRRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<PRRequest>, I>>(object: I): PRRequest {
+  fromPartial<I extends Exact<DeepPartial<PRRequest>, I>>(
+    object: I
+  ): PRRequest {
     const message = createBasePRRequest();
-    message.jobId = object.jobId ?? "";
-    message.repoId = object.repoId ?? "";
-    message.branchName = object.branchName ?? "";
-    message.title = object.title ?? "";
-    message.body = object.body ?? "";
+    message.jobId = object.jobId ?? '';
+    message.repoId = object.repoId ?? '';
+    message.branchName = object.branchName ?? '';
+    message.title = object.title ?? '';
+    message.body = object.body ?? '';
     return message;
   },
 };
 
 function createBasePRResponse(): PRResponse {
-  return { success: false, prLink: "", message: "" };
+  return { success: false, prLink: '', message: '' };
 }
 
 export const PRResponse: MessageFns<PRResponse> = {
-  encode(message: PRResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: PRResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
-    if (message.prLink !== "") {
+    if (message.prLink !== '') {
       writer.uint32(18).string(message.prLink);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(26).string(message.message);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): PRResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePRResponse();
     while (reader.pos < end) {
@@ -1182,9 +1300,11 @@ export const PRResponse: MessageFns<PRResponse> = {
 
   fromJSON(object: any): PRResponse {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      prLink: isSet(object.prLink) ? globalThis.String(object.prLink) : "",
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      prLink: isSet(object.prLink) ? globalThis.String(object.prLink) : '',
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
     };
   },
 
@@ -1193,10 +1313,10 @@ export const PRResponse: MessageFns<PRResponse> = {
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.prLink !== "") {
+    if (message.prLink !== '') {
       obj.prLink = message.prLink;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
     return obj;
@@ -1205,29 +1325,35 @@ export const PRResponse: MessageFns<PRResponse> = {
   create<I extends Exact<DeepPartial<PRResponse>, I>>(base?: I): PRResponse {
     return PRResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<PRResponse>, I>>(object: I): PRResponse {
+  fromPartial<I extends Exact<DeepPartial<PRResponse>, I>>(
+    object: I
+  ): PRResponse {
     const message = createBasePRResponse();
     message.success = object.success ?? false;
-    message.prLink = object.prLink ?? "";
-    message.message = object.message ?? "";
+    message.prLink = object.prLink ?? '';
+    message.message = object.message ?? '';
     return message;
   },
 };
 
 function createBaseCleanupRequest(): CleanupRequest {
-  return { jobId: "" };
+  return { jobId: '' };
 }
 
 export const CleanupRequest: MessageFns<CleanupRequest> = {
-  encode(message: CleanupRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.jobId !== "") {
+  encode(
+    message: CleanupRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.jobId !== '') {
       writer.uint32(10).string(message.jobId);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): CleanupRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCleanupRequest();
     while (reader.pos < end) {
@@ -1251,44 +1377,54 @@ export const CleanupRequest: MessageFns<CleanupRequest> = {
   },
 
   fromJSON(object: any): CleanupRequest {
-    return { jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : "" };
+    return {
+      jobId: isSet(object.jobId) ? globalThis.String(object.jobId) : '',
+    };
   },
 
   toJSON(message: CleanupRequest): unknown {
     const obj: any = {};
-    if (message.jobId !== "") {
+    if (message.jobId !== '') {
       obj.jobId = message.jobId;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CleanupRequest>, I>>(base?: I): CleanupRequest {
+  create<I extends Exact<DeepPartial<CleanupRequest>, I>>(
+    base?: I
+  ): CleanupRequest {
     return CleanupRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CleanupRequest>, I>>(object: I): CleanupRequest {
+  fromPartial<I extends Exact<DeepPartial<CleanupRequest>, I>>(
+    object: I
+  ): CleanupRequest {
     const message = createBaseCleanupRequest();
-    message.jobId = object.jobId ?? "";
+    message.jobId = object.jobId ?? '';
     return message;
   },
 };
 
 function createBaseCleanupResponse(): CleanupResponse {
-  return { success: false, message: "" };
+  return { success: false, message: '' };
 }
 
 export const CleanupResponse: MessageFns<CleanupResponse> = {
-  encode(message: CleanupResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: CleanupResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(18).string(message.message);
     }
     return writer;
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): CleanupResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCleanupResponse();
     while (reader.pos < end) {
@@ -1321,8 +1457,10 @@ export const CleanupResponse: MessageFns<CleanupResponse> = {
 
   fromJSON(object: any): CleanupResponse {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
     };
   },
 
@@ -1331,36 +1469,43 @@ export const CleanupResponse: MessageFns<CleanupResponse> = {
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CleanupResponse>, I>>(base?: I): CleanupResponse {
+  create<I extends Exact<DeepPartial<CleanupResponse>, I>>(
+    base?: I
+  ): CleanupResponse {
     return CleanupResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CleanupResponse>, I>>(object: I): CleanupResponse {
+  fromPartial<I extends Exact<DeepPartial<CleanupResponse>, I>>(
+    object: I
+  ): CleanupResponse {
     const message = createBaseCleanupResponse();
     message.success = object.success ?? false;
-    message.message = object.message ?? "";
+    message.message = object.message ?? '';
     return message;
   },
 };
 
 function createBaseRegisterAgentRequest(): RegisterAgentRequest {
-  return { apiKey: "", hostname: "", ipAddress: "", port: 0 };
+  return { apiKey: '', hostname: '', ipAddress: '', port: 0 };
 }
 
 export const RegisterAgentRequest: MessageFns<RegisterAgentRequest> = {
-  encode(message: RegisterAgentRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.apiKey !== "") {
+  encode(
+    message: RegisterAgentRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.apiKey !== '') {
       writer.uint32(10).string(message.apiKey);
     }
-    if (message.hostname !== "") {
+    if (message.hostname !== '') {
       writer.uint32(18).string(message.hostname);
     }
-    if (message.ipAddress !== "") {
+    if (message.ipAddress !== '') {
       writer.uint32(26).string(message.ipAddress);
     }
     if (message.port !== 0) {
@@ -1369,8 +1514,12 @@ export const RegisterAgentRequest: MessageFns<RegisterAgentRequest> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): RegisterAgentRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): RegisterAgentRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRegisterAgentRequest();
     while (reader.pos < end) {
@@ -1419,22 +1568,26 @@ export const RegisterAgentRequest: MessageFns<RegisterAgentRequest> = {
 
   fromJSON(object: any): RegisterAgentRequest {
     return {
-      apiKey: isSet(object.apiKey) ? globalThis.String(object.apiKey) : "",
-      hostname: isSet(object.hostname) ? globalThis.String(object.hostname) : "",
-      ipAddress: isSet(object.ipAddress) ? globalThis.String(object.ipAddress) : "",
+      apiKey: isSet(object.apiKey) ? globalThis.String(object.apiKey) : '',
+      hostname: isSet(object.hostname)
+        ? globalThis.String(object.hostname)
+        : '',
+      ipAddress: isSet(object.ipAddress)
+        ? globalThis.String(object.ipAddress)
+        : '',
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
     };
   },
 
   toJSON(message: RegisterAgentRequest): unknown {
     const obj: any = {};
-    if (message.apiKey !== "") {
+    if (message.apiKey !== '') {
       obj.apiKey = message.apiKey;
     }
-    if (message.hostname !== "") {
+    if (message.hostname !== '') {
       obj.hostname = message.hostname;
     }
-    if (message.ipAddress !== "") {
+    if (message.ipAddress !== '') {
       obj.ipAddress = message.ipAddress;
     }
     if (message.port !== 0) {
@@ -1443,42 +1596,53 @@ export const RegisterAgentRequest: MessageFns<RegisterAgentRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<RegisterAgentRequest>, I>>(base?: I): RegisterAgentRequest {
+  create<I extends Exact<DeepPartial<RegisterAgentRequest>, I>>(
+    base?: I
+  ): RegisterAgentRequest {
     return RegisterAgentRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<RegisterAgentRequest>, I>>(object: I): RegisterAgentRequest {
+  fromPartial<I extends Exact<DeepPartial<RegisterAgentRequest>, I>>(
+    object: I
+  ): RegisterAgentRequest {
     const message = createBaseRegisterAgentRequest();
-    message.apiKey = object.apiKey ?? "";
-    message.hostname = object.hostname ?? "";
-    message.ipAddress = object.ipAddress ?? "";
+    message.apiKey = object.apiKey ?? '';
+    message.hostname = object.hostname ?? '';
+    message.ipAddress = object.ipAddress ?? '';
     message.port = object.port ?? 0;
     return message;
   },
 };
 
 function createBaseRegisterAgentResponse(): RegisterAgentResponse {
-  return { agentId: "", orgId: "", success: false, message: "" };
+  return { agentId: '', orgId: '', success: false, message: '' };
 }
 
 export const RegisterAgentResponse: MessageFns<RegisterAgentResponse> = {
-  encode(message: RegisterAgentResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.agentId !== "") {
+  encode(
+    message: RegisterAgentResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.agentId !== '') {
       writer.uint32(10).string(message.agentId);
     }
-    if (message.orgId !== "") {
+    if (message.orgId !== '') {
       writer.uint32(18).string(message.orgId);
     }
     if (message.success !== false) {
       writer.uint32(24).bool(message.success);
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       writer.uint32(34).string(message.message);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): RegisterAgentResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): RegisterAgentResponse {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRegisterAgentResponse();
     while (reader.pos < end) {
@@ -1527,57 +1691,70 @@ export const RegisterAgentResponse: MessageFns<RegisterAgentResponse> = {
 
   fromJSON(object: any): RegisterAgentResponse {
     return {
-      agentId: isSet(object.agentId) ? globalThis.String(object.agentId) : "",
-      orgId: isSet(object.orgId) ? globalThis.String(object.orgId) : "",
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      agentId: isSet(object.agentId) ? globalThis.String(object.agentId) : '',
+      orgId: isSet(object.orgId) ? globalThis.String(object.orgId) : '',
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      message: isSet(object.message) ? globalThis.String(object.message) : '',
     };
   },
 
   toJSON(message: RegisterAgentResponse): unknown {
     const obj: any = {};
-    if (message.agentId !== "") {
+    if (message.agentId !== '') {
       obj.agentId = message.agentId;
     }
-    if (message.orgId !== "") {
+    if (message.orgId !== '') {
       obj.orgId = message.orgId;
     }
     if (message.success !== false) {
       obj.success = message.success;
     }
-    if (message.message !== "") {
+    if (message.message !== '') {
       obj.message = message.message;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<RegisterAgentResponse>, I>>(base?: I): RegisterAgentResponse {
+  create<I extends Exact<DeepPartial<RegisterAgentResponse>, I>>(
+    base?: I
+  ): RegisterAgentResponse {
     return RegisterAgentResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<RegisterAgentResponse>, I>>(object: I): RegisterAgentResponse {
+  fromPartial<I extends Exact<DeepPartial<RegisterAgentResponse>, I>>(
+    object: I
+  ): RegisterAgentResponse {
     const message = createBaseRegisterAgentResponse();
-    message.agentId = object.agentId ?? "";
-    message.orgId = object.orgId ?? "";
+    message.agentId = object.agentId ?? '';
+    message.orgId = object.orgId ?? '';
     message.success = object.success ?? false;
-    message.message = object.message ?? "";
+    message.message = object.message ?? '';
     return message;
   },
 };
 
 function createBaseHealthCheckRequest(): HealthCheckRequest {
-  return { agentId: "" };
+  return { agentId: '' };
 }
 
 export const HealthCheckRequest: MessageFns<HealthCheckRequest> = {
-  encode(message: HealthCheckRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.agentId !== "") {
+  encode(
+    message: HealthCheckRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.agentId !== '') {
       writer.uint32(10).string(message.agentId);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): HealthCheckRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseHealthCheckRequest();
     while (reader.pos < end) {
@@ -1601,47 +1778,60 @@ export const HealthCheckRequest: MessageFns<HealthCheckRequest> = {
   },
 
   fromJSON(object: any): HealthCheckRequest {
-    return { agentId: isSet(object.agentId) ? globalThis.String(object.agentId) : "" };
+    return {
+      agentId: isSet(object.agentId) ? globalThis.String(object.agentId) : '',
+    };
   },
 
   toJSON(message: HealthCheckRequest): unknown {
     const obj: any = {};
-    if (message.agentId !== "") {
+    if (message.agentId !== '') {
       obj.agentId = message.agentId;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HealthCheckRequest>, I>>(base?: I): HealthCheckRequest {
+  create<I extends Exact<DeepPartial<HealthCheckRequest>, I>>(
+    base?: I
+  ): HealthCheckRequest {
     return HealthCheckRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HealthCheckRequest>, I>>(object: I): HealthCheckRequest {
+  fromPartial<I extends Exact<DeepPartial<HealthCheckRequest>, I>>(
+    object: I
+  ): HealthCheckRequest {
     const message = createBaseHealthCheckRequest();
-    message.agentId = object.agentId ?? "";
+    message.agentId = object.agentId ?? '';
     return message;
   },
 };
 
 function createBaseHealthCheckResponse(): HealthCheckResponse {
-  return { success: false, timestamp: 0, version: "" };
+  return { success: false, timestamp: 0, version: '' };
 }
 
 export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
-  encode(message: HealthCheckResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: HealthCheckResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.success !== false) {
       writer.uint32(8).bool(message.success);
     }
     if (message.timestamp !== 0) {
       writer.uint32(16).int64(message.timestamp);
     }
-    if (message.version !== "") {
+    if (message.version !== '') {
       writer.uint32(26).string(message.version);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): HealthCheckResponse {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseHealthCheckResponse();
     while (reader.pos < end) {
@@ -1682,9 +1872,13 @@ export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
 
   fromJSON(object: any): HealthCheckResponse {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
-      version: isSet(object.version) ? globalThis.String(object.version) : "",
+      success: isSet(object.success)
+        ? globalThis.Boolean(object.success)
+        : false,
+      timestamp: isSet(object.timestamp)
+        ? globalThis.Number(object.timestamp)
+        : 0,
+      version: isSet(object.version) ? globalThis.String(object.version) : '',
     };
   },
 
@@ -1696,31 +1890,38 @@ export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
     if (message.timestamp !== 0) {
       obj.timestamp = Math.round(message.timestamp);
     }
-    if (message.version !== "") {
+    if (message.version !== '') {
       obj.version = message.version;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HealthCheckResponse>, I>>(base?: I): HealthCheckResponse {
+  create<I extends Exact<DeepPartial<HealthCheckResponse>, I>>(
+    base?: I
+  ): HealthCheckResponse {
     return HealthCheckResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HealthCheckResponse>, I>>(object: I): HealthCheckResponse {
+  fromPartial<I extends Exact<DeepPartial<HealthCheckResponse>, I>>(
+    object: I
+  ): HealthCheckResponse {
     const message = createBaseHealthCheckResponse();
     message.success = object.success ?? false;
     message.timestamp = object.timestamp ?? 0;
-    message.version = object.version ?? "";
+    message.version = object.version ?? '';
     return message;
   },
 };
 
 function createBaseAgentStreamRequest(): AgentStreamRequest {
-  return { agentId: "", messageType: 0, payload: Buffer.alloc(0) };
+  return { agentId: '', messageType: 0, payload: Buffer.alloc(0) };
 }
 
 export const AgentStreamRequest: MessageFns<AgentStreamRequest> = {
-  encode(message: AgentStreamRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.agentId !== "") {
+  encode(
+    message: AgentStreamRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.agentId !== '') {
       writer.uint32(10).string(message.agentId);
     }
     if (message.messageType !== 0) {
@@ -1732,8 +1933,12 @@ export const AgentStreamRequest: MessageFns<AgentStreamRequest> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): AgentStreamRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): AgentStreamRequest {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAgentStreamRequest();
     while (reader.pos < end) {
@@ -1774,15 +1979,19 @@ export const AgentStreamRequest: MessageFns<AgentStreamRequest> = {
 
   fromJSON(object: any): AgentStreamRequest {
     return {
-      agentId: isSet(object.agentId) ? globalThis.String(object.agentId) : "",
-      messageType: isSet(object.messageType) ? agentStreamMessageTypeFromJSON(object.messageType) : 0,
-      payload: isSet(object.payload) ? Buffer.from(bytesFromBase64(object.payload)) : Buffer.alloc(0),
+      agentId: isSet(object.agentId) ? globalThis.String(object.agentId) : '',
+      messageType: isSet(object.messageType)
+        ? agentStreamMessageTypeFromJSON(object.messageType)
+        : 0,
+      payload: isSet(object.payload)
+        ? Buffer.from(bytesFromBase64(object.payload))
+        : Buffer.alloc(0),
     };
   },
 
   toJSON(message: AgentStreamRequest): unknown {
     const obj: any = {};
-    if (message.agentId !== "") {
+    if (message.agentId !== '') {
       obj.agentId = message.agentId;
     }
     if (message.messageType !== 0) {
@@ -1794,12 +2003,16 @@ export const AgentStreamRequest: MessageFns<AgentStreamRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AgentStreamRequest>, I>>(base?: I): AgentStreamRequest {
+  create<I extends Exact<DeepPartial<AgentStreamRequest>, I>>(
+    base?: I
+  ): AgentStreamRequest {
     return AgentStreamRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AgentStreamRequest>, I>>(object: I): AgentStreamRequest {
+  fromPartial<I extends Exact<DeepPartial<AgentStreamRequest>, I>>(
+    object: I
+  ): AgentStreamRequest {
     const message = createBaseAgentStreamRequest();
-    message.agentId = object.agentId ?? "";
+    message.agentId = object.agentId ?? '';
     message.messageType = object.messageType ?? 0;
     message.payload = object.payload ?? Buffer.alloc(0);
     return message;
@@ -1807,12 +2020,15 @@ export const AgentStreamRequest: MessageFns<AgentStreamRequest> = {
 };
 
 function createBaseAgentStreamMessage(): AgentStreamMessage {
-  return { messageId: "", messageType: 0, payload: Buffer.alloc(0) };
+  return { messageId: '', messageType: 0, payload: Buffer.alloc(0) };
 }
 
 export const AgentStreamMessage: MessageFns<AgentStreamMessage> = {
-  encode(message: AgentStreamMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.messageId !== "") {
+  encode(
+    message: AgentStreamMessage,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
+    if (message.messageId !== '') {
       writer.uint32(10).string(message.messageId);
     }
     if (message.messageType !== 0) {
@@ -1824,8 +2040,12 @@ export const AgentStreamMessage: MessageFns<AgentStreamMessage> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): AgentStreamMessage {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(
+    input: BinaryReader | Uint8Array,
+    length?: number
+  ): AgentStreamMessage {
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAgentStreamMessage();
     while (reader.pos < end) {
@@ -1866,15 +2086,21 @@ export const AgentStreamMessage: MessageFns<AgentStreamMessage> = {
 
   fromJSON(object: any): AgentStreamMessage {
     return {
-      messageId: isSet(object.messageId) ? globalThis.String(object.messageId) : "",
-      messageType: isSet(object.messageType) ? backendStreamMessageTypeFromJSON(object.messageType) : 0,
-      payload: isSet(object.payload) ? Buffer.from(bytesFromBase64(object.payload)) : Buffer.alloc(0),
+      messageId: isSet(object.messageId)
+        ? globalThis.String(object.messageId)
+        : '',
+      messageType: isSet(object.messageType)
+        ? backendStreamMessageTypeFromJSON(object.messageType)
+        : 0,
+      payload: isSet(object.payload)
+        ? Buffer.from(bytesFromBase64(object.payload))
+        : Buffer.alloc(0),
     };
   },
 
   toJSON(message: AgentStreamMessage): unknown {
     const obj: any = {};
-    if (message.messageId !== "") {
+    if (message.messageId !== '') {
       obj.messageId = message.messageId;
     }
     if (message.messageType !== 0) {
@@ -1886,12 +2112,16 @@ export const AgentStreamMessage: MessageFns<AgentStreamMessage> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AgentStreamMessage>, I>>(base?: I): AgentStreamMessage {
+  create<I extends Exact<DeepPartial<AgentStreamMessage>, I>>(
+    base?: I
+  ): AgentStreamMessage {
     return AgentStreamMessage.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AgentStreamMessage>, I>>(object: I): AgentStreamMessage {
+  fromPartial<I extends Exact<DeepPartial<AgentStreamMessage>, I>>(
+    object: I
+  ): AgentStreamMessage {
     const message = createBaseAgentStreamMessage();
-    message.messageId = object.messageId ?? "";
+    message.messageId = object.messageId ?? '';
     message.messageType = object.messageType ?? 0;
     message.payload = object.payload ?? Buffer.alloc(0);
     return message;
@@ -1902,90 +2132,123 @@ export type AgentServiceService = typeof AgentServiceService;
 export const AgentServiceService = {
   /** Existing RPCs (agent implements these) */
   executeJob: {
-    path: "/agent.AgentService/ExecuteJob",
+    path: '/agent.AgentService/ExecuteJob',
     requestStream: false,
     responseStream: true,
-    requestSerialize: (value: ExecuteJobRequest): Buffer => Buffer.from(ExecuteJobRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): ExecuteJobRequest => ExecuteJobRequest.decode(value),
-    responseSerialize: (value: LogMessage): Buffer => Buffer.from(LogMessage.encode(value).finish()),
-    responseDeserialize: (value: Buffer): LogMessage => LogMessage.decode(value),
+    requestSerialize: (value: ExecuteJobRequest): Buffer =>
+      Buffer.from(ExecuteJobRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): ExecuteJobRequest =>
+      ExecuteJobRequest.decode(value),
+    responseSerialize: (value: LogMessage): Buffer =>
+      Buffer.from(LogMessage.encode(value).finish()),
+    responseDeserialize: (value: Buffer): LogMessage =>
+      LogMessage.decode(value),
   },
   hintJob: {
-    path: "/agent.AgentService/HintJob",
+    path: '/agent.AgentService/HintJob',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: HintJobRequest): Buffer => Buffer.from(HintJobRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): HintJobRequest => HintJobRequest.decode(value),
-    responseSerialize: (value: HintJobResponse): Buffer => Buffer.from(HintJobResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): HintJobResponse => HintJobResponse.decode(value),
+    requestSerialize: (value: HintJobRequest): Buffer =>
+      Buffer.from(HintJobRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): HintJobRequest =>
+      HintJobRequest.decode(value),
+    responseSerialize: (value: HintJobResponse): Buffer =>
+      Buffer.from(HintJobResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): HintJobResponse =>
+      HintJobResponse.decode(value),
   },
   cancelJob: {
-    path: "/agent.AgentService/CancelJob",
+    path: '/agent.AgentService/CancelJob',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: CancelJobRequest): Buffer => Buffer.from(CancelJobRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): CancelJobRequest => CancelJobRequest.decode(value),
-    responseSerialize: (value: CancelJobResponse): Buffer => Buffer.from(CancelJobResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): CancelJobResponse => CancelJobResponse.decode(value),
+    requestSerialize: (value: CancelJobRequest): Buffer =>
+      Buffer.from(CancelJobRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): CancelJobRequest =>
+      CancelJobRequest.decode(value),
+    responseSerialize: (value: CancelJobResponse): Buffer =>
+      Buffer.from(CancelJobResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): CancelJobResponse =>
+      CancelJobResponse.decode(value),
   },
   /** New commands for workflow orchestration */
   runVerification: {
-    path: "/agent.AgentService/RunVerification",
+    path: '/agent.AgentService/RunVerification',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: VerificationRequest): Buffer => Buffer.from(VerificationRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): VerificationRequest => VerificationRequest.decode(value),
+    requestSerialize: (value: VerificationRequest): Buffer =>
+      Buffer.from(VerificationRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): VerificationRequest =>
+      VerificationRequest.decode(value),
     responseSerialize: (value: VerificationResponse): Buffer =>
       Buffer.from(VerificationResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): VerificationResponse => VerificationResponse.decode(value),
+    responseDeserialize: (value: Buffer): VerificationResponse =>
+      VerificationResponse.decode(value),
   },
   createPr: {
-    path: "/agent.AgentService/CreatePR",
+    path: '/agent.AgentService/CreatePR',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: PRRequest): Buffer => Buffer.from(PRRequest.encode(value).finish()),
+    requestSerialize: (value: PRRequest): Buffer =>
+      Buffer.from(PRRequest.encode(value).finish()),
     requestDeserialize: (value: Buffer): PRRequest => PRRequest.decode(value),
-    responseSerialize: (value: PRResponse): Buffer => Buffer.from(PRResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): PRResponse => PRResponse.decode(value),
+    responseSerialize: (value: PRResponse): Buffer =>
+      Buffer.from(PRResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): PRResponse =>
+      PRResponse.decode(value),
   },
   cleanupWorkspace: {
-    path: "/agent.AgentService/CleanupWorkspace",
+    path: '/agent.AgentService/CleanupWorkspace',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: CleanupRequest): Buffer => Buffer.from(CleanupRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): CleanupRequest => CleanupRequest.decode(value),
-    responseSerialize: (value: CleanupResponse): Buffer => Buffer.from(CleanupResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): CleanupResponse => CleanupResponse.decode(value),
+    requestSerialize: (value: CleanupRequest): Buffer =>
+      Buffer.from(CleanupRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): CleanupRequest =>
+      CleanupRequest.decode(value),
+    responseSerialize: (value: CleanupResponse): Buffer =>
+      Buffer.from(CleanupResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): CleanupResponse =>
+      CleanupResponse.decode(value),
   },
   /** New RPCs (backend implements these, agents call them) */
   registerAgent: {
-    path: "/agent.AgentService/RegisterAgent",
+    path: '/agent.AgentService/RegisterAgent',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: RegisterAgentRequest): Buffer => Buffer.from(RegisterAgentRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): RegisterAgentRequest => RegisterAgentRequest.decode(value),
+    requestSerialize: (value: RegisterAgentRequest): Buffer =>
+      Buffer.from(RegisterAgentRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): RegisterAgentRequest =>
+      RegisterAgentRequest.decode(value),
     responseSerialize: (value: RegisterAgentResponse): Buffer =>
       Buffer.from(RegisterAgentResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): RegisterAgentResponse => RegisterAgentResponse.decode(value),
+    responseDeserialize: (value: Buffer): RegisterAgentResponse =>
+      RegisterAgentResponse.decode(value),
   },
   healthCheck: {
-    path: "/agent.AgentService/HealthCheck",
+    path: '/agent.AgentService/HealthCheck',
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: HealthCheckRequest): Buffer => Buffer.from(HealthCheckRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): HealthCheckRequest => HealthCheckRequest.decode(value),
-    responseSerialize: (value: HealthCheckResponse): Buffer => Buffer.from(HealthCheckResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): HealthCheckResponse => HealthCheckResponse.decode(value),
+    requestSerialize: (value: HealthCheckRequest): Buffer =>
+      Buffer.from(HealthCheckRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): HealthCheckRequest =>
+      HealthCheckRequest.decode(value),
+    responseSerialize: (value: HealthCheckResponse): Buffer =>
+      Buffer.from(HealthCheckResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): HealthCheckResponse =>
+      HealthCheckResponse.decode(value),
   },
   /** Bidirectional streaming for task delivery and logs */
   agentStream: {
-    path: "/agent.AgentService/AgentStream",
+    path: '/agent.AgentService/AgentStream',
     requestStream: true,
     responseStream: true,
-    requestSerialize: (value: AgentStreamRequest): Buffer => Buffer.from(AgentStreamRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): AgentStreamRequest => AgentStreamRequest.decode(value),
-    responseSerialize: (value: AgentStreamMessage): Buffer => Buffer.from(AgentStreamMessage.encode(value).finish()),
-    responseDeserialize: (value: Buffer): AgentStreamMessage => AgentStreamMessage.decode(value),
+    requestSerialize: (value: AgentStreamRequest): Buffer =>
+      Buffer.from(AgentStreamRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): AgentStreamRequest =>
+      AgentStreamRequest.decode(value),
+    responseSerialize: (value: AgentStreamMessage): Buffer =>
+      Buffer.from(AgentStreamMessage.encode(value).finish()),
+    responseDeserialize: (value: Buffer): AgentStreamMessage =>
+      AgentStreamMessage.decode(value),
   },
 } as const;
 
@@ -2007,167 +2270,220 @@ export interface AgentServiceServer extends UntypedServiceImplementation {
 
 export interface AgentServiceClient extends Client {
   /** Existing RPCs (agent implements these) */
-  executeJob(request: ExecuteJobRequest, options?: Partial<CallOptions>): ClientReadableStream<LogMessage>;
+  executeJob(
+    request: ExecuteJobRequest,
+    options?: Partial<CallOptions>
+  ): ClientReadableStream<LogMessage>;
   executeJob(
     request: ExecuteJobRequest,
     metadata?: Metadata,
-    options?: Partial<CallOptions>,
+    options?: Partial<CallOptions>
   ): ClientReadableStream<LogMessage>;
   hintJob(
     request: HintJobRequest,
-    callback: (error: ServiceError | null, response: HintJobResponse) => void,
+    callback: (error: ServiceError | null, response: HintJobResponse) => void
   ): ClientUnaryCall;
   hintJob(
     request: HintJobRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: HintJobResponse) => void,
+    callback: (error: ServiceError | null, response: HintJobResponse) => void
   ): ClientUnaryCall;
   hintJob(
     request: HintJobRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: HintJobResponse) => void,
+    callback: (error: ServiceError | null, response: HintJobResponse) => void
   ): ClientUnaryCall;
   cancelJob(
     request: CancelJobRequest,
-    callback: (error: ServiceError | null, response: CancelJobResponse) => void,
+    callback: (error: ServiceError | null, response: CancelJobResponse) => void
   ): ClientUnaryCall;
   cancelJob(
     request: CancelJobRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: CancelJobResponse) => void,
+    callback: (error: ServiceError | null, response: CancelJobResponse) => void
   ): ClientUnaryCall;
   cancelJob(
     request: CancelJobRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: CancelJobResponse) => void,
+    callback: (error: ServiceError | null, response: CancelJobResponse) => void
   ): ClientUnaryCall;
   /** New commands for workflow orchestration */
   runVerification(
     request: VerificationRequest,
-    callback: (error: ServiceError | null, response: VerificationResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: VerificationResponse
+    ) => void
   ): ClientUnaryCall;
   runVerification(
     request: VerificationRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: VerificationResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: VerificationResponse
+    ) => void
   ): ClientUnaryCall;
   runVerification(
     request: VerificationRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: VerificationResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: VerificationResponse
+    ) => void
   ): ClientUnaryCall;
-  createPr(request: PRRequest, callback: (error: ServiceError | null, response: PRResponse) => void): ClientUnaryCall;
+  createPr(
+    request: PRRequest,
+    callback: (error: ServiceError | null, response: PRResponse) => void
+  ): ClientUnaryCall;
   createPr(
     request: PRRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: PRResponse) => void,
+    callback: (error: ServiceError | null, response: PRResponse) => void
   ): ClientUnaryCall;
   createPr(
     request: PRRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: PRResponse) => void,
+    callback: (error: ServiceError | null, response: PRResponse) => void
   ): ClientUnaryCall;
   cleanupWorkspace(
     request: CleanupRequest,
-    callback: (error: ServiceError | null, response: CleanupResponse) => void,
+    callback: (error: ServiceError | null, response: CleanupResponse) => void
   ): ClientUnaryCall;
   cleanupWorkspace(
     request: CleanupRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: CleanupResponse) => void,
+    callback: (error: ServiceError | null, response: CleanupResponse) => void
   ): ClientUnaryCall;
   cleanupWorkspace(
     request: CleanupRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: CleanupResponse) => void,
+    callback: (error: ServiceError | null, response: CleanupResponse) => void
   ): ClientUnaryCall;
   /** New RPCs (backend implements these, agents call them) */
   registerAgent(
     request: RegisterAgentRequest,
-    callback: (error: ServiceError | null, response: RegisterAgentResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: RegisterAgentResponse
+    ) => void
   ): ClientUnaryCall;
   registerAgent(
     request: RegisterAgentRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: RegisterAgentResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: RegisterAgentResponse
+    ) => void
   ): ClientUnaryCall;
   registerAgent(
     request: RegisterAgentRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: RegisterAgentResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: RegisterAgentResponse
+    ) => void
   ): ClientUnaryCall;
   healthCheck(
     request: HealthCheckRequest,
-    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: HealthCheckResponse
+    ) => void
   ): ClientUnaryCall;
   healthCheck(
     request: HealthCheckRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: HealthCheckResponse
+    ) => void
   ): ClientUnaryCall;
   healthCheck(
     request: HealthCheckRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: HealthCheckResponse) => void,
+    callback: (
+      error: ServiceError | null,
+      response: HealthCheckResponse
+    ) => void
   ): ClientUnaryCall;
   /** Bidirectional streaming for task delivery and logs */
   agentStream(): ClientDuplexStream<AgentStreamRequest, AgentStreamMessage>;
-  agentStream(options: Partial<CallOptions>): ClientDuplexStream<AgentStreamRequest, AgentStreamMessage>;
+  agentStream(
+    options: Partial<CallOptions>
+  ): ClientDuplexStream<AgentStreamRequest, AgentStreamMessage>;
   agentStream(
     metadata: Metadata,
-    options?: Partial<CallOptions>,
+    options?: Partial<CallOptions>
   ): ClientDuplexStream<AgentStreamRequest, AgentStreamMessage>;
 }
 
 export const AgentServiceClient = makeGenericClientConstructor(
   AgentServiceService,
-  "agent.AgentService",
+  'agent.AgentService'
 ) as unknown as {
-  new (address: string, credentials: ChannelCredentials, options?: Partial<ClientOptions>): AgentServiceClient;
+  new (
+    address: string,
+    credentials: ChannelCredentials,
+    options?: Partial<ClientOptions>
+  ): AgentServiceClient;
   service: typeof AgentServiceService;
   serviceName: string;
 };
 
 function bytesFromBase64(b64: string): Uint8Array {
-  return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  return Uint8Array.from(globalThis.Buffer.from(b64, 'base64'));
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  return globalThis.Buffer.from(arr).toString("base64");
+  return globalThis.Buffer.from(arr).toString('base64');
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin =
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+  ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U>
+  ? ReadonlyArray<DeepPartial<U>>
+  : T extends {}
+  ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
+      [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
+    };
 
 function longToNumber(int64: { toString(): string }): number {
   const num = globalThis.Number(int64.toString());
   if (num > globalThis.Number.MAX_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+    throw new globalThis.Error('Value is larger than Number.MAX_SAFE_INTEGER');
   }
   if (num < globalThis.Number.MIN_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+    throw new globalThis.Error('Value is smaller than Number.MIN_SAFE_INTEGER');
   }
   return num;
 }
 
 function isObject(value: any): boolean {
-  return typeof value === "object" && value !== null;
+  return typeof value === 'object' && value !== null;
 }
 
 function isSet(value: any): boolean {

@@ -8,11 +8,16 @@ import type { LogMessage } from '@sia/models/proto';
 export async function sendCommandToAgent(params: {
   jobId: string;
   orgId: string;
-  command: 'startExecution' | 'waitForCompletion' | 'runVerification' | 'createPR' | 'cleanup';
+  command:
+    | 'startExecution'
+    | 'waitForCompletion'
+    | 'runVerification'
+    | 'createPR'
+    | 'cleanup';
   payload?: any;
 }): Promise<any> {
   const { jobId, orgId, command, payload } = params;
-  
+
   // Get job version first - we'll use this for all logging
   const jobVersionResult = await db
     .select({ version: schema.jobs.version })
@@ -20,18 +25,31 @@ export async function sendCommandToAgent(params: {
     .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.orgId, orgId)))
     .orderBy(desc(schema.jobs.version))
     .limit(1);
-  
+
   const jobVersion = jobVersionResult[0]?.version || 1;
-  
+
   // Log activity input
   await logStorage.addLog(jobId, jobVersion, orgId, {
     level: 'info',
-    message: `[Activity] sendCommandToAgent started. Command: ${command}, Input: ${JSON.stringify({ command, payload: { ...payload, gitCredentials: payload?.gitCredentials ? '[REDACTED]' : undefined, vibeCoderCredentials: payload?.vibeCoderCredentials ? '[REDACTED]' : undefined } }, null, 2)}`,
+    message: `[Activity] sendCommandToAgent started. Command: ${command}, Input: ${JSON.stringify(
+      {
+        command,
+        payload: {
+          ...payload,
+          gitCredentials: payload?.gitCredentials ? '[REDACTED]' : undefined,
+          vibeCoderCredentials: payload?.vibeCoderCredentials
+            ? '[REDACTED]'
+            : undefined,
+        },
+      },
+      null,
+      2
+    )}`,
     timestamp: new Date().toISOString(),
     jobId,
     stage: 'agent-activity',
   });
-  
+
   // Use agentId from payload to connect to specific agent
   const agentId = payload?.agentId;
   let agentClient: AgentClient;
@@ -55,7 +73,11 @@ export async function sendCommandToAgent(params: {
       stage: 'agent-activity',
     });
 
-    const agent = await db.select().from(schema.agents).where(eq(schema.agents.id, agentId)).limit(1);
+    const agent = await db
+      .select()
+      .from(schema.agents)
+      .where(eq(schema.agents.id, agentId))
+      .limit(1);
     if (!agent[0]) {
       await logStorage.addLog(jobId, jobVersion, orgId, {
         level: 'error',
@@ -69,15 +91,17 @@ export async function sendCommandToAgent(params: {
     const host = agent[0].host || 'localhost';
     const port = agent[0].port || 50051;
     agentAddress = `${host}:${port}`;
-    
+
     await logStorage.addLog(jobId, jobVersion, orgId, {
       level: 'info',
-      message: `[Activity] Agent found: name=${agent[0].name || 'unnamed'}, connecting to ${agentAddress}`,
+      message: `[Activity] Agent found: name=${
+        agent[0].name || 'unnamed'
+      }, connecting to ${agentAddress}`,
       timestamp: new Date().toISOString(),
       jobId,
       stage: 'agent-activity',
     });
-    
+
     agentClient = new AgentClient(agentAddress);
   } else {
     // Fallback to default if no agentId specified
@@ -99,7 +123,7 @@ export async function sendCommandToAgent(params: {
     jobId,
     stage: 'agent-activity',
   });
-  
+
   try {
     switch (command) {
       case 'startExecution': {
@@ -115,9 +139,15 @@ export async function sendCommandToAgent(params: {
         const jobResult = await db
           .select()
           .from(schema.jobs)
-          .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.orgId, orgId), eq(schema.jobs.version, jobVersion)))
+          .where(
+            and(
+              eq(schema.jobs.id, jobId),
+              eq(schema.jobs.orgId, orgId),
+              eq(schema.jobs.version, jobVersion)
+            )
+          )
           .limit(1);
-          
+
         if (!jobResult[0]) {
           await logStorage.addLog(jobId, jobVersion, orgId, {
             level: 'error',
@@ -128,9 +158,9 @@ export async function sendCommandToAgent(params: {
           });
           throw new Error(`Job ${jobId} version ${jobVersion} not found`);
         }
-        
+
         const job = jobResult[0];
-        
+
         await logStorage.addLog(jobId, job.version, orgId, {
           level: 'info',
           message: `[Activity] Job found: version=${job.version}, status=${job.status}`,
@@ -138,7 +168,7 @@ export async function sendCommandToAgent(params: {
           jobId,
           stage: 'agent-activity',
         });
-        
+
         // Update status to in-progress
         await db
           .update(schema.jobs)
@@ -158,12 +188,14 @@ export async function sendCommandToAgent(params: {
 
         await logStorage.addLog(jobId, job.version, orgId, {
           level: 'info',
-          message: `[Activity] Invoking agent.executeJob via gRPC - repoId=${payload.repoId || 'none'}, prompt length=${payload.prompt?.length || 0} chars`,
+          message: `[Activity] Invoking agent.executeJob via gRPC - repoId=${
+            payload.repoId || 'none'
+          }, prompt length=${payload.prompt?.length || 0} chars`,
           timestamp: new Date().toISOString(),
           jobId,
           stage: 'agent-activity',
         });
-        
+
         // Agent: Clone repo, start cursor, execute task
         await agentClient.executeJob({
           jobId,
@@ -176,7 +208,7 @@ export async function sendCommandToAgent(params: {
           onLog: async (log: LogMessage) => {
             // Handle streaming logs
             await logStorage.addLog(jobId, job.version, orgId, log);
-            
+
             if (websocketManager.hasSubscribers(jobId)) {
               websocketManager.broadcast(jobId, {
                 type: 'log',
@@ -193,10 +225,10 @@ export async function sendCommandToAgent(params: {
           jobId,
           stage: 'agent-activity',
         });
-        
+
         return { success: true };
       }
-        
+
       case 'waitForCompletion': {
         // Execution is already complete from startExecution
         // This is just a placeholder for workflow clarity
@@ -210,14 +242,18 @@ export async function sendCommandToAgent(params: {
         const waitResult = { success: true, completed: true };
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
-          message: `[Activity] waitForCompletion completed. Output: ${JSON.stringify(waitResult, null, 2)}`,
+          message: `[Activity] waitForCompletion completed. Output: ${JSON.stringify(
+            waitResult,
+            null,
+            2
+          )}`,
           timestamp: new Date().toISOString(),
           jobId,
           stage: 'agent-activity',
         });
         return waitResult;
       }
-        
+
       case 'runVerification': {
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
@@ -230,14 +266,18 @@ export async function sendCommandToAgent(params: {
         const verificationResult = await agentClient.runVerification(jobId);
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
-          message: `[Activity] Verification completed. Output: ${JSON.stringify(verificationResult, null, 2)}`,
+          message: `[Activity] Verification completed. Output: ${JSON.stringify(
+            verificationResult,
+            null,
+            2
+          )}`,
           timestamp: new Date().toISOString(),
           jobId,
           stage: 'agent-activity',
         });
         return verificationResult;
       }
-        
+
       case 'createPR': {
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
@@ -256,14 +296,18 @@ export async function sendCommandToAgent(params: {
         });
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
-          message: `[Activity] PR creation completed. Output: ${JSON.stringify(prResult, null, 2)}`,
+          message: `[Activity] PR creation completed. Output: ${JSON.stringify(
+            prResult,
+            null,
+            2
+          )}`,
           timestamp: new Date().toISOString(),
           jobId,
           stage: 'agent-activity',
         });
         return prResult;
       }
-        
+
       case 'cleanup': {
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
@@ -276,14 +320,18 @@ export async function sendCommandToAgent(params: {
         const cleanupResult = await agentClient.cleanupWorkspace(jobId);
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'info',
-          message: `[Activity] Cleanup completed. Output: ${JSON.stringify(cleanupResult, null, 2)}`,
+          message: `[Activity] Cleanup completed. Output: ${JSON.stringify(
+            cleanupResult,
+            null,
+            2
+          )}`,
           timestamp: new Date().toISOString(),
           jobId,
           stage: 'agent-activity',
         });
         return cleanupResult;
       }
-        
+
       default:
         await logStorage.addLog(jobId, jobVersion, orgId, {
           level: 'error',
@@ -316,4 +364,3 @@ export async function sendCommandToAgent(params: {
     agentClient.close();
   }
 }
-

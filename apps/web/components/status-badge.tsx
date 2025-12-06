@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 interface StatusBadgeProps {
   status: 'active' | 'idle' | 'offline' | 'connected' | 'disconnected';
@@ -28,16 +28,15 @@ const statusConfig = {
     color: 'bg-status-offline',
     label: 'Not Connected',
   },
-}
+};
 
 export function StatusBadge({ status, label }: StatusBadgeProps) {
-  const config = statusConfig[status]
-  
+  const config = statusConfig[status];
+
   return (
     <div className="flex items-center gap-2">
       <div className={cn('h-2 w-2 rounded-full', config.color)} />
       <span className="text-sm font-medium">{label || config.label}</span>
     </div>
-  )
+  );
 }
-

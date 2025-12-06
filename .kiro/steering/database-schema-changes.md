@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: "**/db/schema.ts,**/db/**/*.ts,**/drizzle/**/*"
+fileMatchPattern: '**/db/schema.ts,**/db/**/*.ts,**/drizzle/**/*'
 ---
 
 # Database Schema Changes Guidelines
@@ -10,6 +10,7 @@ When making changes to the database schema, follow these rules to ensure migrati
 ## Schema Location
 
 All database table definitions are in:
+
 ```
 apps/api/src/db/schema.ts
 ```
@@ -38,6 +39,7 @@ npm run db:generate -w @sia/api -- --name=<meaningful_name>
 ```
 
 Example:
+
 ```bash
 npm run db:generate -w @sia/api -- --name=add-job-priority-column
 npm run db:generate -w @sia/api -- --name=create-agents-table
@@ -55,6 +57,7 @@ npm run db:migrate -w @sia/api
 ## Migration Naming Conventions
 
 Use descriptive, kebab-case names:
+
 - `add-<column>-to-<table>` - Adding a column
 - `create-<table>-table` - Creating a new table
 - `remove-<column>-from-<table>` - Removing a column

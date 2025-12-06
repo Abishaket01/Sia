@@ -2,7 +2,11 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { db, schema, type Activity, type NewActivity } from '../db/index';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import type { CreateActivityRequest, UpdateActivityRequest, UpdateActivityReadStatusRequest } from '../types';
+import type {
+  CreateActivityRequest,
+  UpdateActivityRequest,
+  UpdateActivityReadStatusRequest,
+} from '../types';
 import { getCurrentUser, type User } from '../auth';
 
 const { activities, jobs, activityReadStatus } = schema;
@@ -13,7 +17,10 @@ declare module 'fastify' {
   }
 }
 
-function transformActivityResponse(activity: Activity, readStatus: 'read' | 'unread' = 'unread') {
+function transformActivityResponse(
+  activity: Activity,
+  readStatus: 'read' | 'unread' = 'unread'
+) {
   return {
     id: activity.id,
     name: activity.name,
@@ -97,10 +104,20 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Body: CreateActivityRequest }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Body: CreateActivityRequest }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
-        const { name, job_id, summary, created_by, code_generation_logs, verification_logs } = request.body;
+        const {
+          name,
+          job_id,
+          summary,
+          created_by,
+          code_generation_logs,
+          verification_logs,
+        } = request.body;
 
         if (!name) {
           return reply.code(400).send({
@@ -144,11 +161,16 @@ async function activitiesRoutes(fastify: FastifyInstance) {
           verificationLogs: verification_logs ?? null,
         };
 
-        const createdActivityResult = await db.insert(activities).values(newActivity).returning();
+        const createdActivityResult = await db
+          .insert(activities)
+          .values(newActivity)
+          .returning();
 
         // Don't create read status entry here - it will be created when user views the activity
         // This way, new users joining the org will see all old activities as unread
-        return reply.code(201).send(transformActivityResponse(createdActivityResult[0], 'unread'));
+        return reply
+          .code(201)
+          .send(transformActivityResponse(createdActivityResult[0], 'unread'));
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({ error: 'Failed to create activity' });
@@ -216,7 +238,10 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -247,11 +272,13 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         const readStatusResult = await db
           .select()
           .from(activityReadStatus)
-          .where(and(
-            eq(activityReadStatus.activityId, id),
-            eq(activityReadStatus.userId, user.id),
-            eq(activityReadStatus.orgId, user.orgId)
-          ))
+          .where(
+            and(
+              eq(activityReadStatus.activityId, id),
+              eq(activityReadStatus.userId, user.id),
+              eq(activityReadStatus.orgId, user.orgId)
+            )
+          )
           .limit(1);
 
         const readStatus = readStatusResult[0]?.readStatus ?? 'unread';
@@ -317,7 +344,10 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Querystring: { job_id?: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Querystring: { job_id?: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { job_id } = request.query;
@@ -339,7 +369,12 @@ async function activitiesRoutes(fastify: FastifyInstance) {
           allActivities = await db
             .select()
             .from(activities)
-            .where(and(eq(activities.jobId, job_id), eq(activities.orgId, user.orgId)))
+            .where(
+              and(
+                eq(activities.jobId, job_id),
+                eq(activities.orgId, user.orgId)
+              )
+            )
             .orderBy(desc(activities.createdAt));
         } else {
           const userJobIds = await db
@@ -347,7 +382,7 @@ async function activitiesRoutes(fastify: FastifyInstance) {
             .from(jobs)
             .where(eq(jobs.orgId, user.orgId));
 
-          const jobIds = userJobIds.map((j) => j.id);
+          const jobIds = userJobIds.map(j => j.id);
 
           if (jobIds.length === 0) {
             return reply.send([]);
@@ -356,33 +391,41 @@ async function activitiesRoutes(fastify: FastifyInstance) {
           allActivities = await db
             .select()
             .from(activities)
-            .where(and(
-              inArray(activities.jobId, jobIds),
-              eq(activities.orgId, user.orgId)
-            ))
+            .where(
+              and(
+                inArray(activities.jobId, jobIds),
+                eq(activities.orgId, user.orgId)
+              )
+            )
             .orderBy(desc(activities.createdAt));
         }
 
         // Fetch read status for all activities for this user
         const activityIds = allActivities.map(a => a.id);
-        const readStatuses = activityIds.length > 0
-          ? await db
-              .select()
-              .from(activityReadStatus)
-              .where(and(
-                inArray(activityReadStatus.activityId, activityIds),
-                eq(activityReadStatus.userId, user.id),
-                eq(activityReadStatus.orgId, user.orgId)
-              ))
-          : [];
+        const readStatuses =
+          activityIds.length > 0
+            ? await db
+                .select()
+                .from(activityReadStatus)
+                .where(
+                  and(
+                    inArray(activityReadStatus.activityId, activityIds),
+                    eq(activityReadStatus.userId, user.id),
+                    eq(activityReadStatus.orgId, user.orgId)
+                  )
+                )
+            : [];
 
         const readStatusMap = new Map(
           readStatuses.map(rs => [rs.activityId, rs.readStatus])
         );
 
         return reply.send(
-          allActivities.map(activity => 
-            transformActivityResponse(activity, readStatusMap.get(activity.id) ?? 'unread')
+          allActivities.map(activity =>
+            transformActivityResponse(
+              activity,
+              readStatusMap.get(activity.id) ?? 'unread'
+            )
           )
         );
       } catch (error) {
@@ -456,13 +499,22 @@ async function activitiesRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: UpdateActivityRequest }>,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: UpdateActivityRequest;
+      }>,
       reply: FastifyReply
     ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
-        const { name, summary, updated_by, code_generation_logs, verification_logs } = request.body;
+        const {
+          name,
+          summary,
+          updated_by,
+          code_generation_logs,
+          verification_logs,
+        } = request.body;
 
         const activityResult = await db
           .select()
@@ -482,8 +534,10 @@ async function activitiesRoutes(fastify: FastifyInstance) {
 
         if (name !== undefined) updateData.name = name;
         if (summary !== undefined) updateData.summary = summary;
-        if (code_generation_logs !== undefined) updateData.codeGenerationLogs = code_generation_logs;
-        if (verification_logs !== undefined) updateData.verificationLogs = verification_logs;
+        if (code_generation_logs !== undefined)
+          updateData.codeGenerationLogs = code_generation_logs;
+        if (verification_logs !== undefined)
+          updateData.verificationLogs = verification_logs;
 
         const updatedActivityResult = await db
           .update(activities)
@@ -495,16 +549,20 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         const readStatusResult = await db
           .select()
           .from(activityReadStatus)
-          .where(and(
-            eq(activityReadStatus.activityId, id),
-            eq(activityReadStatus.userId, user.id),
-            eq(activityReadStatus.orgId, user.orgId)
-          ))
+          .where(
+            and(
+              eq(activityReadStatus.activityId, id),
+              eq(activityReadStatus.userId, user.id),
+              eq(activityReadStatus.orgId, user.orgId)
+            )
+          )
           .limit(1);
 
         const readStatus = readStatusResult[0]?.readStatus ?? 'unread';
 
-        return reply.send(transformActivityResponse(updatedActivityResult[0], readStatus));
+        return reply.send(
+          transformActivityResponse(updatedActivityResult[0], readStatus)
+        );
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({ error: 'Failed to update activity' });
@@ -512,7 +570,10 @@ async function activitiesRoutes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.put<{ Params: { id: string }; Body: UpdateActivityReadStatusRequest }>(
+  fastify.put<{
+    Params: { id: string };
+    Body: UpdateActivityReadStatusRequest;
+  }>(
     '/activities/:id/read-status',
     {
       schema: {
@@ -576,7 +637,10 @@ async function activitiesRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: UpdateActivityReadStatusRequest }>,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: UpdateActivityReadStatusRequest;
+      }>,
       reply: FastifyReply
     ) => {
       try {
@@ -599,11 +663,13 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         const existingReadStatus = await db
           .select()
           .from(activityReadStatus)
-          .where(and(
-            eq(activityReadStatus.activityId, id),
-            eq(activityReadStatus.userId, user.id),
-            eq(activityReadStatus.orgId, user.orgId)
-          ))
+          .where(
+            and(
+              eq(activityReadStatus.activityId, id),
+              eq(activityReadStatus.userId, user.id),
+              eq(activityReadStatus.orgId, user.orgId)
+            )
+          )
           .limit(1);
 
         const readStatus = is_read ? 'read' : 'unread';
@@ -700,7 +766,10 @@ async function activitiesRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -726,7 +795,9 @@ async function activitiesRoutes(fastify: FastifyInstance) {
           .delete(activityReadStatus)
           .where(eq(activityReadStatus.activityId, id));
 
-        return reply.send(transformActivityResponse(deletedActivityResult[0], 'unread'));
+        return reply.send(
+          transformActivityResponse(deletedActivityResult[0], 'unread')
+        );
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({ error: 'Failed to delete activity' });
@@ -736,4 +807,3 @@ async function activitiesRoutes(fastify: FastifyInstance) {
 }
 
 export default activitiesRoutes;
-

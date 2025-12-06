@@ -7,10 +7,13 @@ export default {
   },
   setupFiles: ['<rootDir>/jest.setup.ts'],
   transform: {
-    '^.+\\.[tj]s$': ['ts-jest', { 
-      tsconfig: '<rootDir>/tsconfig.spec.json',
-      useESM: true,
-    }],
+    '^.+\\.[tj]s$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.spec.json',
+        useESM: true,
+      },
+    ],
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   coverageDirectory: '../../coverage/apps/api',
@@ -19,8 +22,5 @@ export default {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!(uuid)/)',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
 };
-

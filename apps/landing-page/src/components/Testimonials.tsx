@@ -5,17 +5,20 @@ export default function Testimonials() {
     {
       icon: Zap,
       title: 'Ship faster',
-      description: 'Get 3x more done by parallelizing work across timezones. Your AI never sleeps.',
+      description:
+        'Get 3x more done by parallelizing work across timezones. Your AI never sleeps.',
     },
     {
       icon: Rocket,
       title: 'Focus on what matters',
-      description: 'Delegate boilerplate, refactors, and migrations. You work on the hard problems.',
+      description:
+        'Delegate boilerplate, refactors, and migrations. You work on the hard problems.',
     },
     {
       icon: Brain,
       title: 'Code while you sleep',
-      description: "Review Sia's PRs and learn new patterns. It's like pair programming with the future.",
+      description:
+        "Review Sia's PRs and learn new patterns. It's like pair programming with the future.",
     },
   ];
 
@@ -31,10 +34,7 @@ export default function Testimonials() {
             {benefits.map((benefit, index) => {
               const Icon = benefit.icon;
               return (
-                <div
-                  key={index}
-                  className="flex-1 text-left"
-                >
+                <div key={index} className="flex-1 text-left">
                   {/* Icon at top */}
                   <div className="flex justify-start pb-4">
                     <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">

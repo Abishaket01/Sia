@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { lazy, Suspense, type ReactNode } from 'react';
 
 const Navbar = lazy(() => import('../components/Navbar'));
@@ -12,16 +12,17 @@ const ProblemSolution = lazy(() => import('../components/ProblemSolution'));
 const EarlyAccessCTA = lazy(() => import('../components/EarlyAccessCTA'));
 const Footer = lazy(() => import('../components/Footer'));
 
-
-
-const SuspendedSection = ({ label, children }: { label: string; children: ReactNode }) => (
-  <Suspense >{children}</Suspense>
-);
+const SuspendedSection = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) => <Suspense>{children}</Suspense>;
 
 export default function Home() {
   return (
     <>
-
       <div className="min-h-screen bg-background max-w-screen overflow-x-hidden">
         <SuspendedSection label="Navbar">
           <Navbar />

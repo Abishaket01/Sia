@@ -3,14 +3,23 @@ import { useParams, Link } from 'react-router-dom';
 import { PortableText } from '@portabletext/react';
 import Navbar from '../components/Navbar';
 import BlogContents from '../components/blog/BlogContents';
-import { getEngineeringBlogPost, EngineeringBlogPost } from '../utils/engg-blog';
+import {
+  getEngineeringBlogPost,
+  EngineeringBlogPost,
+} from '../utils/engg-blog';
 import { ChevronRight } from 'lucide-react';
 import { createImageUrlBuilder } from '@sanity/image-url';
 
 // Create image URL builder
 const imageBuilder = createImageUrlBuilder({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || import.meta.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
-  dataset: import.meta.env.VITE_SANITY_DATASET || import.meta.env.NEXT_PUBLIC_SANITY_DATASET || '',
+  projectId:
+    import.meta.env.VITE_SANITY_PROJECT_ID ||
+    import.meta.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
+    '',
+  dataset:
+    import.meta.env.VITE_SANITY_DATASET ||
+    import.meta.env.NEXT_PUBLIC_SANITY_DATASET ||
+    '',
 });
 
 // PortableText components for custom rendering
@@ -120,10 +129,7 @@ export default function BlogPost() {
             <div className="flex-1 lg:pr-80">
               {/* Breadcrumb */}
               <div className="flex flex-wrap items-center gap-2 mb-4 text-sm text-text/70 not-prose">
-                <Link
-                  to="/"
-                  className="hover:text-primary transition-colors"
-                >
+                <Link to="/" className="hover:text-primary transition-colors">
                   Home
                 </Link>
                 <ChevronRight className="w-4 h-4" />
@@ -156,7 +162,10 @@ export default function BlogPost() {
 
               {/* Content - Using PortableText like sanity-blog */}
               {post.body ? (
-                <PortableText value={post.body} components={portableTextComponents} />
+                <PortableText
+                  value={post.body}
+                  components={portableTextComponents}
+                />
               ) : (
                 <div dangerouslySetInnerHTML={{ __html: post.content }} />
               )}

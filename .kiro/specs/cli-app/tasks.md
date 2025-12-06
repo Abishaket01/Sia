@@ -1,6 +1,7 @@
 # Implementation Plan: CLI Application
 
 - [ ] 1. Project Setup
+
   - [ ] 1.1 Initialize Node.js CLI application
     - Configure TypeScript, Commander.js
     - _Requirements: 1.1_
@@ -9,6 +10,7 @@
     - _Requirements: 2.1_
 
 - [ ] 2. Authentication
+
   - [ ] 2.1 Implement login command
     - Browser-based OAuth flow
     - _Requirements: 1.1_
@@ -20,6 +22,7 @@
     - _Requirements: 1.3_
 
 - [ ] 3. Job Commands
+
   - [ ] 3.1 Implement job create
     - Interactive prompt for details
     - _Requirements: 2.1_
@@ -31,6 +34,7 @@
     - _Requirements: 2.3_
 
 - [ ] 4. Configuration
+
   - [ ] 4.1 Implement config set
     - Update configuration file
     - _Requirements: 3.1_

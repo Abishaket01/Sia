@@ -23,18 +23,27 @@ export class SecretStorageService {
     return this.storageType;
   }
 
-  async storeSecret(secretId: string, plaintext: string): Promise<{ storedValue: string; storageType: SecretStorageType }> {
-    const storedValue = await this.secretManager.storeSecret(secretId, plaintext);
+  async storeSecret(
+    secretId: string,
+    plaintext: string
+  ): Promise<{ storedValue: string; storageType: SecretStorageType }> {
+    const storedValue = await this.secretManager.storeSecret(
+      secretId,
+      plaintext
+    );
     return {
       storedValue,
       storageType: this.storageType,
     };
   }
 
-  async retrieveSecret(secretId: string, storageType: SecretStorageType): Promise<string> {
+  async retrieveSecret(
+    secretId: string,
+    storageType: SecretStorageType
+  ): Promise<string> {
     // Create the appropriate secret manager based on storage type
     let manager: SecretManager;
-    
+
     if (storageType === 'gcp') {
       manager = new GCPSecretManager();
     } else {
@@ -44,9 +53,12 @@ export class SecretStorageService {
     return manager.retrieveSecret(secretId);
   }
 
-  async deleteSecret(secretId: string, storageType: SecretStorageType): Promise<void> {
+  async deleteSecret(
+    secretId: string,
+    storageType: SecretStorageType
+  ): Promise<void> {
     let manager: SecretManager;
-    
+
     if (storageType === 'gcp') {
       manager = new GCPSecretManager();
     } else {
@@ -56,4 +68,3 @@ export class SecretStorageService {
     await manager.deleteSecret(secretId);
   }
 }
-

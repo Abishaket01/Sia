@@ -1,8 +1,18 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { db, schema, type Job, type NewJob, type NewActivity } from '../db/index';
+import {
+  db,
+  schema,
+  type Job,
+  type NewJob,
+  type NewActivity,
+} from '../db/index';
 import { eq, and, desc, asc, sql, inArray, gt } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import type { CreateJobRequest, UpdateJobRequest, ReprioritizeJobRequest } from '../types';
+import type {
+  CreateJobRequest,
+  UpdateJobRequest,
+  ReprioritizeJobRequest,
+} from '../types';
 import { jobExecutionService } from '../services/job-execution';
 import { queueWorkflowService } from '../services/queue-workflow-service';
 import { getCurrentUser, type User } from '../auth';
@@ -17,16 +27,21 @@ async function getQueueJobs(orgId: string, queueType: QueueType) {
   return await db
     .select()
     .from(jobs)
-    .where(and(
-      eq(jobs.orgId, orgId),
-      eq(jobs.status, 'queued'),
-      eq(jobs.queueType, queueType)
-    ))
+    .where(
+      and(
+        eq(jobs.orgId, orgId),
+        eq(jobs.status, 'queued'),
+        eq(jobs.queueType, queueType)
+      )
+    )
     .orderBy(asc(jobs.orderInQueue));
 }
 
 // Get next position in a queue
-async function getNextQueuePosition(orgId: string, queueType: QueueType): Promise<number> {
+async function getNextQueuePosition(
+  orgId: string,
+  queueType: QueueType
+): Promise<number> {
   const queueJobs = await getQueueJobs(orgId, queueType);
   return queueJobs.length;
 }
@@ -41,14 +56,16 @@ async function reprioritizeQueueAfterRemoval(
     .update(jobs)
     .set({
       orderInQueue: sql`${jobs.orderInQueue} - 1`,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
-    .where(and(
-      eq(jobs.orgId, orgId),
-      eq(jobs.status, 'queued'),
-      eq(jobs.queueType, queueType),
-      gt(jobs.orderInQueue, removedPosition)
-    ));
+    .where(
+      and(
+        eq(jobs.orgId, orgId),
+        eq(jobs.status, 'queued'),
+        eq(jobs.queueType, queueType),
+        gt(jobs.orderInQueue, removedPosition)
+      )
+    );
 }
 
 // Remove job from queue (set to null and -1)
@@ -64,13 +81,11 @@ async function removeJobFromQueue(
       queueType: null,
       orderInQueue: -1,
       updatedAt: new Date(),
-      updatedBy: userId
+      updatedBy: userId,
     })
-    .where(and(
-      eq(jobs.id, jobId),
-      eq(jobs.version, version),
-      eq(jobs.orgId, orgId)
-    ));
+    .where(
+      and(eq(jobs.id, jobId), eq(jobs.version, version), eq(jobs.orgId, orgId))
+    );
 }
 
 declare module 'fastify' {
@@ -110,9 +125,13 @@ async function createActivity(
   }
 }
 
-function transformJobResponse(job: Job, repoMap?: Map<string, { id: string; url: string; name: string }>) {
-  let repoInfo: { repo_id?: string; repo_url?: string; repo_name?: string } = {};
-  
+function transformJobResponse(
+  job: Job,
+  repoMap?: Map<string, { id: string; url: string; name: string }>
+) {
+  let repoInfo: { repo_id?: string; repo_url?: string; repo_name?: string } =
+    {};
+
   if (job.repoId) {
     if (repoMap && repoMap.has(job.repoId)) {
       const repo = repoMap.get(job.repoId);
@@ -121,14 +140,18 @@ function transformJobResponse(job: Job, repoMap?: Map<string, { id: string; url:
           repo_id: repo.id,
           repo_url: repo.url,
           repo_name: repo.name,
-        }
+        };
       }
     } else {
       // If not found in map, treat repoId as the repo identifier (could be owner/repo format)
       repoInfo = {
         repo_id: job.repoId,
-        repo_url: job.repoId.startsWith('http') ? job.repoId : `https://github.com/${job.repoId}`,
-        repo_name: job.repoId.includes('/') ? job.repoId.split('/').pop() : job.repoId,
+        repo_url: job.repoId.startsWith('http')
+          ? job.repoId
+          : `https://github.com/${job.repoId}`,
+        repo_name: job.repoId.includes('/')
+          ? job.repoId.split('/').pop()
+          : job.repoId,
       };
     }
   }
@@ -218,7 +241,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Body: CreateJobRequest }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Body: CreateJobRequest }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { user_input, repo, created_by } = request.body;
@@ -230,10 +256,15 @@ async function jobsRoutes(fastify: FastifyInstance) {
         }
 
         // Generate title and description from task description
-        const { title, description } = await generateJobTitleAndDescription(user_input.prompt);
+        const { title, description } = await generateJobTitleAndDescription(
+          user_input.prompt
+        );
 
         // Get next position in backlog queue
-        const nextBacklogPosition = await getNextQueuePosition(user.orgId, 'backlog');
+        const nextBacklogPosition = await getNextQueuePosition(
+          user.orgId,
+          'backlog'
+        );
 
         const jobId = `job-${uuidv4()}`;
         const newJob: NewJob = {
@@ -256,27 +287,43 @@ async function jobsRoutes(fastify: FastifyInstance) {
           orderInQueue: nextBacklogPosition,
         };
 
-        const createdJobResult = await db.insert(jobs).values(newJob).returning();
+        const createdJobResult = await db
+          .insert(jobs)
+          .values(newJob)
+          .returning();
         const createdJob = createdJobResult[0];
 
         // Fetch repo if repoId exists
-        let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+        let repoMap:
+          | Map<string, { id: string; url: string; name: string }>
+          | undefined;
         let repoInfo = '';
         if (createdJob.repoId) {
           const repo = await db
             .select()
             .from(repos)
-            .where(and(eq(repos.id, createdJob.repoId), eq(repos.orgId, user.orgId)))
+            .where(
+              and(eq(repos.id, createdJob.repoId), eq(repos.orgId, user.orgId))
+            )
             .limit(1);
           if (repo.length > 0) {
-            repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+            repoMap = new Map([
+              [
+                repo[0].id,
+                { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+              ],
+            ]);
             repoInfo = ` in repository ${repo[0].name}`;
           }
         }
 
         // Create activity for job creation
         const jobName = createdJob.generatedName || 'Untitled Job';
-        const activitySummary = `Job "${jobName}" was created${repoInfo} by ${created_by || user.id}. Priority: ${createdJob.priority}, Status: ${createdJob.status}, Queue: ${createdJob.queueType || 'none'}.`;
+        const activitySummary = `Job "${jobName}" was created${repoInfo} by ${
+          created_by || user.id
+        }. Priority: ${createdJob.priority}, Status: ${
+          createdJob.status
+        }, Queue: ${createdJob.queueType || 'none'}.`;
         await createActivity(
           createdJob.id,
           'Job Created',
@@ -360,7 +407,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Querystring: { version?: string } }>,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Querystring: { version?: string };
+      }>,
       reply: FastifyReply
     ) => {
       try {
@@ -374,7 +424,13 @@ async function jobsRoutes(fastify: FastifyInstance) {
           const result = await db
             .select()
             .from(jobs)
-            .where(and(eq(jobs.id, id), eq(jobs.version, parseInt(version)), eq(jobs.orgId, user.orgId)))
+            .where(
+              and(
+                eq(jobs.id, id),
+                eq(jobs.version, parseInt(version)),
+                eq(jobs.orgId, user.orgId)
+              )
+            )
             .limit(1);
           job = result[0] as Job | undefined;
         } else {
@@ -392,7 +448,9 @@ async function jobsRoutes(fastify: FastifyInstance) {
         }
 
         // Fetch repo if repoId exists
-        let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+        let repoMap:
+          | Map<string, { id: string; url: string; name: string }>
+          | undefined;
         if (job.repoId) {
           const repo = await db
             .select()
@@ -400,7 +458,12 @@ async function jobsRoutes(fastify: FastifyInstance) {
             .where(and(eq(repos.id, job.repoId), eq(repos.orgId, user.orgId)))
             .limit(1);
           if (repo.length > 0) {
-            repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+            repoMap = new Map([
+              [
+                repo[0].id,
+                { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+              ],
+            ]);
           }
         }
 
@@ -462,7 +525,7 @@ async function jobsRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const user = request.user!;
-        
+
         // Get only the latest version of each job using DISTINCT ON
         // This PostgreSQL-specific feature efficiently gets the latest version per job id
         const allJobsResult = await db.execute(sql`
@@ -477,85 +540,101 @@ async function jobsRoutes(fastify: FastifyInstance) {
         `);
 
         // Map the raw SQL results (snake_case) to Job type (camelCase)
-        const allJobs: Job[] = allJobsResult.rows.map((row: Record<string, unknown>) => ({
-          id: row.id as string,
-          version: row.version as number,
-          orgId: row.org_id as string,
-          generatedName: row.generated_name as string | null,
-          generatedDescription: row.generated_description as string | null,
-          status: row.status as Job['status'],
-          priority: row.priority as Job['priority'],
-          orderInQueue: row.order_in_queue as number,
-          queueType: row.queue_type as 'rework' | 'backlog' | null,
-          createdAt: new Date(row.created_at as string | number | Date),
-          updatedAt: new Date(row.updated_at as string | number | Date),
-          createdBy: row.created_by as string,
-          updatedBy: row.updated_by as string,
-          codeGenerationLogs: (() => {
-            const logs = row.code_generation_logs;
-            if (!logs) return null;
-            if (typeof logs === 'string') {
-              // Try to parse as JSON, fallback to null if invalid
-              try {
-                return JSON.parse(logs) as Job['codeGenerationLogs'];
-              } catch {
-                return null; // Invalid JSON, return null
+        const allJobs: Job[] = allJobsResult.rows.map(
+          (row: Record<string, unknown>) => ({
+            id: row.id as string,
+            version: row.version as number,
+            orgId: row.org_id as string,
+            generatedName: row.generated_name as string | null,
+            generatedDescription: row.generated_description as string | null,
+            status: row.status as Job['status'],
+            priority: row.priority as Job['priority'],
+            orderInQueue: row.order_in_queue as number,
+            queueType: row.queue_type as 'rework' | 'backlog' | null,
+            createdAt: new Date(row.created_at as string | number | Date),
+            updatedAt: new Date(row.updated_at as string | number | Date),
+            createdBy: row.created_by as string,
+            updatedBy: row.updated_by as string,
+            codeGenerationLogs: (() => {
+              const logs = row.code_generation_logs;
+              if (!logs) return null;
+              if (typeof logs === 'string') {
+                // Try to parse as JSON, fallback to null if invalid
+                try {
+                  return JSON.parse(logs) as Job['codeGenerationLogs'];
+                } catch {
+                  return null; // Invalid JSON, return null
+                }
               }
-            }
-            return logs as Job['codeGenerationLogs'];
-          })(),
-          codeVerificationLogs: (() => {
-            const logs = row.code_verification_logs;
-            if (!logs) return null;
-            if (typeof logs === 'string') {
-              try {
-                return JSON.parse(logs) as Job['codeVerificationLogs'];
-              } catch {
-                return null;
+              return logs as Job['codeGenerationLogs'];
+            })(),
+            codeVerificationLogs: (() => {
+              const logs = row.code_verification_logs;
+              if (!logs) return null;
+              if (typeof logs === 'string') {
+                try {
+                  return JSON.parse(logs) as Job['codeVerificationLogs'];
+                } catch {
+                  return null;
+                }
               }
-            }
-            return logs as Job['codeVerificationLogs'];
-          })(),
-          codeGenerationDetailLogs: (() => {
-            const logs = row.code_generation_detail_logs;
-            if (!logs) return null;
-            if (typeof logs === 'string') {
-              try {
-                return JSON.parse(logs) as Job['codeGenerationDetailLogs'];
-              } catch {
-                return null;
+              return logs as Job['codeVerificationLogs'];
+            })(),
+            codeGenerationDetailLogs: (() => {
+              const logs = row.code_generation_detail_logs;
+              if (!logs) return null;
+              if (typeof logs === 'string') {
+                try {
+                  return JSON.parse(logs) as Job['codeGenerationDetailLogs'];
+                } catch {
+                  return null;
+                }
               }
-            }
-            return logs as Job['codeGenerationDetailLogs'];
-          })(),
-          userInput: row.user_input as Job['userInput'],
-          repoId: row.repo_id as string | null,
-          userAcceptanceStatus: row.user_acceptance_status as Job['userAcceptanceStatus'],
-          userComments: row.user_comments as Job['userComments'],
-          confidenceScore: row.confidence_score as string | null,
-          prLink: row.pr_link as string | null,
-          updates: row.updates as string | null,
-        }));
+              return logs as Job['codeGenerationDetailLogs'];
+            })(),
+            userInput: row.user_input as Job['userInput'],
+            repoId: row.repo_id as string | null,
+            userAcceptanceStatus:
+              row.user_acceptance_status as Job['userAcceptanceStatus'],
+            userComments: row.user_comments as Job['userComments'],
+            confidenceScore: row.confidence_score as string | null,
+            prLink: row.pr_link as string | null,
+            updates: row.updates as string | null,
+          })
+        );
 
         // Sort by createdAt descending
         allJobs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
         // Fetch all repos for jobs that have repoId
-        const repoIds = allJobs.map(job => job.repoId).filter((id): id is string => id !== null);
-        const repoMap = new Map<string, { id: string; url: string; name: string }>();
-        
+        const repoIds = allJobs
+          .map(job => job.repoId)
+          .filter((id): id is string => id !== null);
+        const repoMap = new Map<
+          string,
+          { id: string; url: string; name: string }
+        >();
+
         if (repoIds.length > 0) {
           const allRepos = await db
             .select()
             .from(repos)
-            .where(and(eq(repos.orgId, user.orgId), inArray(repos.id, repoIds)));
-          
+            .where(
+              and(eq(repos.orgId, user.orgId), inArray(repos.id, repoIds))
+            );
+
           allRepos.forEach(repo => {
-            repoMap.set(repo.id, { id: repo.id, url: repo.url, name: repo.name });
+            repoMap.set(repo.id, {
+              id: repo.id,
+              url: repo.url,
+              name: repo.name,
+            });
           });
         }
 
-        return reply.send(allJobs.map(job => transformJobResponse(job, repoMap)));
+        return reply.send(
+          allJobs.map(job => transformJobResponse(job, repoMap))
+        );
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({ error: 'Failed to fetch jobs' });
@@ -627,7 +706,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: UpdateJobRequest }>,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: UpdateJobRequest;
+      }>,
       reply: FastifyReply
     ) => {
       try {
@@ -660,24 +742,33 @@ async function jobsRoutes(fastify: FastifyInstance) {
         }
 
         // Check if user_input prompt has changed
-        const promptChanged = user_input && 
-          user_input.prompt && 
+        const promptChanged =
+          user_input &&
+          user_input.prompt &&
           user_input.prompt !== currentJob.userInput?.prompt;
 
         // Generate new title and description if prompt changed
         let autoGeneratedTitle: string | undefined;
         let autoGeneratedDescription: string | undefined;
         if (promptChanged) {
-          const generated = await generateJobTitleAndDescription(user_input.prompt);
+          const generated = await generateJobTitleAndDescription(
+            user_input.prompt
+          );
           autoGeneratedTitle = generated.title;
           autoGeneratedDescription = generated.description;
         }
 
         // Check if this is a retry (queue_type is rework and has new comments)
-        const isRetry = status === 'queued' && queue_type === 'rework' && user_comments && user_comments.length > (currentJob.userComments?.length || 0);
-        
+        const isRetry =
+          status === 'queued' &&
+          queue_type === 'rework' &&
+          user_comments &&
+          user_comments.length > (currentJob.userComments?.length || 0);
+
         const needsNewVersion =
-          (user_input && JSON.stringify(user_input) !== JSON.stringify(currentJob.userInput)) ||
+          (user_input &&
+            JSON.stringify(user_input) !==
+              JSON.stringify(currentJob.userInput)) ||
           (repo !== undefined && repo !== currentJob.repoId) ||
           (user_acceptance_status === 'reviewed_and_asked_rework' &&
             currentJob.userAcceptanceStatus !== 'reviewed_and_asked_rework') ||
@@ -685,14 +776,23 @@ async function jobsRoutes(fastify: FastifyInstance) {
 
         // Block moving job from queue to in-progress (not supported)
         // Queue jobs are automatically processed by the Temporal workflow system
-        if (status !== undefined && status === 'in-progress' && currentJob.status === 'queued') {
-          return reply.code(400).send({ 
-            error: 'Cannot move job from queue to in-progress. Queue jobs are processed automatically by the system.' 
+        if (
+          status !== undefined &&
+          status === 'in-progress' &&
+          currentJob.status === 'queued'
+        ) {
+          return reply.code(400).send({
+            error:
+              'Cannot move job from queue to in-progress. Queue jobs are processed automatically by the system.',
           });
         }
 
         // Handle status change to in-review: remove from queue
-        if (status !== undefined && status === 'in-review' && currentJob.status !== 'in-review') {
+        if (
+          status !== undefined &&
+          status === 'in-review' &&
+          currentJob.status !== 'in-review'
+        ) {
           // If job was in a queue, remove it and reprioritize
           if (currentJob.status === 'queued' && currentJob.queueType) {
             await reprioritizeQueueAfterRemoval(
@@ -706,29 +806,34 @@ async function jobsRoutes(fastify: FastifyInstance) {
         // Handle user_acceptance_status change to rework: move to rework queue
         let reworkOrderInQueue = currentJob.orderInQueue;
         let targetQueueType: QueueType | null = null;
-        
-        if (user_acceptance_status === 'reviewed_and_asked_rework' &&
-            currentJob.userAcceptanceStatus !== 'reviewed_and_asked_rework') {
-          
+
+        if (
+          user_acceptance_status === 'reviewed_and_asked_rework' &&
+          currentJob.userAcceptanceStatus !== 'reviewed_and_asked_rework'
+        ) {
           // If job was in backlog queue, remove it
-          if (currentJob.status === 'queued' && currentJob.queueType === 'backlog') {
+          if (
+            currentJob.status === 'queued' &&
+            currentJob.queueType === 'backlog'
+          ) {
             await reprioritizeQueueAfterRemoval(
               user.orgId,
               'backlog',
               currentJob.orderInQueue
             );
           }
-          
+
           // Move to rework queue
           reworkOrderInQueue = await getNextQueuePosition(user.orgId, 'rework');
           targetQueueType = 'rework';
         }
 
         // Handle user_acceptance_status change from rework to not_reviewed: move to backlog
-        if (user_acceptance_status === 'not_reviewed' &&
-            currentJob.userAcceptanceStatus === 'reviewed_and_asked_rework' &&
-            currentJob.status === 'queued') {
-          
+        if (
+          user_acceptance_status === 'not_reviewed' &&
+          currentJob.userAcceptanceStatus === 'reviewed_and_asked_rework' &&
+          currentJob.status === 'queued'
+        ) {
           // Remove from rework queue
           if (currentJob.queueType === 'rework') {
             await reprioritizeQueueAfterRemoval(
@@ -737,44 +842,68 @@ async function jobsRoutes(fastify: FastifyInstance) {
               currentJob.orderInQueue
             );
           }
-          
+
           // Move to backlog queue
-          const nextBacklogPosition = await getNextQueuePosition(user.orgId, 'backlog');
+          const nextBacklogPosition = await getNextQueuePosition(
+            user.orgId,
+            'backlog'
+          );
           reworkOrderInQueue = nextBacklogPosition;
           targetQueueType = 'backlog';
         }
 
         // Handle status change back to queued (if it was in a different state)
-        if (status !== undefined && status === 'queued' && currentJob.status !== 'queued') {
+        if (
+          status !== undefined &&
+          status === 'queued' &&
+          currentJob.status !== 'queued'
+        ) {
           // Determine which queue based on userAcceptanceStatus
-          const targetQueue: QueueType = 
-            currentJob.userAcceptanceStatus === 'reviewed_and_asked_rework' ? 'rework' : 'backlog';
-          
-          const nextPosition = await getNextQueuePosition(user.orgId, targetQueue);
+          const targetQueue: QueueType =
+            currentJob.userAcceptanceStatus === 'reviewed_and_asked_rework'
+              ? 'rework'
+              : 'backlog';
+
+          const nextPosition = await getNextQueuePosition(
+            user.orgId,
+            targetQueue
+          );
           reworkOrderInQueue = nextPosition;
           targetQueueType = targetQueue;
         }
 
         if (needsNewVersion) {
           const newVersion = currentJob.version + 1;
-          
+
           // Determine queue state for new version
           const newStatus = status ?? currentJob.status;
           let newQueueType: QueueType | null = null;
           let newOrderInQueue = -1;
-          
+
           if (newStatus === 'queued') {
             // Job is queued - determine queue type
             if (queue_type) {
               // Use provided queue_type
               newQueueType = queue_type;
-              newOrderInQueue = await getNextQueuePosition(user.orgId, queue_type);
+              newOrderInQueue = await getNextQueuePosition(
+                user.orgId,
+                queue_type
+              );
             } else {
-              const finalUserAcceptanceStatus = user_acceptance_status ?? currentJob.userAcceptanceStatus;
-              newQueueType = finalUserAcceptanceStatus === 'reviewed_and_asked_rework' ? 'rework' : 'backlog';
-              newOrderInQueue = targetQueueType ? reworkOrderInQueue : await getNextQueuePosition(user.orgId, newQueueType);
+              const finalUserAcceptanceStatus =
+                user_acceptance_status ?? currentJob.userAcceptanceStatus;
+              newQueueType =
+                finalUserAcceptanceStatus === 'reviewed_and_asked_rework'
+                  ? 'rework'
+                  : 'backlog';
+              newOrderInQueue = targetQueueType
+                ? reworkOrderInQueue
+                : await getNextQueuePosition(user.orgId, newQueueType);
             }
-          } else if (status !== undefined && (status === 'in-progress' || status === 'in-review')) {
+          } else if (
+            status !== undefined &&
+            (status === 'in-progress' || status === 'in-review')
+          ) {
             // Job is being moved out of queue
             newQueueType = null;
             newOrderInQueue = -1;
@@ -783,13 +912,13 @@ async function jobsRoutes(fastify: FastifyInstance) {
             newQueueType = currentJob.queueType;
             newOrderInQueue = currentJob.orderInQueue;
           }
-          
+
           // Build updates message for status changes
           let newUpdates = currentJob.updates || null;
           if (status !== undefined && status !== currentJob.status) {
             const timestamp = new Date().toLocaleString();
             let updateMessage = '';
-            
+
             if (status === 'failed') {
               updateMessage = `Job execution failed at ${timestamp}.`;
             } else if (status === 'completed') {
@@ -800,7 +929,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
               updateMessage = `Job execution started at ${timestamp}.`;
             } else if (status === 'queued') {
               // Check if this is a retry (queue_type is rework and has comments)
-              const isRetryForUpdate = queue_type === 'rework' && user_comments && user_comments.length > (currentJob.userComments?.length || 0);
+              const isRetryForUpdate =
+                queue_type === 'rework' &&
+                user_comments &&
+                user_comments.length > (currentJob.userComments?.length || 0);
               if (isRetryForUpdate) {
                 const latestComment = user_comments[user_comments.length - 1];
                 const commentText = latestComment.prompt?.trim();
@@ -815,9 +947,9 @@ async function jobsRoutes(fastify: FastifyInstance) {
             } else {
               updateMessage = `Job status changed from ${currentJob.status} to ${status} at ${timestamp}.`;
             }
-            
-            newUpdates = currentJob.updates 
-              ? `${currentJob.updates}\n${updateMessage}` 
+
+            newUpdates = currentJob.updates
+              ? `${currentJob.updates}\n${updateMessage}`
               : updateMessage;
           }
 
@@ -826,44 +958,75 @@ async function jobsRoutes(fastify: FastifyInstance) {
             version: newVersion,
             orgId: currentJob.orgId,
             // Use auto-generated title/description if prompt changed, otherwise use provided or existing
-            generatedName: generated_name ?? (promptChanged ? autoGeneratedTitle : currentJob.generatedName) ?? null,
-            generatedDescription: generated_description ?? (promptChanged ? autoGeneratedDescription : currentJob.generatedDescription) ?? null,
+            generatedName:
+              generated_name ??
+              (promptChanged ? autoGeneratedTitle : currentJob.generatedName) ??
+              null,
+            generatedDescription:
+              generated_description ??
+              (promptChanged
+                ? autoGeneratedDescription
+                : currentJob.generatedDescription) ??
+              null,
             status: newStatus,
             priority: priority ?? currentJob.priority,
-            orderInQueue: order_in_queue !== undefined ? order_in_queue : newOrderInQueue,
+            orderInQueue:
+              order_in_queue !== undefined ? order_in_queue : newOrderInQueue,
             queueType: newQueueType,
-            userInput: user_input ? {
-              source: user_input.source,
-              prompt: user_input.prompt,
-              sourceMetadata: user_input.sourceMetadata ?? null,
-            } : currentJob.userInput ?? null,
+            userInput: user_input
+              ? {
+                  source: user_input.source,
+                  prompt: user_input.prompt,
+                  sourceMetadata: user_input.sourceMetadata ?? null,
+                }
+              : currentJob.userInput ?? null,
             repoId: repo !== undefined ? repo : currentJob.repoId ?? null,
             createdBy: currentJob.createdBy,
             updatedBy: updated_by,
             // Exclude code generation and verification logs when retrying
-            codeGenerationLogs: isRetry ? null : (currentJob.codeGenerationLogs ?? null),
-            codeVerificationLogs: isRetry ? null : (currentJob.codeVerificationLogs ?? null),
-            userAcceptanceStatus: user_acceptance_status ?? currentJob.userAcceptanceStatus,
+            codeGenerationLogs: isRetry
+              ? null
+              : currentJob.codeGenerationLogs ?? null,
+            codeVerificationLogs: isRetry
+              ? null
+              : currentJob.codeVerificationLogs ?? null,
+            userAcceptanceStatus:
+              user_acceptance_status ?? currentJob.userAcceptanceStatus,
             userComments: user_comments ?? currentJob.userComments ?? null,
             confidenceScore: currentJob.confidenceScore ?? null,
             prLink: currentJob.prLink ?? null,
             updates: newUpdates,
           };
 
-          const createdJobResult = await db.insert(jobs).values(newJob).returning();
+          const createdJobResult = await db
+            .insert(jobs)
+            .values(newJob)
+            .returning();
           const updatedJob = createdJobResult[0];
-          
+
           // Fetch repo if repoId exists
-          let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+          let repoMap:
+            | Map<string, { id: string; url: string; name: string }>
+            | undefined;
           let repoInfo = '';
           if (updatedJob.repoId) {
             const repo = await db
               .select()
               .from(repos)
-              .where(and(eq(repos.id, updatedJob.repoId), eq(repos.orgId, user.orgId)))
+              .where(
+                and(
+                  eq(repos.id, updatedJob.repoId),
+                  eq(repos.orgId, user.orgId)
+                )
+              )
               .limit(1);
             if (repo.length > 0) {
-              repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+              repoMap = new Map([
+                [
+                  repo[0].id,
+                  { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+                ],
+              ]);
               repoInfo = ` in repository ${repo[0].name}`;
             }
           }
@@ -872,13 +1035,28 @@ async function jobsRoutes(fastify: FastifyInstance) {
           const jobName = updatedJob.generatedName || 'Untitled Job';
           const changes: string[] = [];
           if (promptChanged) changes.push('user input prompt');
-          if (repo !== undefined && repo !== currentJob.repoId) changes.push('repository');
-          if (user_acceptance_status === 'reviewed_and_asked_rework') changes.push('moved to rework queue');
-          if (status !== undefined && status !== currentJob.status) changes.push(`status changed from ${currentJob.status} to ${status}`);
-          if (priority !== undefined && priority !== currentJob.priority) changes.push(`priority changed from ${currentJob.priority} to ${priority}`);
-          
-          const changesText = changes.length > 0 ? ` Changes: ${changes.join(', ')}.` : '';
-          const activitySummary = `Job "${jobName}" (version ${updatedJob.version}) was updated${repoInfo} by ${updated_by || user.id}.${changesText} Job version updated from ${currentJob.version} to ${updatedJob.version}.`;
+          if (repo !== undefined && repo !== currentJob.repoId)
+            changes.push('repository');
+          if (user_acceptance_status === 'reviewed_and_asked_rework')
+            changes.push('moved to rework queue');
+          if (status !== undefined && status !== currentJob.status)
+            changes.push(
+              `status changed from ${currentJob.status} to ${status}`
+            );
+          if (priority !== undefined && priority !== currentJob.priority)
+            changes.push(
+              `priority changed from ${currentJob.priority} to ${priority}`
+            );
+
+          const changesText =
+            changes.length > 0 ? ` Changes: ${changes.join(', ')}.` : '';
+          const activitySummary = `Job "${jobName}" (version ${
+            updatedJob.version
+          }) was updated${repoInfo} by ${
+            updated_by || user.id
+          }.${changesText} Job version updated from ${currentJob.version} to ${
+            updatedJob.version
+          }.`;
           await createActivity(
             updatedJob.id,
             'Job Updated',
@@ -886,7 +1064,7 @@ async function jobsRoutes(fastify: FastifyInstance) {
             updated_by || user.id,
             user.orgId
           );
-          
+
           return reply.send(transformJobResponse(updatedJob, repoMap));
         } else {
           const updateData: Partial<Job> = {
@@ -897,9 +1075,11 @@ async function jobsRoutes(fastify: FastifyInstance) {
           // Use auto-generated title/description if prompt changed, otherwise use provided values
           if (promptChanged) {
             updateData.generatedName = generated_name ?? autoGeneratedTitle;
-            updateData.generatedDescription = generated_description ?? autoGeneratedDescription;
+            updateData.generatedDescription =
+              generated_description ?? autoGeneratedDescription;
           } else {
-            if (generated_name !== undefined) updateData.generatedName = generated_name;
+            if (generated_name !== undefined)
+              updateData.generatedName = generated_name;
             if (generated_description !== undefined)
               updateData.generatedDescription = generated_description;
           }
@@ -914,7 +1094,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
               // Add to appropriate queue
               if (queue_type) {
                 // Use provided queue_type
-                const nextPosition = await getNextQueuePosition(user.orgId, queue_type);
+                const nextPosition = await getNextQueuePosition(
+                  user.orgId,
+                  queue_type
+                );
                 updateData.queueType = queue_type;
                 updateData.orderInQueue = nextPosition;
               } else if (targetQueueType) {
@@ -922,20 +1105,27 @@ async function jobsRoutes(fastify: FastifyInstance) {
                 updateData.orderInQueue = reworkOrderInQueue;
               } else {
                 // Determine queue based on current userAcceptanceStatus
-                const finalUserAcceptanceStatus = user_acceptance_status ?? currentJob.userAcceptanceStatus;
-                const queueType: QueueType = finalUserAcceptanceStatus === 'reviewed_and_asked_rework' ? 'rework' : 'backlog';
-                const nextPosition = await getNextQueuePosition(user.orgId, queueType);
+                const finalUserAcceptanceStatus =
+                  user_acceptance_status ?? currentJob.userAcceptanceStatus;
+                const queueType: QueueType =
+                  finalUserAcceptanceStatus === 'reviewed_and_asked_rework'
+                    ? 'rework'
+                    : 'backlog';
+                const nextPosition = await getNextQueuePosition(
+                  user.orgId,
+                  queueType
+                );
                 updateData.queueType = queueType;
                 updateData.orderInQueue = nextPosition;
               }
             }
-            
+
             // Add update message for status changes
             if (status !== currentJob.status) {
               const existingUpdates = currentJob.updates || '';
               const timestamp = new Date().toLocaleString();
               let updateMessage = '';
-              
+
               if (status === 'failed') {
                 updateMessage = `Job execution failed at ${timestamp}.`;
               } else if (status === 'completed') {
@@ -946,7 +1136,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
                 updateMessage = `Job execution started at ${timestamp}.`;
               } else if (status === 'queued') {
                 // Check if this is a retry (queue_type is rework and has comments)
-                const isRetry = queue_type === 'rework' && user_comments && user_comments.length > (currentJob.userComments?.length || 0);
+                const isRetry =
+                  queue_type === 'rework' &&
+                  user_comments &&
+                  user_comments.length > (currentJob.userComments?.length || 0);
                 if (isRetry) {
                   const latestComment = user_comments[user_comments.length - 1];
                   const commentText = latestComment.prompt?.trim();
@@ -961,18 +1154,20 @@ async function jobsRoutes(fastify: FastifyInstance) {
               } else {
                 updateMessage = `Job status changed from ${currentJob.status} to ${status} at ${timestamp}.`;
               }
-              
+
               // Prepend new updates (latest first)
               updateData.updates = updateMessage
-                ? existingUpdates 
-                  ? `${updateMessage}\n${existingUpdates}` 
+                ? existingUpdates
+                  ? `${updateMessage}\n${existingUpdates}`
                   : updateMessage
                 : existingUpdates;
             }
           }
           if (priority !== undefined) updateData.priority = priority;
-          if (order_in_queue !== undefined) updateData.orderInQueue = order_in_queue;
-          if (user_comments !== undefined) updateData.userComments = user_comments;
+          if (order_in_queue !== undefined)
+            updateData.orderInQueue = order_in_queue;
+          if (user_comments !== undefined)
+            updateData.userComments = user_comments;
           if (user_acceptance_status !== undefined) {
             updateData.userAcceptanceStatus = user_acceptance_status;
             // Handle queue changes based on user_acceptance_status
@@ -985,21 +1180,39 @@ async function jobsRoutes(fastify: FastifyInstance) {
           const updatedJobResult = await db
             .update(jobs)
             .set(updateData)
-            .where(and(eq(jobs.id, id), eq(jobs.version, currentJob.version), eq(jobs.orgId, user.orgId)))
+            .where(
+              and(
+                eq(jobs.id, id),
+                eq(jobs.version, currentJob.version),
+                eq(jobs.orgId, user.orgId)
+              )
+            )
             .returning();
           const updatedJob = updatedJobResult[0];
 
           // Fetch repo if repoId exists
-          let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+          let repoMap:
+            | Map<string, { id: string; url: string; name: string }>
+            | undefined;
           let repoInfo = '';
           if (updatedJob.repoId) {
             const repo = await db
               .select()
               .from(repos)
-              .where(and(eq(repos.id, updatedJob.repoId), eq(repos.orgId, user.orgId)))
+              .where(
+                and(
+                  eq(repos.id, updatedJob.repoId),
+                  eq(repos.orgId, user.orgId)
+                )
+              )
               .limit(1);
             if (repo.length > 0) {
-              repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+              repoMap = new Map([
+                [
+                  repo[0].id,
+                  { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+                ],
+              ]);
               repoInfo = ` in repository ${repo[0].name}`;
             }
           }
@@ -1007,30 +1220,65 @@ async function jobsRoutes(fastify: FastifyInstance) {
           // Create activity for job update - always create activity for any update (audit log)
           const jobName = updatedJob.generatedName || 'Untitled Job';
           const changes: string[] = [];
-          if (generated_name !== undefined && generated_name !== currentJob.generatedName) changes.push('name');
-          if (generated_description !== undefined && generated_description !== currentJob.generatedDescription) changes.push('description');
+          if (
+            generated_name !== undefined &&
+            generated_name !== currentJob.generatedName
+          )
+            changes.push('name');
+          if (
+            generated_description !== undefined &&
+            generated_description !== currentJob.generatedDescription
+          )
+            changes.push('description');
           if (status !== undefined && status !== currentJob.status) {
-            changes.push(`status changed from ${currentJob.status} to ${status}`);
+            changes.push(
+              `status changed from ${currentJob.status} to ${status}`
+            );
             if (status === 'in-progress') changes.push('moved to in-progress');
             if (status === 'in-review') changes.push('moved to in-review');
             if (status === 'completed') changes.push('marked as completed');
           }
-          if (priority !== undefined && priority !== currentJob.priority) changes.push(`priority changed from ${currentJob.priority} to ${priority}`);
-          if (order_in_queue !== undefined && order_in_queue !== currentJob.orderInQueue) changes.push(`order changed from ${currentJob.orderInQueue} to ${order_in_queue}`);
-          if (user_acceptance_status !== undefined && user_acceptance_status !== currentJob.userAcceptanceStatus) {
-            changes.push(`acceptance status changed from ${currentJob.userAcceptanceStatus} to ${user_acceptance_status}`);
+          if (priority !== undefined && priority !== currentJob.priority)
+            changes.push(
+              `priority changed from ${currentJob.priority} to ${priority}`
+            );
+          if (
+            order_in_queue !== undefined &&
+            order_in_queue !== currentJob.orderInQueue
+          )
+            changes.push(
+              `order changed from ${currentJob.orderInQueue} to ${order_in_queue}`
+            );
+          if (
+            user_acceptance_status !== undefined &&
+            user_acceptance_status !== currentJob.userAcceptanceStatus
+          ) {
+            changes.push(
+              `acceptance status changed from ${currentJob.userAcceptanceStatus} to ${user_acceptance_status}`
+            );
           }
-          if (user_comments !== undefined && JSON.stringify(user_comments) !== JSON.stringify(currentJob.userComments)) {
+          if (
+            user_comments !== undefined &&
+            JSON.stringify(user_comments) !==
+              JSON.stringify(currentJob.userComments)
+          ) {
             changes.push('user comments');
           }
           if (repo !== undefined && repo !== currentJob.repoId) {
             const oldRepoName = currentJob.repoId || 'none';
             const newRepoName = repo || 'none';
-            changes.push(`repository changed from ${oldRepoName} to ${newRepoName}`);
+            changes.push(
+              `repository changed from ${oldRepoName} to ${newRepoName}`
+            );
           }
-          
-          const changesText = changes.length > 0 ? ` Changes: ${changes.join(', ')}.` : ' No specific changes detected.';
-          const activitySummary = `Job "${jobName}" was updated${repoInfo} by ${updated_by || user.id}.${changesText}`;
+
+          const changesText =
+            changes.length > 0
+              ? ` Changes: ${changes.join(', ')}.`
+              : ' No specific changes detected.';
+          const activitySummary = `Job "${jobName}" was updated${repoInfo} by ${
+            updated_by || user.id
+          }.${changesText}`;
           await createActivity(
             updatedJob.id,
             'Job Updated',
@@ -1118,7 +1366,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -1141,21 +1392,40 @@ async function jobsRoutes(fastify: FastifyInstance) {
 
         const updatedJobResult = await db
           .update(jobs)
-          .set({ status: 'archived', updatedAt: new Date(), updatedBy: user.id })
-          .where(and(eq(jobs.id, id), eq(jobs.version, currentJob.version), eq(jobs.orgId, user.orgId)))
+          .set({
+            status: 'archived',
+            updatedAt: new Date(),
+            updatedBy: user.id,
+          })
+          .where(
+            and(
+              eq(jobs.id, id),
+              eq(jobs.version, currentJob.version),
+              eq(jobs.orgId, user.orgId)
+            )
+          )
           .returning();
         const deletedJob = updatedJobResult[0];
 
         // Fetch repo if repoId exists
-        let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+        let repoMap:
+          | Map<string, { id: string; url: string; name: string }>
+          | undefined;
         if (deletedJob.repoId) {
           const repo = await db
             .select()
             .from(repos)
-            .where(and(eq(repos.id, deletedJob.repoId), eq(repos.orgId, user.orgId)))
+            .where(
+              and(eq(repos.id, deletedJob.repoId), eq(repos.orgId, user.orgId))
+            )
             .limit(1);
           if (repo.length > 0) {
-            repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+            repoMap = new Map([
+              [
+                repo[0].id,
+                { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+              ],
+            ]);
           }
         }
 
@@ -1256,7 +1526,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -1276,8 +1549,8 @@ async function jobsRoutes(fastify: FastifyInstance) {
 
         // Validate job is in a queue
         if (job.status !== 'queued' || !job.queueType) {
-          return reply.code(400).send({ 
-            error: 'Job must be in a queue (rework or backlog) to execute' 
+          return reply.code(400).send({
+            error: 'Job must be in a queue (rework or backlog) to execute',
           });
         }
 
@@ -1287,7 +1560,7 @@ async function jobsRoutes(fastify: FastifyInstance) {
 
         // Remove from queue before executing
         await removeJobFromQueue(id, user.orgId, job.version, user.id);
-        
+
         // Reprioritize the queue
         await reprioritizeQueueAfterRemoval(
           user.orgId,
@@ -1296,7 +1569,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         );
 
         // Schedule job via Temporal
-        const { workflowId } = await jobExecutionService.scheduleJob(id, user.orgId);
+        const { workflowId } = await jobExecutionService.scheduleJob(
+          id,
+          user.orgId
+        );
 
         // Create activity for job execution start
         const jobName = job.generatedName || 'Untitled Job';
@@ -1309,7 +1585,7 @@ async function jobsRoutes(fastify: FastifyInstance) {
           user.orgId
         );
 
-        return reply.code(202).send({ 
+        return reply.code(202).send({
           message: 'Job execution started',
           jobId: id,
           workflowId,
@@ -1395,7 +1671,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: ReprioritizeJobRequest }>,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: ReprioritizeJobRequest;
+      }>,
       reply: FastifyReply
     ) => {
       try {
@@ -1404,7 +1683,9 @@ async function jobsRoutes(fastify: FastifyInstance) {
         const { position: newPosition } = request.body;
 
         if (newPosition < 0) {
-          return reply.code(400).send({ error: 'Position must be non-negative' });
+          return reply
+            .code(400)
+            .send({ error: 'Position must be non-negative' });
         }
 
         const jobResult = await db
@@ -1421,14 +1702,18 @@ async function jobsRoutes(fastify: FastifyInstance) {
         const job = jobResult[0];
 
         if (job.status !== 'queued') {
-          return reply.code(400).send({ error: 'Only queued jobs can be reprioritized' });
+          return reply
+            .code(400)
+            .send({ error: 'Only queued jobs can be reprioritized' });
         }
 
         const oldPosition = job.orderInQueue;
 
         if (newPosition === oldPosition) {
           // Fetch repo if repoId exists
-          let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+          let repoMap:
+            | Map<string, { id: string; url: string; name: string }>
+            | undefined;
           if (job.repoId) {
             const repo = await db
               .select()
@@ -1436,10 +1721,15 @@ async function jobsRoutes(fastify: FastifyInstance) {
               .where(and(eq(repos.id, job.repoId), eq(repos.orgId, user.orgId)))
               .limit(1);
             if (repo.length > 0) {
-              repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+              repoMap = new Map([
+                [
+                  repo[0].id,
+                  { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+                ],
+              ]);
             }
           }
-          
+
           return reply.send({
             message: 'Job is already at the requested position',
             job: transformJobResponse(job, repoMap),
@@ -1447,56 +1737,64 @@ async function jobsRoutes(fastify: FastifyInstance) {
         }
 
         // Get all queued jobs in the same queue type, ordered by current position
-        const queueTypeCondition = job.queueType 
+        const queueTypeCondition = job.queueType
           ? eq(jobs.queueType, job.queueType)
           : sql`${jobs.queueType} IS NULL`;
-        
+
         const allQueueJobs = await db
           .select()
           .from(jobs)
-          .where(and(
-            eq(jobs.orgId, user.orgId),
-            eq(jobs.status, 'queued'),
-            queueTypeCondition
-          ))
+          .where(
+            and(
+              eq(jobs.orgId, user.orgId),
+              eq(jobs.status, 'queued'),
+              queueTypeCondition
+            )
+          )
           .orderBy(asc(jobs.orderInQueue));
 
         // Filter out the job being moved and create new order
-        const otherJobs = allQueueJobs.filter(j => j.id !== id || j.version !== job.version);
-        
+        const otherJobs = allQueueJobs.filter(
+          j => j.id !== id || j.version !== job.version
+        );
+
         // Insert the moved job at the new position and reorder all jobs
         const reorderedJobs = [...otherJobs];
         reorderedJobs.splice(newPosition, 0, job);
-        
+
         // Update all jobs to have strictly increasing order (0, 1, 2, 3, ...)
         const updatePromises = reorderedJobs.map((j, index) => {
           if (j.id === id && j.version === job.version) {
             // Update the moved job
             return db
               .update(jobs)
-              .set({ 
+              .set({
                 orderInQueue: index,
                 updatedAt: new Date(),
-                updatedBy: user.id
+                updatedBy: user.id,
               })
-              .where(and(
-                eq(jobs.id, j.id),
-                eq(jobs.version, j.version),
-                eq(jobs.orgId, user.orgId)
-              ));
+              .where(
+                and(
+                  eq(jobs.id, j.id),
+                  eq(jobs.version, j.version),
+                  eq(jobs.orgId, user.orgId)
+                )
+              );
           } else if (j.orderInQueue !== index) {
             // Update other jobs that need reordering
             return db
               .update(jobs)
-              .set({ 
+              .set({
                 orderInQueue: index,
-                updatedAt: new Date()
+                updatedAt: new Date(),
               })
-              .where(and(
-                eq(jobs.id, j.id),
-                eq(jobs.version, j.version),
-                eq(jobs.orgId, user.orgId)
-              ));
+              .where(
+                and(
+                  eq(jobs.id, j.id),
+                  eq(jobs.version, j.version),
+                  eq(jobs.orgId, user.orgId)
+                )
+              );
           }
           return Promise.resolve();
         });
@@ -1507,30 +1805,45 @@ async function jobsRoutes(fastify: FastifyInstance) {
         const updatedJobResult = await db
           .select()
           .from(jobs)
-          .where(and(
-            eq(jobs.id, id),
-            eq(jobs.version, job.version),
-            eq(jobs.orgId, user.orgId)
-          ))
+          .where(
+            and(
+              eq(jobs.id, id),
+              eq(jobs.version, job.version),
+              eq(jobs.orgId, user.orgId)
+            )
+          )
           .limit(1);
 
         // Fetch repo if repoId exists
-        let repoMap: Map<string, { id: string; url: string; name: string }> | undefined;
+        let repoMap:
+          | Map<string, { id: string; url: string; name: string }>
+          | undefined;
         const updatedJob = updatedJobResult[0];
         if (updatedJob.repoId) {
           const repo = await db
             .select()
             .from(repos)
-            .where(and(eq(repos.id, updatedJob.repoId), eq(repos.orgId, user.orgId)))
+            .where(
+              and(eq(repos.id, updatedJob.repoId), eq(repos.orgId, user.orgId))
+            )
             .limit(1);
           if (repo.length > 0) {
-            repoMap = new Map([[repo[0].id, { id: repo[0].id, url: repo[0].url, name: repo[0].name }]]);
+            repoMap = new Map([
+              [
+                repo[0].id,
+                { id: repo[0].id, url: repo[0].url, name: repo[0].name },
+              ],
+            ]);
           }
         }
 
         // Create activity for order change
         const jobName = updatedJob.generatedName || 'Untitled Job';
-        const activitySummary = `Job "${jobName}" order was changed from position ${oldPosition} to position ${newPosition} in ${job.queueType || 'queue'} queue by ${user.id}. All jobs in the queue were reordered to maintain strict ordering.`;
+        const activitySummary = `Job "${jobName}" order was changed from position ${oldPosition} to position ${newPosition} in ${
+          job.queueType || 'queue'
+        } queue by ${
+          user.id
+        }. All jobs in the queue were reordered to maintain strict ordering.`;
         await createActivity(
           updatedJob.id,
           'Job Order Changed',
@@ -1557,7 +1870,8 @@ async function jobsRoutes(fastify: FastifyInstance) {
     '/queues/:queueType/start',
     {
       schema: {
-        description: 'Resume queue processing for an organization (database state only)',
+        description:
+          'Resume queue processing for an organization (database state only)',
         tags: ['queues'],
         params: {
           type: 'object',
@@ -1579,7 +1893,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const queueType = request.params.queueType;
@@ -1624,7 +1941,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const queueType = request.params.queueType;
@@ -1665,7 +1985,10 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const queueType = request.params.queueType;
@@ -1707,18 +2030,25 @@ async function jobsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { queueType: 'rework' | 'backlog' } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const queueType = request.params.queueType;
 
         // Only get database pause state
-        const { isQueuePaused } = await import('../temporal/activities/queue-status-activity');
+        const { isQueuePaused } = await import(
+          '../temporal/activities/queue-status-activity'
+        );
         const isPaused = await isQueuePaused({ orgId: user.orgId, queueType });
 
         return reply.send({
           isPaused,
-          message: `Queue ${queueType} is ${isPaused ? 'paused' : 'active'} (database state)`,
+          message: `Queue ${queueType} is ${
+            isPaused ? 'paused' : 'active'
+          } (database state)`,
         });
       } catch (error) {
         fastify.log.error(error);

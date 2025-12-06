@@ -58,7 +58,7 @@ export class CursorVibeCoder implements VibeCoder {
     this.executablePath = executablePath || 'cursor-agent';
   }
 
-  async* generateCode(
+  async *generateCode(
     workspacePath: string,
     prompt: string,
     jobId: string
@@ -80,17 +80,21 @@ export class CursorVibeCoder implements VibeCoder {
       stage: 'code-generation',
     };
 
-    const process = spawn(this.executablePath, [
-      '-p',
-      '--force',
-      '--output-format',
-      'stream-json',
-      '--stream-partial-output',
-      prompt,
-    ], {
-      cwd: workspacePath,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    const process = spawn(
+      this.executablePath,
+      [
+        '-p',
+        '--force',
+        '--output-format',
+        'stream-json',
+        '--stream-partial-output',
+        prompt,
+      ],
+      {
+        cwd: workspacePath,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }
+    );
 
     let stdoutBuffer = '';
 
@@ -111,12 +115,12 @@ export class CursorVibeCoder implements VibeCoder {
             detailLogs,
             jobId,
           });
-          
+
           // Update state
           accumulatedText = logs.state.accumulatedText;
           lastChunk = logs.state.lastChunk;
           toolCount = logs.state.toolCount;
-          
+
           // Add logs to queue
           logQueue.push(...logs.logs);
         } catch {
@@ -125,23 +129,23 @@ export class CursorVibeCoder implements VibeCoder {
       }
     });
 
-      process.stderr.on('data', (chunk: Buffer) => {
-        processStderr += chunk.toString();
-      });
+    process.stderr.on('data', (chunk: Buffer) => {
+      processStderr += chunk.toString();
+    });
 
-      process.on('error', (error) => {
-        logQueue.push({
-          level: 'error',
-          message: `Failed to start cursor-agent: ${error.message}`,
-          timestamp: new Date().toISOString(),
-          jobId,
-          stage: 'code-generation',
-        });
-        processClosed = true;
+    process.on('error', error => {
+      logQueue.push({
+        level: 'error',
+        message: `Failed to start cursor-agent: ${error.message}`,
+        timestamp: new Date().toISOString(),
+        jobId,
+        stage: 'code-generation',
       });
+      processClosed = true;
+    });
 
-      process.on('close', (code) => {
-        processClosed = true;
+    process.on('close', code => {
+      processClosed = true;
 
       const endTime = Date.now();
       const totalTime = Math.floor((endTime - startTime) / 1000);
@@ -325,10 +329,7 @@ export class CursorVibeCoder implements VibeCoder {
               stage: 'code-generation',
             });
 
-            const code = [
-              readCall.args?.content,
-              result.content,
-            ]
+            const code = [readCall.args?.content, result.content]
               .filter(Boolean)
               .join('\n\n');
 

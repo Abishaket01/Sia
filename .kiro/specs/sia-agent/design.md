@@ -13,51 +13,51 @@ flowchart TB
             GRPC[gRPC Client]
             STREAM[Stream Manager]
         end
-        
+
         subgraph "Execution"
             EXECUTOR[Job Executor]
             WORKSPACE[Workspace Manager]
             QUEUE[Local Job Queue]
         end
-        
+
         subgraph "AI Integration"
             CLAUDE[Claude Code Client]
             PROMPT[Prompt Builder]
         end
-        
+
         subgraph "Git Operations"
             GIT[Git Manager]
             GITHUB[GitHub API Client]
         end
-        
+
         subgraph "Verification"
             BUILD[Build Runner]
             TEST[Test Runner]
             LINT[Lint Runner]
         end
     end
-    
+
     subgraph "External"
         BACKEND[SIA Backend]
         REPO[Git Repository]
         GH_API[GitHub API]
         CLAUDE_API[Claude API]
     end
-    
+
     GRPC <--> BACKEND
     STREAM --> GRPC
-    
+
     EXECUTOR --> WORKSPACE
     EXECUTOR --> CLAUDE
     EXECUTOR --> GIT
     EXECUTOR --> BUILD
-    
+
     CLAUDE --> PROMPT
     CLAUDE --> CLAUDE_API
-    
+
     GIT --> REPO
     GITHUB --> GH_API
-    
+
     BUILD --> TEST
     TEST --> LINT
 ```
@@ -98,23 +98,23 @@ sequenceDiagram
     participant Claude
     participant Git
     participant GitHub
-    
+
     Backend->>Agent: ExecuteJob (gRPC)
     Agent->>Workspace: Create workspace
     Agent->>Git: Clone repository
     Agent->>Git: Create branch
-    
+
     Agent->>Claude: Execute prompt
     loop Code Generation
         Claude-->>Agent: Progress update
         Agent-->>Backend: Stream log
     end
     Claude-->>Agent: Generation complete
-    
+
     Agent->>Agent: Run build
     Agent->>Agent: Run tests
     Agent->>Agent: Run lint
-    
+
     alt Verification passes
         Agent->>Git: Commit changes
         Agent->>Git: Push branch
@@ -124,33 +124,38 @@ sequenceDiagram
     else Verification fails
         Agent-->>Backend: Job failed (errors)
     end
-    
+
     Agent->>Workspace: Cleanup
 ```
 
 ## Components
 
 ### gRPC Client
+
 - Maintains connection to backend
 - Handles reconnection with exponential backoff
 - Manages bidirectional streaming
 
 ### Workspace Manager
+
 - Creates isolated directories for each job
 - Handles cleanup after job completion
 - Manages concurrent workspaces
 
 ### Claude Code Client
+
 - Invokes Claude Code CLI or API
 - Streams output to backend
 - Handles timeouts and errors
 
 ### Git Manager
+
 - Clones repositories with credentials
 - Creates and switches branches
 - Commits and pushes changes
 
 ### Verification Pipeline
+
 - Runs build commands (npm run build, etc.)
 - Runs test commands (npm test, etc.)
 - Runs lint commands (npm run lint, etc.)
@@ -159,19 +164,23 @@ sequenceDiagram
 ## Correctness Properties
 
 ### Property 1: Workspace Isolation
-*For any* two concurrent jobs, each job SHALL have its own isolated workspace directory.
+
+_For any_ two concurrent jobs, each job SHALL have its own isolated workspace directory.
 **Validates: Requirements 2.1**
 
 ### Property 2: Cleanup Guarantee
-*For any* job completion (success or failure), the workspace SHALL be cleaned up.
+
+_For any_ job completion (success or failure), the workspace SHALL be cleaned up.
 **Validates: Requirements 2.3**
 
 ### Property 3: Log Streaming
-*For any* output from Claude Code, the agent SHALL stream it to the backend within 1 second.
+
+_For any_ output from Claude Code, the agent SHALL stream it to the backend within 1 second.
 **Validates: Requirements 1.4**
 
 ### Property 4: Health Check Response
-*For any* health check request, the agent SHALL respond within 5 seconds.
+
+_For any_ health check request, the agent SHALL respond within 5 seconds.
 **Validates: Requirements 6.1**
 
 ## Error Handling

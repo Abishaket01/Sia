@@ -7,6 +7,7 @@ This design document describes the architecture for integrating Temporal.io as t
 The key architectural decision is to use Temporal workflows to orchestrate task execution while leveraging the existing gRPC-based Agent communication. Temporal provides durability, automatic retries, and workflow state management, while the Agent continues to perform actual task execution on client machines.
 
 The system incorporates robust resilience patterns:
+
 - **Heartbeat Monitoring**: Activities are configured with heartbeat timeouts to detect unresponsive agents
 - **Orphan Job Detection**: Periodic checks identify jobs whose workflows have crashed or terminated unexpectedly
 - **Automatic Recovery**: Orphan and stuck jobs are automatically returned to the queue for retry
@@ -23,20 +24,20 @@ flowchart TB
         DB[(PostgreSQL)]
         WS[WebSocket Manager]
     end
-    
+
     subgraph "Temporal Cloud/Server"
         TS[Temporal Service]
         TQ[Task Queue]
     end
-    
+
     subgraph "Client Machine"
         AG[Agent<br/>gRPC Server]
     end
-    
+
     subgraph "Frontend"
         UI[Web UI]
     end
-    
+
     API -->|Schedule Workflow| TC
     TC -->|Start Workflow| TS
     TS -->|Queue Tasks| TQ
@@ -62,26 +63,26 @@ sequenceDiagram
     participant AG as Agent (gRPC)
     participant DB as Database
     participant UI as Web UI
-    
+
     Note over SCH,QM: Periodic trigger (every 30s)
-    
+
     SCH->>QM: Trigger queue monitor
     QM->>DB: Check for stuck/orphan jobs
     QM->>DB: Check agent status & in-progress jobs
     QM->>DB: Claim next job (atomic)
-    
+
     alt Job claimed
         QM->>JE: Execute child workflow
         JE->>TW: Execute sendCommandToAgent
         TW->>AG: gRPC ExecuteJob (streaming)
-        
+
         loop Log Streaming with Heartbeat
             AG-->>TW: LogMessage
             TW->>DB: Persist log
             TW->>UI: WebSocket broadcast
             Note over TW: Heartbeat sent to Temporal
         end
-        
+
         AG-->>TW: Execution complete
         TW->>AG: gRPC RunVerification
         TW->>AG: gRPC CreatePR (if repo)
@@ -122,20 +123,20 @@ sequenceDiagram
     participant DB as Database
     participant ASM as Agent Stream Manager
     participant AG as Agent
-    
+
     SCH->>HCW: Trigger health check
     HCW->>DB: Get agent info
-    
+
     alt Agent active
         HCW->>ASM: Send ping via stream
         ASM->>AG: HEALTH_CHECK_PING
-        
+
         alt Agent responds
             AG-->>ASM: Update lastActive
             HCW->>DB: Reset failure count
         else No response (5s timeout)
             HCW->>DB: Increment failure count
-            
+
             alt 3+ consecutive failures
                 HCW->>DB: Mark agent offline
                 HCW->>SCH: Pause schedules
@@ -268,7 +269,12 @@ interface SendCommandToAgentActivity {
   sendCommandToAgent(params: {
     jobId: string;
     orgId: string;
-    command: 'startExecution' | 'waitForCompletion' | 'runVerification' | 'createPR' | 'cleanup';
+    command:
+      | 'startExecution'
+      | 'waitForCompletion'
+      | 'runVerification'
+      | 'createPR'
+      | 'cleanup';
     payload?: any;
   }): Promise<any>;
 }
@@ -351,8 +357,15 @@ interface TemporalWorkerConfig {
 const bundlerOptions = {
   ignoreModules: [
     '@temporalio/client',
-    'events', 'net', 'dns', 'tls', 'crypto',
-    'path', 'fs', 'stream', 'string_decoder',
+    'events',
+    'net',
+    'dns',
+    'tls',
+    'crypto',
+    'path',
+    'fs',
+    'stream',
+    'string_decoder',
     'pg-native',
   ],
 };
@@ -463,8 +476,8 @@ interface AgentClient {
 ```typescript
 // Addition to existing jobs table - new column
 interface JobTemporalFields {
-  temporalWorkflowId: string | null;  // Temporal workflow ID
-  temporalRunId: string | null;       // Temporal run ID
+  temporalWorkflowId: string | null; // Temporal workflow ID
+  temporalRunId: string | null; // Temporal run ID
 }
 
 // New table for tracking queue execution state
@@ -494,126 +507,156 @@ interface WorkflowState {
 
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+_A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
 
 ### Property 1: Workflow Creation Round-Trip
-*For any* job that transitions to 'queued' status, if workflow creation succeeds, then the job record SHALL contain a valid Temporal workflow ID.
+
+_For any_ job that transitions to 'queued' status, if workflow creation succeeds, then the job record SHALL contain a valid Temporal workflow ID.
 **Validates: Requirements 1.1, 1.4**
 
 ### Property 2: Workflow Parameters Completeness
-*For any* Temporal workflow creation, the workflow input SHALL contain a valid jobId, orgId, and orderInQueue value.
+
+_For any_ Temporal workflow creation, the workflow input SHALL contain a valid jobId, orgId, and orderInQueue value.
 **Validates: Requirements 1.2**
 
 ### Property 3: Sequential Execution Order
-*For any* set of queued tasks for an organization, tasks SHALL execute in ascending `orderInQueue` order, meaning a task with orderInQueue N completes before a task with orderInQueue M starts (where N < M).
+
+_For any_ set of queued tasks for an organization, tasks SHALL execute in ascending `orderInQueue` order, meaning a task with orderInQueue N completes before a task with orderInQueue M starts (where N < M).
 **Validates: Requirements 2.1**
 
 ### Property 4: Queue Continuation After Completion
-*For any* task that completes (success, failure, or cancellation), if there are remaining queued tasks for the organization, the next task in queue order SHALL be triggered for execution.
+
+_For any_ task that completes (success, failure, or cancellation), if there are remaining queued tasks for the organization, the next task in queue order SHALL be triggered for execution.
 **Validates: Requirements 2.2, 5.4, 6.4**
 
 ### Property 5: Single Execution Per Organization
-*For any* organization at any point in time, at most one task SHALL be in 'in-progress' status.
+
+_For any_ organization at any point in time, at most one task SHALL be in 'in-progress' status.
 **Validates: Requirements 2.4**
 
 ### Property 6: Non-Preemptive Queuing
-*For any* new task added while another task is executing for the same organization, the new task SHALL be queued and not interrupt the executing task.
+
+_For any_ new task added while another task is executing for the same organization, the new task SHALL be queued and not interrupt the executing task.
 **Validates: Requirements 2.3**
 
 ### Property 7: gRPC Activity Invocation
-*For any* task execution activity, the activity SHALL invoke the Agent's ExecuteJob gRPC method with the correct jobId and prompt.
+
+_For any_ task execution activity, the activity SHALL invoke the Agent's ExecuteJob gRPC method with the correct jobId and prompt.
 **Validates: Requirements 3.1**
 
 ### Property 8: Activity Result Propagation
-*For any* completed Agent execution, the activity SHALL return the execution result (success/failure and logs) to the workflow.
+
+_For any_ completed Agent execution, the activity SHALL return the execution result (success/failure and logs) to the workflow.
 **Validates: Requirements 3.3**
 
 ### Property 9: Log Streaming Persistence
-*For any* log message streamed from the Agent during execution, the log SHALL be persisted to the database with the correct jobId and timestamp.
+
+_For any_ log message streamed from the Agent during execution, the log SHALL be persisted to the database with the correct jobId and timestamp.
 **Validates: Requirements 4.1, 5.3**
 
 ### Property 10: Log Streaming Broadcast
-*For any* log message streamed from the Agent, if there are WebSocket subscribers for that job, the log SHALL be broadcast to all subscribers.
+
+_For any_ log message streamed from the Agent, if there are WebSocket subscribers for that job, the log SHALL be broadcast to all subscribers.
 **Validates: Requirements 4.2**
 
 ### Property 11: Stage Change Events
-*For any* task stage transition, a stage-change event SHALL be emitted to subscribers containing the new stage name.
+
+_For any_ task stage transition, a stage-change event SHALL be emitted to subscribers containing the new stage name.
 **Validates: Requirements 4.4**
 
 ### Property 12: Failure Status Update
-*For any* task that fails after exhausting retries, the job status SHALL be updated to 'failed'.
+
+_For any_ task that fails after exhausting retries, the job status SHALL be updated to 'failed'.
 **Validates: Requirements 5.2**
 
 ### Property 13: Cancellation Signal Propagation
-*For any* cancellation request, the system SHALL signal the Temporal workflow to cancel.
+
+_For any_ cancellation request, the system SHALL signal the Temporal workflow to cancel.
 **Validates: Requirements 6.1**
 
 ### Property 14: Cancellation gRPC Invocation
-*For any* workflow that receives a cancellation signal, the workflow SHALL invoke the Agent's CancelJob gRPC method.
+
+_For any_ workflow that receives a cancellation signal, the workflow SHALL invoke the Agent's CancelJob gRPC method.
 **Validates: Requirements 6.2**
 
 ### Property 15: Cancellation Status Update
-*For any* cancelled task, the job status SHALL be updated to 'failed' with a cancellation indicator.
+
+_For any_ cancelled task, the job status SHALL be updated to 'failed' with a cancellation indicator.
 **Validates: Requirements 6.3**
 
 ### Property 16: Queue Status Completeness
-*For any* queue status request, the response SHALL include all queued tasks with their positions, priorities, and the currently executing task if one exists.
+
+_For any_ queue status request, the response SHALL include all queued tasks with their positions, priorities, and the currently executing task if one exists.
 **Validates: Requirements 8.1, 8.3**
 
 ### Property 17: Workflow Status Query
-*For any* workflow status request, the system SHALL query Temporal and return the current workflow execution state.
+
+_For any_ workflow status request, the system SHALL query Temporal and return the current workflow execution state.
 **Validates: Requirements 8.2**
 
 ### Property 18: Heartbeat Timeout Configuration
-*For any* job execution activity, the activity SHALL be configured with a heartbeat timeout of 5 minutes.
+
+_For any_ job execution activity, the activity SHALL be configured with a heartbeat timeout of 5 minutes.
 **Validates: Requirements 9.1, 9.4**
 
 ### Property 19: Orphan Job Detection
-*For any* job in 'in-progress' status, if the associated Temporal workflow is not running, the system SHALL identify it as an orphan job.
+
+_For any_ job in 'in-progress' status, if the associated Temporal workflow is not running, the system SHALL identify it as an orphan job.
 **Validates: Requirements 10.1, 10.2**
 
 ### Property 20: Orphan Job Queue Recovery
-*For any* orphan job with a queue type, the system SHALL return the job to the end of its original queue with the next available position.
+
+_For any_ orphan job with a queue type, the system SHALL return the job to the end of its original queue with the next available position.
 **Validates: Requirements 10.3, 10.5**
 
 ### Property 21: Orphan Job Failure Marking
-*For any* orphan job without a queue type, the system SHALL mark the job as 'failed'.
+
+_For any_ orphan job without a queue type, the system SHALL mark the job as 'failed'.
 **Validates: Requirements 10.4**
 
 ### Property 22: Stuck Job Detection
-*For any* job in 'in-progress' status that has not been updated within the stuck threshold (default 60 minutes), the system SHALL consider it stuck.
+
+_For any_ job in 'in-progress' status that has not been updated within the stuck threshold (default 60 minutes), the system SHALL consider it stuck.
 **Validates: Requirements 11.1, 11.2**
 
 ### Property 23: Agent Health Check Ping
-*For any* active agent, when a health check is triggered, the system SHALL send a ping message via the agent's stream connection.
+
+_For any_ active agent, when a health check is triggered, the system SHALL send a ping message via the agent's stream connection.
 **Validates: Requirements 12.1**
 
 ### Property 24: Agent Health Check Success
-*For any* agent that responds to a health check ping, the system SHALL reset the agent's consecutive failure count to zero.
+
+_For any_ agent that responds to a health check ping, the system SHALL reset the agent's consecutive failure count to zero.
 **Validates: Requirements 12.2**
 
 ### Property 25: Agent Health Check Failure Tracking
-*For any* agent that fails to respond to a health check, the system SHALL increment the agent's consecutive failure count.
+
+_For any_ agent that fails to respond to a health check, the system SHALL increment the agent's consecutive failure count.
 **Validates: Requirements 12.3**
 
 ### Property 26: Agent Offline Detection
-*For any* agent with three or more consecutive health check failures, the system SHALL mark the agent as 'offline'.
+
+_For any_ agent with three or more consecutive health check failures, the system SHALL mark the agent as 'offline'.
 **Validates: Requirements 12.4**
 
 ### Property 27: Agent Schedule Pausing
-*For any* agent marked as offline, the system SHALL pause the agent's queue monitoring and health check schedules.
+
+_For any_ agent marked as offline, the system SHALL pause the agent's queue monitoring and health check schedules.
 **Validates: Requirements 12.5**
 
 ### Property 28: Atomic Job Claiming
-*For any* job claim operation, the system SHALL atomically remove the job from the queue and mark it as 'in-progress' to prevent race conditions.
+
+_For any_ job claim operation, the system SHALL atomically remove the job from the queue and mark it as 'in-progress' to prevent race conditions.
 **Validates: Requirements 13.2, 13.3**
 
 ### Property 29: Queue Priority Order
-*For any* queue monitor execution, the system SHALL check the rework queue before the backlog queue.
+
+_For any_ queue monitor execution, the system SHALL check the rework queue before the backlog queue.
 **Validates: Requirements 13.4**
 
 ### Property 30: Single Job Per Agent
-*For any* agent with a job already in progress, the queue monitor SHALL skip processing for that agent.
+
+_For any_ agent with a job already in progress, the queue monitor SHALL skip processing for that agent.
 **Validates: Requirements 13.5**
 
 ## Error Handling
@@ -654,17 +697,20 @@ const healthCheckActivityOptions = {
 ### Error Categories
 
 1. **Transient Errors** (Retryable)
+
    - gRPC connection failures
    - Temporal service unavailability
    - Database connection issues
 
 2. **Permanent Errors** (Non-Retryable)
+
    - Job not found
    - Agent not found
    - Invalid job state
    - Credentials failure
 
 3. **Agent Errors**
+
    - Build failures (logged and job marked failed)
    - Execution timeouts (heartbeat timeout triggers retry)
    - Verification failures (job marked failed)
@@ -688,7 +734,7 @@ flowchart TD
     G --> C
     F --> H[Log Error Details]
     H --> I[Job Available for Retry]
-    
+
     J[Queue Monitor Runs] --> K[detectStuckJobs]
     K --> L{Orphan Jobs Found?}
     L -->|Yes| M{Has Queue Type?}
@@ -713,6 +759,7 @@ The job execution workflow includes comprehensive error handling:
 The system will use **fast-check** as the property-based testing library for TypeScript/JavaScript.
 
 Each property-based test MUST:
+
 - Be annotated with the format: `**Feature: temporal-task-queue, Property {number}: {property_text}**`
 - Run a minimum of 100 iterations
 - Use smart generators that constrain inputs to valid states
@@ -720,6 +767,7 @@ Each property-based test MUST:
 ### Unit Tests
 
 Unit tests will cover:
+
 - Temporal client service methods
 - Activity implementations
 - Queue management service
@@ -728,6 +776,7 @@ Unit tests will cover:
 ### Integration Tests
 
 Integration tests will verify:
+
 - End-to-end workflow execution
 - gRPC communication with mock Agent
 - Database state transitions

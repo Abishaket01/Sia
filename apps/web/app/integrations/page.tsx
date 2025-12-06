@@ -1,42 +1,62 @@
-"use client"
+'use client';
 
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import Image from 'next/image'
-import { StatusBadge } from '@/components/status-badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { api } from '@/lib/api'
-import { ExternalLink, Eye, EyeOff } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
-import { useAuthInfo } from '@propelauth/react'
-import type { RepoProvider } from '@sia/models'
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Image from 'next/image';
+import { StatusBadge } from '@/components/status-badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { api } from '@/lib/api';
+import { ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { useAuthInfo } from '@propelauth/react';
+import type { RepoProvider } from '@sia/models';
 
-
-const supportedIntegrations = ['slack', 'github', 'cursor', 'claude-code', 'kiro-cli']
-const comingSoonIntegrations = ['discord', 'linear', 'gitlab']
+const supportedIntegrations = [
+  'slack',
+  'github',
+  'cursor',
+  'claude-code',
+  'kiro-cli',
+];
+const comingSoonIntegrations = ['discord', 'linear', 'gitlab'];
 
 export default function Integrations() {
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
-  const authInfo = useAuthInfo()
-  const { isLoggedIn } = authInfo
-  const [connectingId, setConnectingId] = useState<string | null>(null)
-  const [progress, setProgress] = useState(0)
-  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false)
-  const [apiKeyIntegrationId, setApiKeyIntegrationId] = useState<string | null>(null)
-  const [apiKey, setApiKey] = useState('')
-  const [apiKeyName, setApiKeyName] = useState('')
-  const [savingApiKey, setSavingApiKey] = useState(false)
-  const [showApiKey, setShowApiKey] = useState(false)
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const authInfo = useAuthInfo();
+  const { isLoggedIn } = authInfo;
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [apiKeyIntegrationId, setApiKeyIntegrationId] = useState<string | null>(
+    null
+  );
+  const [apiKey, setApiKey] = useState('');
+  const [apiKeyName, setApiKeyName] = useState('');
+  const [savingApiKey, setSavingApiKey] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   const { data: integrations = [] } = useQuery({
     queryKey: ['integrations'],
     queryFn: api.getIntegrations,
-  })
+  });
 
   const { data: githubProviders = [] } = useQuery<RepoProvider[]>({
     queryKey: ['githubProviders'],
@@ -44,7 +64,7 @@ export default function Integrations() {
     enabled: isLoggedIn === true,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
-  })
+  });
 
   interface SlackProvider {
     id: string;
@@ -59,7 +79,7 @@ export default function Integrations() {
     enabled: isLoggedIn === true,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
-  })
+  });
 
   interface IntegrationSecret {
     id: string;
@@ -75,58 +95,67 @@ export default function Integrations() {
     enabled: isLoggedIn === true,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
-  })
+  });
 
   const toggleMutation = useMutation({
     mutationFn: api.toggleIntegration,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['integrations'] })
-      setConnectingId(null)
-      setProgress(0)
+    onSuccess: data => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      setConnectingId(null);
+      setProgress(0);
       toast({
-        title: data?.status === 'connected' ? 'Integration connected' : 'Integration disconnected',
-        description: `${data?.name} has been ${data?.status === 'connected' ? 'connected' : 'disconnected'} successfully`,
-      })
+        title:
+          data?.status === 'connected'
+            ? 'Integration connected'
+            : 'Integration disconnected',
+        description: `${data?.name} has been ${
+          data?.status === 'connected' ? 'connected' : 'disconnected'
+        } successfully`,
+      });
     },
-  })
+  });
 
   const disconnectGitHubMutation = useMutation({
     mutationFn: api.disconnectGitHubProvider,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['githubProviders'] })
-      queryClient.invalidateQueries({ queryKey: ['integrations'] })
+      queryClient.invalidateQueries({ queryKey: ['githubProviders'] });
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
       toast({
         title: 'GitHub disconnected',
         description: 'GitHub integration has been disconnected successfully',
-      })
+      });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to disconnect GitHub',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to disconnect GitHub',
         variant: 'destructive',
-      })
+      });
     },
-  })
+  });
 
   const disconnectSlackMutation = useMutation({
     mutationFn: api.disconnectSlackProvider,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['slackProviders'] })
-      queryClient.invalidateQueries({ queryKey: ['integrations'] })
+      queryClient.invalidateQueries({ queryKey: ['slackProviders'] });
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
       toast({
         title: 'Slack disconnected',
         description: 'Slack integration has been disconnected successfully',
-      })
+      });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to disconnect Slack',
+        description:
+          error instanceof Error ? error.message : 'Failed to disconnect Slack',
         variant: 'destructive',
-      })
+      });
     },
-  })
+  });
 
   const handleSaveApiKey = async () => {
     if (!apiKeyIntegrationId || !apiKey.trim()) {
@@ -134,8 +163,8 @@ export default function Integrations() {
         title: 'Error',
         description: 'Please enter a valid API key',
         variant: 'destructive',
-      })
-      return
+      });
+      return;
     }
 
     if (!apiKeyName.trim()) {
@@ -143,114 +172,120 @@ export default function Integrations() {
         title: 'Error',
         description: 'Please enter a name/label for this API key',
         variant: 'destructive',
-      })
-      return
+      });
+      return;
     }
 
-    setSavingApiKey(true)
+    setSavingApiKey(true);
     try {
       await api.storeIntegrationSecret({
         providerType: apiKeyIntegrationId,
         name: apiKeyName.trim(),
         apiKey: apiKey.trim(),
-      })
-      
-      queryClient.invalidateQueries({ queryKey: ['integrations'] })
-      queryClient.invalidateQueries({ queryKey: ['integrationSecrets'] })
-      
-      setApiKeyDialogOpen(false)
-      setApiKey('')
-      setApiKeyName('')
-      setApiKeyIntegrationId(null)
-      
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['integrationSecrets'] });
+
+      setApiKeyDialogOpen(false);
+      setApiKey('');
+      setApiKeyName('');
+      setApiKeyIntegrationId(null);
+
       toast({
         title: 'API key saved',
         description: 'Your API key has been saved successfully',
-      })
+      });
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save API key',
+        description:
+          error instanceof Error ? error.message : 'Failed to save API key',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setSavingApiKey(false)
+      setSavingApiKey(false);
     }
-  }
+  };
 
   const handleConnect = async (id: string) => {
-    const integration = integrations.find(i => i.id === id)
-    if (!integration) return
+    const integration = integrations.find(i => i.id === id);
+    if (!integration) return;
 
-    const isConnected = isIntegrationConnected(id)
+    const isConnected = isIntegrationConnected(id);
 
     // Check if this is a vibe coding platform that requires API key
-    const vibePlatforms = ['cursor', 'claude-code', 'kiro-cli']
+    const vibePlatforms = ['cursor', 'claude-code', 'kiro-cli'];
     if (vibePlatforms.includes(id)) {
       // If already connected, disconnect by deleting the stored secret
       if (isConnected) {
-        const secret = integrationSecrets.find((s: IntegrationSecret) => s.providerType === id)
+        const secret = integrationSecrets.find(
+          (s: IntegrationSecret) => s.providerType === id
+        );
         if (!secret) {
           toast({
             title: 'Error',
             description: 'No API key found to disconnect for this integration.',
             variant: 'destructive',
-          })
-          return
+          });
+          return;
         }
 
         try {
-          await api.deleteIntegrationSecret(secret.id)
-          queryClient.invalidateQueries({ queryKey: ['integrationSecrets'] })
-          queryClient.invalidateQueries({ queryKey: ['integrations'] })
+          await api.deleteIntegrationSecret(secret.id);
+          queryClient.invalidateQueries({ queryKey: ['integrationSecrets'] });
+          queryClient.invalidateQueries({ queryKey: ['integrations'] });
           toast({
             title: 'Integration disconnected',
             description: `${integration.name} has been disconnected successfully`,
-          })
+          });
         } catch (error) {
           toast({
             title: 'Error',
-            description: error instanceof Error ? error.message : 'Failed to disconnect integration',
+            description:
+              error instanceof Error
+                ? error.message
+                : 'Failed to disconnect integration',
             variant: 'destructive',
-          })
+          });
         }
-        return
+        return;
       }
-      
+
       // Show API key dialog to connect
-      setApiKeyIntegrationId(id)
-      setApiKeyDialogOpen(true)
-      return
+      setApiKeyIntegrationId(id);
+      setApiKeyDialogOpen(true);
+      return;
     }
 
     // Handle GitHub disconnect
     if (id === 'github' && githubProviders.length > 0) {
-      const provider = githubProviders[0]
-      disconnectGitHubMutation.mutate(provider.id)
-      return
+      const provider = githubProviders[0];
+      disconnectGitHubMutation.mutate(provider.id);
+      return;
     }
 
     // Handle Slack disconnect
     if (id === 'slack' && slackProviders.length > 0) {
-      const provider = slackProviders[0]
-      disconnectSlackMutation.mutate(provider.id)
-      return
+      const provider = slackProviders[0];
+      disconnectSlackMutation.mutate(provider.id);
+      return;
     }
 
     if (integration.status === 'connected') {
-      toggleMutation.mutate(id)
-      return
+      toggleMutation.mutate(id);
+      return;
     }
 
     // Handle GitHub integration
     if (id === 'github') {
-      setConnectingId(id)
-      setProgress(20)
+      setConnectingId(id);
+      setProgress(20);
 
       try {
-        setProgress(50)
-        const redirectUrl = await api.connectGitHub()
-        setProgress(80)
+        setProgress(50);
+        const redirectUrl = await api.connectGitHub();
+        setProgress(80);
 
         if (process.env.NODE_ENV === 'development') {
           console.log('[Integrations] Redirect URL received:', redirectUrl);
@@ -260,131 +295,149 @@ export default function Integrations() {
           throw new Error('No redirect URL received from server');
         }
 
-        setProgress(100)
-        
+        setProgress(100);
+
         if (process.env.NODE_ENV === 'development') {
           console.log('[Integrations] Redirecting to:', redirectUrl);
         }
-        
+
         window.location.replace(redirectUrl);
       } catch (error) {
-        console.error('Failed to connect GitHub:', error)
+        console.error('Failed to connect GitHub:', error);
         toast({
           title: 'Error',
-          description: error instanceof Error ? error.message : 'Failed to initiate GitHub connection',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Failed to initiate GitHub connection',
           variant: 'destructive',
-        })
-        setConnectingId(null)
+        });
+        setConnectingId(null);
       }
-      return
+      return;
     }
 
     // Handle Slack integration
     if (id === 'slack') {
-      setConnectingId(id)
-      setProgress(20)
+      setConnectingId(id);
+      setProgress(20);
 
       try {
-        setProgress(50)
-        const redirectUrl = await api.connectSlack()
-        setProgress(80)
+        setProgress(50);
+        const redirectUrl = await api.connectSlack();
+        setProgress(80);
 
         if (process.env.NODE_ENV === 'development') {
-          console.log('[Integrations] Slack redirect URL received:', redirectUrl);
+          console.log(
+            '[Integrations] Slack redirect URL received:',
+            redirectUrl
+          );
         }
 
         if (!redirectUrl) {
           throw new Error('No redirect URL received from server');
         }
 
-        setProgress(100)
-        
+        setProgress(100);
+
         if (process.env.NODE_ENV === 'development') {
           console.log('[Integrations] Redirecting to Slack:', redirectUrl);
         }
-        
+
         window.location.replace(redirectUrl);
       } catch (error) {
-        console.error('Failed to connect Slack:', error)
+        console.error('Failed to connect Slack:', error);
         toast({
           title: 'Error',
-          description: error instanceof Error ? error.message : 'Failed to initiate Slack connection',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Failed to initiate Slack connection',
           variant: 'destructive',
-        })
-        setConnectingId(null)
+        });
+        setConnectingId(null);
       }
-      return
+      return;
     }
 
     // Simulate OAuth flow for other integrations
-    setConnectingId(id)
-    setProgress(0)
+    setConnectingId(id);
+    setProgress(0);
 
     const interval = setInterval(() => {
-      setProgress((prev) => {
+      setProgress(prev => {
         if (prev >= 90) {
-          clearInterval(interval)
-          return prev
+          clearInterval(interval);
+          return prev;
         }
-        return prev + 10
-      })
-    }, 100)
+        return prev + 10;
+      });
+    }, 100);
 
     setTimeout(() => {
-      clearInterval(interval)
-      setProgress(100)
+      clearInterval(interval);
+      setProgress(100);
       setTimeout(() => {
-        toggleMutation.mutate(id)
-      }, 500)
-    }, 1500)
-  }
+        toggleMutation.mutate(id);
+      }, 500);
+    }, 1500);
+  };
 
   const getIntegrationById = (id: string) => {
-    return integrations.find(i => i.id === id)
-  }
+    return integrations.find(i => i.id === id);
+  };
 
   const isIntegrationConnected = (id: string) => {
     if (id === 'github') {
-      return githubProviders.length > 0
+      return githubProviders.length > 0;
     }
     if (id === 'slack') {
-      return slackProviders.length > 0
+      return slackProviders.length > 0;
     }
     // Check if there's an integration secret for API key-based integrations
-    const vibePlatforms = ['cursor', 'claude-code', 'kiro-cli']
+    const vibePlatforms = ['cursor', 'claude-code', 'kiro-cli'];
     if (vibePlatforms.includes(id)) {
-      return integrationSecrets.length > 0 && integrationSecrets.some((secret: IntegrationSecret) => secret.providerType === id)
+      return (
+        integrationSecrets.length > 0 &&
+        integrationSecrets.some(
+          (secret: IntegrationSecret) => secret.providerType === id
+        )
+      );
     }
-    const integration = getIntegrationById(id)
-    return integration?.status === 'connected'
-  }
+    const integration = getIntegrationById(id);
+    return integration?.status === 'connected';
+  };
 
   const supportedIntegrationsList = supportedIntegrations
     .map(id => getIntegrationById(id))
-    .filter(Boolean)
+    .filter(Boolean);
 
   const comingSoonIntegrationsList = comingSoonIntegrations
     .map(id => getIntegrationById(id))
-    .filter(Boolean)
+    .filter(Boolean);
 
-  const renderIntegrationCard = (integration: NonNullable<ReturnType<typeof getIntegrationById>>) => {
-    const isGitHub = integration.id === 'github'
-    const isSlack = integration.id === 'slack'
-    const isCursor = integration.id === 'cursor'
-    const isClaudeCode = integration.id === 'claude-code'
-    const isKiroCli = integration.id === 'kiro-cli'
-    const isLinear = integration.id === 'linear'
-    const isDiscord = integration.id === 'discord'
-    const isGitLab = integration.id === 'gitlab'
-    const vibePlatforms = ['cursor', 'claude-code', 'kiro-cli']
-    const isVibePlatform = vibePlatforms.includes(integration.id)
-    const githubProvider = isGitHub ? githubProviders[0] : null
-    const slackProvider = isSlack ? slackProviders[0] : null
-    const isConnected = isIntegrationConnected(integration.id)
-    const isComingSoon = comingSoonIntegrations.includes(integration.id)
+  const renderIntegrationCard = (
+    integration: NonNullable<ReturnType<typeof getIntegrationById>>
+  ) => {
+    const isGitHub = integration.id === 'github';
+    const isSlack = integration.id === 'slack';
+    const isCursor = integration.id === 'cursor';
+    const isClaudeCode = integration.id === 'claude-code';
+    const isKiroCli = integration.id === 'kiro-cli';
+    const isLinear = integration.id === 'linear';
+    const isDiscord = integration.id === 'discord';
+    const isGitLab = integration.id === 'gitlab';
+    const vibePlatforms = ['cursor', 'claude-code', 'kiro-cli'];
+    const isVibePlatform = vibePlatforms.includes(integration.id);
+    const githubProvider = isGitHub ? githubProviders[0] : null;
+    const slackProvider = isSlack ? slackProviders[0] : null;
+    const isConnected = isIntegrationConnected(integration.id);
+    const isComingSoon = comingSoonIntegrations.includes(integration.id);
     const integrationSecret = isVibePlatform
-      ? integrationSecrets.find((secret: IntegrationSecret) => secret.providerType === integration.id)
-      : null
+      ? integrationSecrets.find(
+          (secret: IntegrationSecret) => secret.providerType === integration.id
+        )
+      : null;
 
     const renderIcon = () => {
       if (isGitHub) {
@@ -396,7 +449,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isSlack) {
         return (
@@ -407,7 +460,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isCursor) {
         return (
@@ -418,7 +471,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isClaudeCode) {
         return (
@@ -429,7 +482,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isKiroCli) {
         return (
@@ -440,7 +493,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isLinear) {
         return (
@@ -451,7 +504,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isDiscord) {
         return (
@@ -462,7 +515,7 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
       if (isGitLab) {
         return (
@@ -473,10 +526,10 @@ export default function Integrations() {
             height={24}
             className="h-6 w-6"
           />
-        )
+        );
       }
-      return null
-    }
+      return null;
+    };
 
     return (
       <Card key={integration.id}>
@@ -487,7 +540,9 @@ export default function Integrations() {
                 {renderIcon()}
                 {integration.name}
               </CardTitle>
-              <StatusBadge status={isConnected ? 'connected' : integration.status} />
+              <StatusBadge
+                status={isConnected ? 'connected' : integration.status}
+              />
             </div>
           </div>
         </CardHeader>
@@ -499,21 +554,25 @@ export default function Integrations() {
             <div className="text-sm space-y-1 pt-2 border-t">
               <p className="text-muted-foreground">
                 Connected key:{' '}
-                <span className="font-medium">
-                  {integrationSecret.name}
-                </span>
+                <span className="font-medium">{integrationSecret.name}</span>
               </p>
             </div>
           )}
           {isGitHub && isConnected && githubProvider && (
             <div className="text-sm space-y-1 pt-2 border-t">
               <p className="text-muted-foreground">
-                Connected to: <span className="font-medium">{githubProvider.description || githubProvider.name}</span>
+                Connected to:{' '}
+                <span className="font-medium">
+                  {githubProvider.description || githubProvider.name}
+                </span>
               </p>
               {(() => {
-                const installationId = githubProvider.metadata && typeof githubProvider.metadata === 'object' && 'installation_id' in githubProvider.metadata 
-                  ? String(githubProvider.metadata.installation_id) 
-                  : null;
+                const installationId =
+                  githubProvider.metadata &&
+                  typeof githubProvider.metadata === 'object' &&
+                  'installation_id' in githubProvider.metadata
+                    ? String(githubProvider.metadata.installation_id)
+                    : null;
                 return installationId ? (
                   <a
                     href={`https://github.com/settings/installations/${installationId}`}
@@ -530,7 +589,10 @@ export default function Integrations() {
           {isSlack && isConnected && slackProvider && (
             <div className="text-sm space-y-1 pt-2 border-t">
               <p className="text-muted-foreground">
-                Connected to: <span className="font-medium">{slackProvider.name || 'Slack Workspace'}</span>
+                Connected to:{' '}
+                <span className="font-medium">
+                  {slackProvider.name || 'Slack Workspace'}
+                </span>
               </p>
               {slackProvider.management_url && (
                 <a
@@ -558,7 +620,7 @@ export default function Integrations() {
             <Button
               onClick={() => handleConnect(integration.id)}
               disabled={
-                toggleMutation.isPending || 
+                toggleMutation.isPending ||
                 connectingId === integration.id ||
                 (isGitHub && disconnectGitHubMutation.isPending) ||
                 (isSlack && disconnectSlackMutation.isPending)
@@ -571,8 +633,8 @@ export default function Integrations() {
           )}
         </CardContent>
       </Card>
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -586,7 +648,9 @@ export default function Integrations() {
       {supportedIntegrationsList.length > 0 && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {supportedIntegrationsList.map(integration => integration && renderIntegrationCard(integration))}
+            {supportedIntegrationsList.map(
+              integration => integration && renderIntegrationCard(integration)
+            )}
           </div>
         </div>
       )}
@@ -599,9 +663,11 @@ export default function Integrations() {
               Integrations we&apos;re working on
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {comingSoonIntegrationsList.map(integration => integration && renderIntegrationCard(integration))}
+            {comingSoonIntegrationsList.map(
+              integration => integration && renderIntegrationCard(integration)
+            )}
           </div>
         </div>
       )}
@@ -610,7 +676,11 @@ export default function Integrations() {
       <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Connect {apiKeyIntegrationId && getIntegrationById(apiKeyIntegrationId)?.name}</DialogTitle>
+            <DialogTitle>
+              Connect{' '}
+              {apiKeyIntegrationId &&
+                getIntegrationById(apiKeyIntegrationId)?.name}
+            </DialogTitle>
             <DialogDescription>
               Enter your API key to connect this integration
             </DialogDescription>
@@ -625,7 +695,7 @@ export default function Integrations() {
                 type="text"
                 placeholder="e.g., Production API Key, Personal Key"
                 value={apiKeyName}
-                onChange={(e) => setApiKeyName(e.target.value)}
+                onChange={e => setApiKeyName(e.target.value)}
                 disabled={savingApiKey}
               />
               <p className="text-xs text-muted-foreground">
@@ -642,7 +712,7 @@ export default function Integrations() {
                   type={showApiKey ? 'text' : 'password'}
                   placeholder="Enter your API key"
                   value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  onChange={e => setApiKey(e.target.value)}
                   disabled={savingApiKey}
                   className="pr-10"
                 />
@@ -666,10 +736,10 @@ export default function Integrations() {
             <Button
               variant="outline"
               onClick={() => {
-                setApiKeyDialogOpen(false)
-                setApiKey('')
-                setApiKeyName('')
-                setApiKeyIntegrationId(null)
+                setApiKeyDialogOpen(false);
+                setApiKey('');
+                setApiKeyName('');
+                setApiKeyIntegrationId(null);
               }}
               disabled={savingApiKey}
             >
@@ -686,7 +756,10 @@ export default function Integrations() {
       </Dialog>
 
       {/* OAuth Flow Dialog */}
-      <Dialog open={connectingId !== null} onOpenChange={() => setConnectingId(null)}>
+      <Dialog
+        open={connectingId !== null}
+        onOpenChange={() => setConnectingId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Connecting Integration</DialogTitle>
@@ -706,5 +779,5 @@ export default function Integrations() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

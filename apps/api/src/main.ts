@@ -8,17 +8,25 @@ import { BackendGrpcServer } from './services/backend-grpc-server';
 
 const fastify = Fastify({
   logger: {
-    transport: process.env.NODE_ENV === 'production' 
-      ? undefined 
-      : {
-          target: resolve(process.cwd(), 'custom-transport.mjs'),
-          options: {},
-        },
+    transport:
+      process.env.NODE_ENV === 'production'
+        ? undefined
+        : {
+            target: resolve(process.cwd(), 'custom-transport.mjs'),
+            options: {},
+          },
     serializers: {
       // Automatically add reqId to all logs if available in the request context
-      req: (req: { id?: string; headers?: Record<string, string | string[] | undefined>; method?: string; url?: string }) => {
+      req: (req: {
+        id?: string;
+        headers?: Record<string, string | string[] | undefined>;
+        method?: string;
+        url?: string;
+      }) => {
         const xRequestId = req.headers?.['x-request-id'];
-        const requestId = Array.isArray(xRequestId) ? xRequestId[0] : xRequestId;
+        const requestId = Array.isArray(xRequestId)
+          ? xRequestId[0]
+          : xRequestId;
         return {
           id: req.id || requestId || 'startup',
           method: req.method,
@@ -26,7 +34,7 @@ const fastify = Fastify({
         };
       },
     },
-    genReqId: (req) => {
+    genReqId: req => {
       // Generate a short request ID
       const xRequestId = req.headers['x-request-id'];
       if (xRequestId) {
@@ -49,10 +57,7 @@ const start = async () => {
     await setupFastify(fastify);
     console.log('Fastify setup complete');
 
-    fastify.get('/', async (
-      _request: FastifyRequest,
-      _reply: FastifyReply
-    ) => {
+    fastify.get('/', async (_request: FastifyRequest, _reply: FastifyReply) => {
       return { hello: 'world' };
     });
 
@@ -67,13 +72,13 @@ const start = async () => {
 
     // Start Temporal worker in background
     if (process.env.ENABLE_TEMPORAL_WORKER !== 'false') {
-      startTemporalWorker().catch((err) => {
+      startTemporalWorker().catch(err => {
         console.error('Failed to start Temporal worker:', err);
         // Don't exit - API can still work without worker
       });
 
       // Initialize queue workflows for all organizations
-      initializeQueueWorkflows().catch((err) => {
+      initializeQueueWorkflows().catch(err => {
         console.error('Failed to initialize queue workflows:', err);
         // Don't exit - workflows can be started manually later
       });
@@ -82,8 +87,12 @@ const start = async () => {
     const port = parseInt(process.env.PORT || '3001', 10);
     await fastify.listen({ port, host: '0.0.0.0' });
     console.log(`\n🚀 Fastify server listening on http://0.0.0.0:${port}`);
-    console.log(`📚 OpenAPI spec available at http://0.0.0.0:${port}/documentation/json`);
-    console.log(`📖 Swagger UI available at http://0.0.0.0:${port}/documentation`);
+    console.log(
+      `📚 OpenAPI spec available at http://0.0.0.0:${port}/documentation/json`
+    );
+    console.log(
+      `📖 Swagger UI available at http://0.0.0.0:${port}/documentation`
+    );
     console.log(`🔌 gRPC server listening on 0.0.0.0:${grpcPort}`);
   } catch (err) {
     fastify.log.error(err);
@@ -93,4 +102,3 @@ const start = async () => {
 };
 
 start();
-

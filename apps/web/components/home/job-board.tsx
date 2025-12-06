@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { JobCard } from '@/components/home/job-card'
-import { mockAgents } from '@/lib/mockData'
-import type { JobResponse } from '@/types'
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { JobCard } from '@/components/home/job-card';
+import { mockAgents } from '@/lib/mockData';
+import type { JobResponse } from '@/types';
 import {
   DndContext,
   DragOverlay,
@@ -17,102 +17,118 @@ import {
   useSensor,
   useSensors,
   closestCenter,
-} from '@dnd-kit/core'
+} from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   arrayMove,
-} from '@dnd-kit/sortable'
-import { toast } from '@/hooks/use-toast'
-import { api } from '@/lib/api'
-import { useReorderJob, useQueueStatus, useToggleQueue } from '@/hooks/use-jobs'
-import { useQueryClient } from '@tanstack/react-query'
-import { useTheme } from 'next-themes'
-import { LaneColumn } from './lane-column'
-import { LANE_DEFINITIONS } from './type'
-import { PrLinkDialog } from './pr-link-dialog'
-import { QueueSelectionDialog } from './queue-selection-dialog'
+} from '@dnd-kit/sortable';
+import { toast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+import {
+  useReorderJob,
+  useQueueStatus,
+  useToggleQueue,
+} from '@/hooks/use-jobs';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTheme } from 'next-themes';
+import { LaneColumn } from './lane-column';
+import { LANE_DEFINITIONS } from './type';
+import { PrLinkDialog } from './pr-link-dialog';
+import { QueueSelectionDialog } from './queue-selection-dialog';
 
-export type LaneId = 'queue' | 'in-progress' | 'in-review' | 'completed' | 'failed'
-
-
+export type LaneId =
+  | 'queue'
+  | 'in-progress'
+  | 'in-review'
+  | 'completed'
+  | 'failed';
 
 const DROP_ANIMATION: DropAnimation = {
   duration: 200,
   easing: 'ease-out',
-}
+};
 
 const isValidGitHubPRLink = (url: string): boolean => {
   try {
-    const parsedUrl = new URL(url)
+    const parsedUrl = new URL(url);
     // Check if it's a GitHub URL
-    if (parsedUrl.hostname !== 'github.com' && !parsedUrl.hostname.endsWith('.github.com')) {
-      return false
+    if (
+      parsedUrl.hostname !== 'github.com' &&
+      !parsedUrl.hostname.endsWith('.github.com')
+    ) {
+      return false;
     }
     // Check if it's a pull request URL (contains /pull/)
-    const pathParts = parsedUrl.pathname.split('/').filter(Boolean)
-    const pullIndex = pathParts.indexOf('pull')
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+    const pullIndex = pathParts.indexOf('pull');
     // Should have: owner, repo, pull, number
-    return pullIndex >= 0 && pullIndex < pathParts.length - 1 && pathParts.length >= 4
+    return (
+      pullIndex >= 0 &&
+      pullIndex < pathParts.length - 1 &&
+      pathParts.length >= 4
+    );
   } catch {
-    return false
+    return false;
   }
-}
-
+};
 
 const groupJobsByLane = (
   jobList: JobResponse[],
   reworkJobIds: Set<string> = new Set()
-): Record<LaneId, JobResponse[]> & { rework: JobResponse[]; backlog: JobResponse[] } => {
-  const rework: JobResponse[] = []
-  const backlog: JobResponse[] = []
+): Record<LaneId, JobResponse[]> & {
+  rework: JobResponse[];
+  backlog: JobResponse[];
+} => {
+  const rework: JobResponse[] = [];
+  const backlog: JobResponse[] = [];
   const grouped: Record<LaneId, JobResponse[]> = {
     queue: [],
     'in-progress': [],
     'in-review': [],
     completed: [],
     failed: [],
-  }
+  };
 
-  jobList.forEach((job) => {
+  jobList.forEach(job => {
     if (job.status === 'queued') {
       // Use queue_type from job, fallback to reworkJobIds for backwards compatibility
-      if (job.queue_type === 'rework' || (job.queue_type === undefined && reworkJobIds.has(job.id))) {
-        rework.push(job)
+      if (
+        job.queue_type === 'rework' ||
+        (job.queue_type === undefined && reworkJobIds.has(job.id))
+      ) {
+        rework.push(job);
       } else {
-        backlog.push(job)
+        backlog.push(job);
       }
     } else if (job.status in grouped) {
-      grouped[job.status as LaneId].push(job)
+      grouped[job.status as LaneId].push(job);
     }
-  })
+  });
 
   // Combine rework (first) and backlog (second) into queue lane
-  grouped.queue = [...rework, ...backlog]
-
-    ; (Object.keys(grouped) as LaneId[]).forEach((laneId) => {
-      grouped[laneId].sort((a, b) => (a.order_in_queue ?? 0) - (b.order_in_queue ?? 0))
-    })
+  grouped.queue = [...rework, ...backlog];
+  (Object.keys(grouped) as LaneId[]).forEach(laneId => {
+    grouped[laneId].sort(
+      (a, b) => (a.order_in_queue ?? 0) - (b.order_in_queue ?? 0)
+    );
+  });
 
   // Also sort rework and backlog separately for display
-  rework.sort((a, b) => (a.order_in_queue ?? 0) - (b.order_in_queue ?? 0))
-  backlog.sort((a, b) => (a.order_in_queue ?? 0) - (b.order_in_queue ?? 0))
+  rework.sort((a, b) => (a.order_in_queue ?? 0) - (b.order_in_queue ?? 0));
+  backlog.sort((a, b) => (a.order_in_queue ?? 0) - (b.order_in_queue ?? 0));
 
-  return { ...grouped, rework, backlog }
-}
-
-
-
-
+  return { ...grouped, rework, backlog };
+};
 
 export type JobBoardProps = {
-  jobs: JobResponse[]
-  onJobsChange: (jobs: JobResponse[]) => void
-  onStartJob?: (id: string) => void
-  onCancelJob?: (id: string) => void
-  onSelectReviewJob?: (job: JobResponse) => void
-  onJobMoved?: () => void
-}
+  jobs: JobResponse[];
+  onJobsChange: (jobs: JobResponse[]) => void;
+  onStartJob?: (id: string) => void;
+  onCancelJob?: (id: string) => void;
+  onSelectReviewJob?: (job: JobResponse) => void;
+  onJobMoved?: () => void;
+};
 
 export function JobBoard({
   jobs,
@@ -122,68 +138,69 @@ export function JobBoard({
   onSelectReviewJob,
   onJobMoved,
 }: JobBoardProps) {
-  const [activeJobId, setActiveJobId] = useState<string | null>(null)
-  const [isPRModalOpen, setIsPRModalOpen] = useState(false)
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [isPRModalOpen, setIsPRModalOpen] = useState(false);
   const [pendingJobMove, setPendingJobMove] = useState<{
-    job: JobResponse
-    targetLane: LaneId
-    targetIndex: number
-  } | null>(null)
-  const [prLink, setPrLink] = useState('')
-  const [prLinkError, setPrLinkError] = useState('')
-  const [reworkJobIds, setReworkJobIds] = useState<Set<string>>(new Set())
+    job: JobResponse;
+    targetLane: LaneId;
+    targetIndex: number;
+  } | null>(null);
+  const [prLink, setPrLink] = useState('');
+  const [prLinkError, setPrLinkError] = useState('');
+  const [reworkJobIds, setReworkJobIds] = useState<Set<string>>(new Set());
   // Controls whether the dedicated "Rework" section is expanded in the Queue lane
-  const [showRework, setShowRework] = useState(false)
-  const [isQueueSelectionOpen, setIsQueueSelectionOpen] = useState(false)
+  const [showRework, setShowRework] = useState(false);
+  const [isQueueSelectionOpen, setIsQueueSelectionOpen] = useState(false);
   const [pendingQueueMove, setPendingQueueMove] = useState<{
-    job: JobResponse
-    targetIndex: number
-  } | null>(null)
+    job: JobResponse;
+    targetIndex: number;
+  } | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{
-    containerId: string
-    index: number
-  } | null>(null)
+    containerId: string;
+    index: number;
+  } | null>(null);
 
-  const reorderJobMutation = useReorderJob()
-  const queryClient = useQueryClient()
-  const { resolvedTheme } = useTheme()
+  const reorderJobMutation = useReorderJob();
+  const queryClient = useQueryClient();
+  const { resolvedTheme } = useTheme();
 
   // Queue pause state for rework and backlog queues
-  const { data: reworkQueueStatus } = useQueueStatus('rework')
-  const { data: backlogQueueStatus } = useQueueStatus('backlog')
-  const reworkQueueMutation = useToggleQueue('rework')
-  const backlogQueueMutation = useToggleQueue('backlog')
+  const { data: reworkQueueStatus } = useQueueStatus('rework');
+  const { data: backlogQueueStatus } = useQueueStatus('backlog');
+  const reworkQueueMutation = useToggleQueue('rework');
+  const backlogQueueMutation = useToggleQueue('backlog');
 
   const handleToggleReworkQueue = useCallback(() => {
-    const isPaused = reworkQueueStatus?.isPaused ?? false
-    reworkQueueMutation.mutate(isPaused ? 'resume' : 'pause')
-  }, [reworkQueueStatus, reworkQueueMutation])
+    const isPaused = reworkQueueStatus?.isPaused ?? false;
+    reworkQueueMutation.mutate(isPaused ? 'resume' : 'pause');
+  }, [reworkQueueStatus, reworkQueueMutation]);
 
   const handleToggleBacklogQueue = useCallback(() => {
-    const isPaused = backlogQueueStatus?.isPaused ?? false
-    backlogQueueMutation.mutate(isPaused ? 'resume' : 'pause')
-  }, [backlogQueueStatus, backlogQueueMutation])
+    const isPaused = backlogQueueStatus?.isPaused ?? false;
+    backlogQueueMutation.mutate(isPaused ? 'resume' : 'pause');
+  }, [backlogQueueStatus, backlogQueueMutation]);
 
   const jobsByLane = useMemo(
     () => groupJobsByLane(jobs, reworkJobIds),
     [jobs, reworkJobIds]
-  )
+  );
   const activeJob = useMemo(
-    () => (activeJobId ? jobs.find((job) => job.id === activeJobId) ?? null : null),
+    () =>
+      activeJobId ? jobs.find(job => job.id === activeJobId) ?? null : null,
     [jobs, activeJobId]
-  ) as JobResponse | null
+  ) as JobResponse | null;
   const activeAgent = useMemo(
-    () => mockAgents.find((agent) => agent.status === 'active') ?? null,
+    () => mockAgents.find(agent => agent.status === 'active') ?? null,
     []
-  )
+  );
 
   // Automatically show the Rework section when there are rework jobs
   useEffect(() => {
     const hasReworkJobs = jobs.some(
-      (job) => job.status === 'queued' && job.queue_type === 'rework'
-    )
-    setShowRework(hasReworkJobs)
-  }, [jobs])
+      job => job.status === 'queued' && job.queue_type === 'rework'
+    );
+    setShowRework(hasReworkJobs);
+  }, [jobs]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -194,68 +211,80 @@ export function JobBoard({
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  )
+  );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveJobId(String(event.active.id))
-    setDropIndicator(null)
-  }, [])
+    setActiveJobId(String(event.active.id));
+    setDropIndicator(null);
+  }, []);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { over } = event
+    const { over } = event;
 
     if (!over) {
-      setDropIndicator(null)
-      return
+      setDropIndicator(null);
+      return;
     }
 
     // Only show drop indicator when dragging within queue lane sections
-    const containerId = over.data.current?.sortable?.containerId as string | undefined
-    const overIndex = over.data.current?.sortable?.index as number | undefined
+    const containerId = over.data.current?.sortable?.containerId as
+      | string
+      | undefined;
+    const overIndex = over.data.current?.sortable?.index as number | undefined;
 
     // Show placeholder for queue sections (rework/backlog)
-    if (containerId && (containerId === 'queue-rework' || containerId === 'queue-backlog') && overIndex !== undefined) {
-      setDropIndicator({ containerId, index: overIndex })
+    if (
+      containerId &&
+      (containerId === 'queue-rework' || containerId === 'queue-backlog') &&
+      overIndex !== undefined
+    ) {
+      setDropIndicator({ containerId, index: overIndex });
     } else {
-      setDropIndicator(null)
+      setDropIndicator(null);
     }
-  }, [])
+  }, []);
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
-      const { active, over } = event
-      setDropIndicator(null)
+      const { active, over } = event;
+      setDropIndicator(null);
       if (!over) {
-        setActiveJobId(null)
-        return
+        setActiveJobId(null);
+        return;
       }
 
-      const activeId = String(active.id)
+      const activeId = String(active.id);
 
       // Normalize container IDs to handle queue subsections (queue-rework, queue-backlog)
-      const normalizeContainerId = (containerId: string | undefined): LaneId | undefined => {
-        if (!containerId) return undefined
+      const normalizeContainerId = (
+        containerId: string | undefined
+      ): LaneId | undefined => {
+        if (!containerId) return undefined;
         // Extract base lane ID from subsection IDs like 'queue-rework' or 'queue-backlog'
-        if (containerId.startsWith('queue-')) return 'queue'
-        return containerId as LaneId
-      }
+        if (containerId.startsWith('queue-')) return 'queue';
+        return containerId as LaneId;
+      };
 
-      const rawSourceContainer = active.data.current?.sortable?.containerId as string | undefined
-      const sourceLane = normalizeContainerId(rawSourceContainer)
+      const rawSourceContainer = active.data.current?.sortable?.containerId as
+        | string
+        | undefined;
+      const sourceLane = normalizeContainerId(rawSourceContainer);
 
-      const rawTargetContainer = over.data.current?.sortable?.containerId as string | undefined
-      let targetLane = normalizeContainerId(rawTargetContainer)
+      const rawTargetContainer = over.data.current?.sortable?.containerId as
+        | string
+        | undefined;
+      let targetLane = normalizeContainerId(rawTargetContainer);
       if (!targetLane && over.data.current?.type === 'lane') {
-        targetLane = over.data.current.status as LaneId
+        targetLane = over.data.current.status as LaneId;
       }
 
       if (sourceLane === 'in-progress' && targetLane !== 'in-progress') {
         toast({
           description:
             'Cannot drag the current executing task. Please stop the execution before moving this job.',
-        })
-        setActiveJobId(null)
-        return
+        });
+        setActiveJobId(null);
+        return;
       }
 
       // Block dragging error jobs to any lane except queue (will go to rework section)
@@ -263,9 +292,9 @@ export function JobBoard({
         toast({
           description:
             'You cannot drag an uncompleted job to these lanes. Please move it only to the Queue.',
-        })
-        setActiveJobId(null)
-        return
+        });
+        setActiveJobId(null);
+        return;
       }
 
       // Block moving job from queue to in-progress (not supported)
@@ -273,9 +302,9 @@ export function JobBoard({
         toast({
           description:
             'Cannot move job from queue to in-progress. Queue jobs are processed automatically by the system.',
-        })
-        setActiveJobId(null)
-        return
+        });
+        setActiveJobId(null);
+        return;
       }
 
       // Block moving any job to failed state (not supported by user)
@@ -283,35 +312,35 @@ export function JobBoard({
         toast({
           description:
             'Cannot move job to failed state. Failed status is set automatically by the system when errors occur.',
-        })
-        setActiveJobId(null)
-        return
+        });
+        setActiveJobId(null);
+        return;
       }
 
       // Block dragging any job to in-progress if one is already executing
       if (
         targetLane === 'in-progress' &&
-        jobs.some((job) => job.status === 'in-progress')
+        jobs.some(job => job.status === 'in-progress')
       ) {
         toast({
           description:
             'User cannot drag the job while one is already executing.',
-        })
-        setActiveJobId(null)
-        return
+        });
+        setActiveJobId(null);
+        return;
       }
 
       if (!sourceLane || !targetLane) {
-        setActiveJobId(null)
-        return
+        setActiveJobId(null);
+        return;
       }
 
-      const overIndex = over.data.current?.sortable?.index
-      const activeJob = jobs.find((job) => job.id === activeId)
+      const overIndex = over.data.current?.sortable?.index;
+      const activeJob = jobs.find(job => job.id === activeId);
 
       if (!activeJob) {
-        setActiveJobId(null)
-        return
+        setActiveJobId(null);
+        return;
       }
 
       // Check if moving from Queue to In Review (completed) or Completed (archived)
@@ -319,36 +348,37 @@ export function JobBoard({
         sourceLane === 'queue' &&
         (targetLane === 'completed' || targetLane === 'in-review')
       ) {
-        const targetLaneJobs = jobsByLane[targetLane] ?? []
+        const targetLaneJobs = jobsByLane[targetLane] ?? [];
         const resolvedIndex =
           overIndex === undefined
             ? targetLaneJobs.length
-            : Math.min(overIndex, targetLaneJobs.length)
+            : Math.min(overIndex, targetLaneJobs.length);
 
         // Show modal instead of moving directly
         setPendingJobMove({
           job: activeJob,
           targetLane,
           targetIndex: resolvedIndex,
-        })
-        setPrLink('')
-        setPrLinkError('')
-        setIsPRModalOpen(true)
-        setActiveJobId(null)
-        return
+        });
+        setPrLink('');
+        setPrLinkError('');
+        setIsPRModalOpen(true);
+        setActiveJobId(null);
+        return;
       }
 
       // Regular move logic for all other cases
       // Get the appropriate jobs list based on container
-      const rawTargetContainerForJobs = over.data.current?.sortable?.containerId as string | undefined
-      let targetLaneJobs = jobsByLane[targetLane] ?? []
+      const rawTargetContainerForJobs = over.data.current?.sortable
+        ?.containerId as string | undefined;
+      let targetLaneJobs = jobsByLane[targetLane] ?? [];
 
       // For queue lane, use the specific section (rework or backlog) if dragging within it
       if (targetLane === 'queue' && rawTargetContainerForJobs) {
         if (rawTargetContainerForJobs === 'queue-rework') {
-          targetLaneJobs = jobsByLane.rework ?? []
+          targetLaneJobs = jobsByLane.rework ?? [];
         } else if (rawTargetContainerForJobs === 'queue-backlog') {
-          targetLaneJobs = jobsByLane.backlog ?? []
+          targetLaneJobs = jobsByLane.backlog ?? [];
         }
       }
 
@@ -357,194 +387,211 @@ export function JobBoard({
       const resolvedIndex =
         overIndex === undefined || overIndex > targetLaneJobs.length
           ? targetLaneJobs.length
-          : Math.max(0, overIndex)
+          : Math.max(0, overIndex);
 
       // Update rework job IDs
-      const updatedReworkJobIds = new Set(reworkJobIds)
+      const updatedReworkJobIds = new Set(reworkJobIds);
       if (sourceLane === 'queue' && targetLane === 'queue') {
         // Moving within queue - determine if moving to rework or backlog section
         // resolvedIndex is the final position in the combined queue array after move
-        const reworkCount = jobsByLane.rework.length
-        const wasInRework = reworkJobIds.has(activeId)
+        const reworkCount = jobsByLane.rework.length;
+        const wasInRework = reworkJobIds.has(activeId);
 
         // Check if the target position is in rework section (before current rework count)
         // Note: When moving from rework to backlog or vice versa, resolvedIndex already accounts
         // for the move, so we can compare directly to reworkCount
-        const isMovingToReworkSection = resolvedIndex < reworkCount
+        const isMovingToReworkSection = resolvedIndex < reworkCount;
 
         if (wasInRework && !isMovingToReworkSection) {
           // Moving from rework to backlog
-          updatedReworkJobIds.delete(activeId)
+          updatedReworkJobIds.delete(activeId);
         } else if (!wasInRework && isMovingToReworkSection) {
           // Moving from backlog to rework
-          updatedReworkJobIds.add(activeId)
+          updatedReworkJobIds.add(activeId);
         }
         // If staying in same section (rework->rework or backlog->backlog), no change needed
       } else if (sourceLane === 'queue' && targetLane !== 'queue') {
         // Moving out of queue - remove from rework if it was there
-        updatedReworkJobIds.delete(activeId)
+        updatedReworkJobIds.delete(activeId);
       } else if (sourceLane !== 'queue' && targetLane === 'queue') {
         // Moving into queue - always show queue selection dialog when coming from Errors (failed) lane
         if (sourceLane === 'failed') {
           setPendingQueueMove({
             job: activeJob,
             targetIndex: resolvedIndex,
-          })
-          setIsQueueSelectionOpen(true)
-          setActiveJobId(null)
-          return
+          });
+          setIsQueueSelectionOpen(true);
+          setActiveJobId(null);
+          return;
         }
         // If rework is hidden, show queue selection dialog
         if (!showRework) {
           setPendingQueueMove({
             job: activeJob,
             targetIndex: resolvedIndex,
-          })
-          setIsQueueSelectionOpen(true)
-          setActiveJobId(null)
-          return
+          });
+          setIsQueueSelectionOpen(true);
+          setActiveJobId(null);
+          return;
         }
       }
 
       // Map target lane to job status
       const getStatusForLane = (lane: LaneId): JobResponse['status'] => {
-        if (lane === 'queue') return 'queued'
-        if (lane === 'completed') return 'completed'
-        if (lane === 'in-review') return 'in-review'
-        if (lane === 'failed') return 'failed'
-        if (lane === 'in-progress') return 'in-progress'
-        return 'queued' as JobResponse['status'] // fallback
-      }
+        if (lane === 'queue') return 'queued';
+        if (lane === 'completed') return 'completed';
+        if (lane === 'in-review') return 'in-review';
+        if (lane === 'failed') return 'failed';
+        if (lane === 'in-progress') return 'in-progress';
+        return 'queued' as JobResponse['status']; // fallback
+      };
 
-      const newStatus = getStatusForLane(targetLane)
+      const newStatus = getStatusForLane(targetLane);
 
       // Handle reordering within the same lane
       if (sourceLane === targetLane) {
-        const currentJob = jobs.find((job) => job.id === activeId)
-        const currentPosition = currentJob?.order_in_queue ?? 0
+        const currentJob = jobs.find(job => job.id === activeId);
+        const currentPosition = currentJob?.order_in_queue ?? 0;
 
-        let newPosition = resolvedIndex
+        let newPosition = resolvedIndex;
 
         if (sourceLane === 'queue') {
           // Get the current queue structure BEFORE updating reworkJobIds
-          const currentQueueGroups = groupJobsByLane(jobs, reworkJobIds)
+          const currentQueueGroups = groupJobsByLane(jobs, reworkJobIds);
 
           // For queue lane, calculate position in the combined queue
-          const wasInRework = reworkJobIds.has(activeId)
-          const isInRework = updatedReworkJobIds.has(activeId)
+          const wasInRework = reworkJobIds.has(activeId);
+          const isInRework = updatedReworkJobIds.has(activeId);
 
           // Get the container ID to determine which section we're in
-          const rawTargetContainer = over.data.current?.sortable?.containerId as string | undefined
-          const isTargetRework = rawTargetContainer === 'queue-rework'
-          const isTargetBacklog = rawTargetContainer === 'queue-backlog'
+          const rawTargetContainer = over.data.current?.sortable
+            ?.containerId as string | undefined;
+          const isTargetRework = rawTargetContainer === 'queue-rework';
+          const isTargetBacklog = rawTargetContainer === 'queue-backlog';
 
           // Get current section lengths (before the move)
-          const currentReworkCount = currentQueueGroups.rework.length
+          const currentReworkCount = currentQueueGroups.rework.length;
 
           if (wasInRework && isInRework && isTargetRework) {
             // Moving within rework section only
             // resolvedIndex is relative to rework section (0-based in rework)
             // This is already the correct overall queue position since rework is at the start
-            newPosition = resolvedIndex
+            newPosition = resolvedIndex;
           } else if (!wasInRework && !isInRework && isTargetBacklog) {
             // Moving within backlog section only
             // resolvedIndex is relative to backlog section (0-based in backlog)
             // Need to add rework count to get overall queue position
-            newPosition = currentReworkCount + resolvedIndex
+            newPosition = currentReworkCount + resolvedIndex;
           } else if (wasInRework && !isInRework && isTargetBacklog) {
             // Moving from rework to backlog
             // resolvedIndex is relative to backlog, but we need to account for rework jobs
             // Since we're moving out of rework, the rework count decreases by 1
-            newPosition = (currentReworkCount - 1) + resolvedIndex
+            newPosition = currentReworkCount - 1 + resolvedIndex;
           } else if (!wasInRework && isInRework && isTargetRework) {
             // Moving from backlog to rework
             // resolvedIndex is relative to rework section
             // This is the correct overall queue position
-            newPosition = resolvedIndex
+            newPosition = resolvedIndex;
           } else {
             // Fallback: use resolvedIndex directly
             // This handles edge cases where container info might be missing
-            newPosition = resolvedIndex
+            newPosition = resolvedIndex;
           }
         } else {
           // For other lanes, position is directly the resolvedIndex
-          newPosition = resolvedIndex
+          newPosition = resolvedIndex;
         }
 
         // Check if position actually changed - if not, it's just a click, not a drag
-        if (currentJob && currentPosition === newPosition && sourceLane === 'queue') {
+        if (
+          currentJob &&
+          currentPosition === newPosition &&
+          sourceLane === 'queue'
+        ) {
           // Position didn't change and it's in queue - this is just a click, not a drag
           // Don't call the API, just clear the active job
-          setActiveJobId(null)
-          return
+          setActiveJobId(null);
+          return;
         }
 
         // Only call API if position actually changed
         if (currentJob && currentJob.order_in_queue !== newPosition) {
           // Calculate reordered jobs array for optimistic UI update
           const calculateReorderedJobs = (): JobResponse[] => {
-            const laneGroups = groupJobsByLane(jobs, updatedReworkJobIds)
-            const updatedJobs = [...jobs]
+            const laneGroups = groupJobsByLane(jobs, updatedReworkJobIds);
+            const updatedJobs = [...jobs];
 
             if (sourceLane === 'queue') {
               // For queue lane, reorder within the queue jobs
-              const queueJobs = [...laneGroups.queue]
-              const activeIndex = queueJobs.findIndex((job) => job.id === activeId)
+              const queueJobs = [...laneGroups.queue];
+              const activeIndex = queueJobs.findIndex(
+                job => job.id === activeId
+              );
 
               if (activeIndex !== -1 && activeIndex !== newPosition) {
                 // Use arrayMove for clean reordering
-                const reorderedQueueJobs = arrayMove(queueJobs, activeIndex, newPosition)
+                const reorderedQueueJobs = arrayMove(
+                  queueJobs,
+                  activeIndex,
+                  newPosition
+                );
 
                 // Update order_in_queue for all queue jobs
                 reorderedQueueJobs.forEach((job, index) => {
-                  const jobIndex = updatedJobs.findIndex((j) => j.id === job.id)
+                  const jobIndex = updatedJobs.findIndex(j => j.id === job.id);
                   if (jobIndex !== -1) {
                     updatedJobs[jobIndex] = {
                       ...updatedJobs[jobIndex],
                       order_in_queue: index,
-                    }
+                    };
                   }
-                })
+                });
               }
             } else {
               // For other lanes, reorder within that lane's jobs
-              const laneJobs = [...(laneGroups[sourceLane] ?? [])]
-              const activeIndex = laneJobs.findIndex((job) => job.id === activeId)
+              const laneJobs = [...(laneGroups[sourceLane] ?? [])];
+              const activeIndex = laneJobs.findIndex(
+                job => job.id === activeId
+              );
 
               if (activeIndex !== -1 && activeIndex !== newPosition) {
                 // Use arrayMove for clean reordering
-                const reorderedLaneJobs = arrayMove(laneJobs, activeIndex, newPosition)
+                const reorderedLaneJobs = arrayMove(
+                  laneJobs,
+                  activeIndex,
+                  newPosition
+                );
 
                 // Update order_in_queue for all jobs in this lane
                 reorderedLaneJobs.forEach((job, index) => {
-                  const jobIndex = updatedJobs.findIndex((j) => j.id === job.id)
+                  const jobIndex = updatedJobs.findIndex(j => j.id === job.id);
                   if (jobIndex !== -1) {
                     updatedJobs[jobIndex] = {
                       ...updatedJobs[jobIndex],
                       order_in_queue: index,
-                    }
+                    };
                   }
-                })
+                });
               }
             }
 
-            return updatedJobs
-          }
+            return updatedJobs;
+          };
 
           // Calculate reordered jobs first
-          const reorderedJobs = calculateReorderedJobs()
+          const reorderedJobs = calculateReorderedJobs();
 
           // Update query cache and state immediately for smooth transitions
           // dnd-kit will handle the visual transitions automatically
-          queryClient.setQueryData<JobResponse[]>(['jobs'], reorderedJobs)
-          onJobsChange(reorderedJobs)
-          setReworkJobIds(updatedReworkJobIds)
+          queryClient.setQueryData<JobResponse[]>(['jobs'], reorderedJobs);
+          onJobsChange(reorderedJobs);
+          setReworkJobIds(updatedReworkJobIds);
 
           // Clear active job after a brief delay to allow transition to complete
           // This ensures smooth animation as other cards shift into position
           setTimeout(() => {
-            setActiveJobId(null)
-          }, 150)
+            setActiveJobId(null);
+          }, 150);
 
           // Make API call after transition completes
           setTimeout(() => {
@@ -555,108 +602,117 @@ export function JobBoard({
               },
               {
                 onSuccess: () => {
-                  onJobMoved?.()
+                  onJobMoved?.();
                 },
               }
-            )
-          }, 200)
-
-
+            );
+          }, 200);
         } else {
-          setActiveJobId(null)
+          setActiveJobId(null);
         }
-        return
+        return;
       }
 
       // Handle moving between different lanes
       // Optimistically update the UI immediately to prevent card snap-back
-      const updatedJobs = jobs.map((job) => {
+      const updatedJobs = jobs.map(job => {
         if (job.id === activeId) {
           return {
             ...job,
             status: newStatus,
             updated_at: new Date().toISOString(),
-          }
+          };
         }
-        return job
-      })
+        return job;
+      });
 
       // Update query cache and parent state immediately
-      queryClient.setQueryData<JobResponse[]>(['jobs'], updatedJobs)
-      onJobsChange(updatedJobs)
-      setReworkJobIds(updatedReworkJobIds)
-      setActiveJobId(null)
+      queryClient.setQueryData<JobResponse[]>(['jobs'], updatedJobs);
+      onJobsChange(updatedJobs);
+      setReworkJobIds(updatedReworkJobIds);
+      setActiveJobId(null);
 
       // Then make the API call
       try {
         await api.updateJob(activeId, {
           status: newStatus,
           updated_at: new Date().toISOString(),
-        })
+        });
         toast({
           description:
             newStatus === 'in-review'
               ? 'Job moved to In Review'
               : newStatus === 'completed'
-                ? 'Job marked as Completed'
-                : 'Job updated successfully',
-        })
-        onJobMoved?.()
+              ? 'Job marked as Completed'
+              : 'Job updated successfully',
+        });
+        onJobMoved?.();
       } catch (error) {
-        console.error('Failed to update job status:', error)
+        console.error('Failed to update job status:', error);
         // Rollback on error - revert to original state
-        queryClient.setQueryData<JobResponse[]>(['jobs'], jobs)
-        onJobsChange(jobs)
-        setReworkJobIds(reworkJobIds)
+        queryClient.setQueryData<JobResponse[]>(['jobs'], jobs);
+        onJobsChange(jobs);
+        setReworkJobIds(reworkJobIds);
         toast({
           variant: 'destructive',
           description: 'Failed to update job status. Please try again.',
-        })
+        });
       }
     },
-    [jobs, jobsByLane, reworkJobIds, reorderJobMutation, onJobMoved, onJobsChange, queryClient, showRework]
-  )
+    [
+      jobs,
+      jobsByLane,
+      reworkJobIds,
+      reorderJobMutation,
+      onJobMoved,
+      onJobsChange,
+      queryClient,
+      showRework,
+    ]
+  );
 
   const handleDragCancel = useCallback(() => {
-    setActiveJobId(null)
-    setDropIndicator(null)
-  }, [])
+    setActiveJobId(null);
+    setDropIndicator(null);
+  }, []);
 
   const handlePRLinkChange = useCallback((value: string) => {
-    setPrLink(value)
-    setPrLinkError('')
-  }, [])
+    setPrLink(value);
+    setPrLinkError('');
+  }, []);
 
   const handleUpdatePR = useCallback(async () => {
-    if (!pendingJobMove) return
+    if (!pendingJobMove) return;
 
-    const trimmedLink = prLink.trim()
+    const trimmedLink = prLink.trim();
     if (!trimmedLink) {
-      setPrLinkError('Please enter a GitHub PR link')
-      return
+      setPrLinkError('Please enter a GitHub PR link');
+      return;
     }
 
     if (!isValidGitHubPRLink(trimmedLink)) {
-      setPrLinkError('Please enter a valid GitHub PR link (e.g., https://github.com/owner/repo/pull/123)')
-      return
+      setPrLinkError(
+        'Please enter a valid GitHub PR link (e.g., https://github.com/owner/repo/pull/123)'
+      );
+      return;
     }
 
     // Move the job to target lane (In Review or Completed) with the PR link
     // Update rework job IDs - remove from rework if it was there
-    const updatedReworkJobIds = new Set(reworkJobIds)
-    updatedReworkJobIds.delete(pendingJobMove.job.id)
+    const updatedReworkJobIds = new Set(reworkJobIds);
+    updatedReworkJobIds.delete(pendingJobMove.job.id);
 
     // Map target lane to job status
     const getStatusForLane = (lane: LaneId): JobResponse['status'] => {
-      if (lane === 'queue') return 'queued'
-      if (lane === 'completed') return 'completed'
-      if (lane === 'in-review') return 'in-review'
-      if (lane === 'failed') return 'failed'
-      if (lane === 'in-progress') return 'in-progress'
-      return 'queued' as JobResponse['status'] // fallback
-    }
+      if (lane === 'queue') return 'queued';
+      if (lane === 'completed') return 'completed';
+      if (lane === 'in-review') return 'in-review';
+      if (lane === 'failed') return 'failed';
+      if (lane === 'in-progress') return 'in-progress';
+      return 'queued' as JobResponse['status']; // fallback
+    };
 
-    const newStatus = getStatusForLane(pendingJobMove.targetLane as LaneId)
+    const newStatus = getStatusForLane(pendingJobMove.targetLane as LaneId);
 
     // Call API to update job with PR link and status
     try {
@@ -664,76 +720,79 @@ export function JobBoard({
         status: newStatus,
         pr_link: trimmedLink,
         updated_at: new Date().toISOString(),
-      })
+      });
       toast({
         description:
           newStatus === 'in-review'
             ? 'Job moved to In Review'
             : newStatus === 'completed'
-              ? 'Job marked as Completed'
-              : 'Job updated successfully',
-      })
+            ? 'Job marked as Completed'
+            : 'Job updated successfully',
+      });
     } catch (error) {
-      console.error('Failed to update job with PR link:', error)
+      console.error('Failed to update job with PR link:', error);
       toast({
         variant: 'destructive',
         description: 'Failed to update job. Please try again.',
-      })
-      return
+      });
+      return;
     }
 
-    setReworkJobIds(updatedReworkJobIds)
-    onJobMoved?.()
-    setIsPRModalOpen(false)
-    setPendingJobMove(null)
-    setPrLink('')
-    setPrLinkError('')
-  }, [pendingJobMove, prLink, reworkJobIds, onJobMoved])
+    setReworkJobIds(updatedReworkJobIds);
+    onJobMoved?.();
+    setIsPRModalOpen(false);
+    setPendingJobMove(null);
+    setPrLink('');
+    setPrLinkError('');
+  }, [pendingJobMove, prLink, reworkJobIds, onJobMoved]);
 
   const handleCancelPR = useCallback(() => {
     // Return job to Queued lane
     if (!pendingJobMove) {
-      setIsPRModalOpen(false)
-      return
+      setIsPRModalOpen(false);
+      return;
     }
 
     // Job is already in Queued, so we just close the modal
-    setIsPRModalOpen(false)
-    setPendingJobMove(null)
-    setPrLink('')
-    setPrLinkError('')
-  }, [pendingJobMove])
+    setIsPRModalOpen(false);
+    setPendingJobMove(null);
+    setPrLink('');
+    setPrLinkError('');
+  }, [pendingJobMove]);
 
-  const handleQueueSelection = useCallback(async (targetQueue: 'rework' | 'backlog') => {
-    if (!pendingQueueMove) return
+  const handleQueueSelection = useCallback(
+    async (targetQueue: 'rework' | 'backlog') => {
+      if (!pendingQueueMove) return;
 
-    const updatedReworkJobIds = new Set(reworkJobIds)
-    if (targetQueue === 'rework') {
-      updatedReworkJobIds.add(pendingQueueMove.job.id)
-      // Show rework section when user selects it
-      setShowRework(true)
-    }
+      const updatedReworkJobIds = new Set(reworkJobIds);
+      if (targetQueue === 'rework') {
+        updatedReworkJobIds.add(pendingQueueMove.job.id);
+        // Show rework section when user selects it
+        setShowRework(true);
+      }
 
-    // Call API to update job status to queued
-    try {
-      await api.updateJob(pendingQueueMove.job.id, {
-        status: 'queued',
-        updated_at: new Date().toISOString(),
-      })
-    } catch (error) {
-      console.error('Failed to update job status:', error)
-      toast({
-        variant: 'destructive',
-        description: 'Failed to update job status. Please try again.',
-      })
-      return
-    }
+      // Call API to update job status to queued
+      try {
+        await api.updateJob(pendingQueueMove.job.id, {
+          status: 'queued',
+          updated_at: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error('Failed to update job status:', error);
+        toast({
+          variant: 'destructive',
+          description: 'Failed to update job status. Please try again.',
+        });
+        return;
+      }
 
-    setReworkJobIds(updatedReworkJobIds)
-    onJobMoved?.()
-    setIsQueueSelectionOpen(false)
-    setPendingQueueMove(null)
-  }, [pendingQueueMove, reworkJobIds, onJobMoved])
+      setReworkJobIds(updatedReworkJobIds);
+      onJobMoved?.();
+      setIsQueueSelectionOpen(false);
+      setPendingQueueMove(null);
+    },
+    [pendingQueueMove, reworkJobIds, onJobMoved]
+  );
 
   return (
     <DndContext
@@ -749,28 +808,34 @@ export function JobBoard({
           strategy: MeasuringStrategy.WhileDragging,
         },
         draggable: {
-          measure: (node) => node.getBoundingClientRect(),
+          measure: node => node.getBoundingClientRect(),
         },
       }}
     >
       <div className="h-full w-full overflow-x-auto overflow-y-hidden pb-2 grid grid-cols-5">
         <div className="flex gap-4 h-full max-w-[300px] min-w-[200px] ">
-          {LANE_DEFINITIONS.map((lane) => {
-            const handleExecuteRework = lane.id === 'queue' && onStartJob ? () => {
-              // Execute the first rework job
-              const firstReworkJob = jobsByLane.rework[0]
-              if (firstReworkJob) {
-                onStartJob(firstReworkJob.id)
-              }
-            } : undefined
+          {LANE_DEFINITIONS.map(lane => {
+            const handleExecuteRework =
+              lane.id === 'queue' && onStartJob
+                ? () => {
+                    // Execute the first rework job
+                    const firstReworkJob = jobsByLane.rework[0];
+                    if (firstReworkJob) {
+                      onStartJob(firstReworkJob.id);
+                    }
+                  }
+                : undefined;
 
-            const handleExecuteBacklog = lane.id === 'queue' && onStartJob ? () => {
-              // Execute the first backlog job
-              const firstBacklogJob = jobsByLane.backlog[0]
-              if (firstBacklogJob) {
-                onStartJob(firstBacklogJob.id)
-              }
-            } : undefined
+            const handleExecuteBacklog =
+              lane.id === 'queue' && onStartJob
+                ? () => {
+                    // Execute the first backlog job
+                    const firstBacklogJob = jobsByLane.backlog[0];
+                    if (firstBacklogJob) {
+                      onStartJob(firstBacklogJob.id);
+                    }
+                  }
+                : undefined;
 
             return (
               <LaneColumn
@@ -778,15 +843,27 @@ export function JobBoard({
                 lane={lane}
                 jobs={jobsByLane[lane.id]}
                 reworkJobs={lane.id === 'queue' ? jobsByLane.rework : undefined}
-                backlogJobs={lane.id === 'queue' ? jobsByLane.backlog : undefined}
+                backlogJobs={
+                  lane.id === 'queue' ? jobsByLane.backlog : undefined
+                }
                 onExecuteRework={handleExecuteRework}
                 onExecuteBacklog={handleExecuteBacklog}
-                reworkQueuePaused={lane.id === 'queue' ? reworkQueueStatus?.isPaused : undefined}
-                backlogQueuePaused={lane.id === 'queue' ? backlogQueueStatus?.isPaused : undefined}
-                onToggleReworkQueue={lane.id === 'queue' ? handleToggleReworkQueue : undefined}
-                onToggleBacklogQueue={lane.id === 'queue' ? handleToggleBacklogQueue : undefined}
+                reworkQueuePaused={
+                  lane.id === 'queue' ? reworkQueueStatus?.isPaused : undefined
+                }
+                backlogQueuePaused={
+                  lane.id === 'queue' ? backlogQueueStatus?.isPaused : undefined
+                }
+                onToggleReworkQueue={
+                  lane.id === 'queue' ? handleToggleReworkQueue : undefined
+                }
+                onToggleBacklogQueue={
+                  lane.id === 'queue' ? handleToggleBacklogQueue : undefined
+                }
                 showRework={showRework}
-                activeAgent={lane.id === 'in-progress' ? activeAgent : undefined}
+                activeAgent={
+                  lane.id === 'in-progress' ? activeAgent : undefined
+                }
                 theme={resolvedTheme}
                 dropIndicator={lane.id === 'queue' ? dropIndicator : null}
                 activeJobId={activeJobId}
@@ -794,9 +871,19 @@ export function JobBoard({
                   <JobCard
                     key={`${lane.id}-${job.id}`}
                     job={job}
-                    onStart={lane.id === 'queue' ? undefined : (lane.id === 'in-progress' ? onStartJob : onStartJob)}
+                    onStart={
+                      lane.id === 'queue'
+                        ? undefined
+                        : lane.id === 'in-progress'
+                        ? onStartJob
+                        : onStartJob
+                    }
                     onCancel={
-                      lane.id === 'queue' ? undefined : (lane.id === 'in-progress' ? onCancelJob : undefined)
+                      lane.id === 'queue'
+                        ? undefined
+                        : lane.id === 'in-progress'
+                        ? onCancelJob
+                        : undefined
                     }
                     hideActions={lane.id === 'queue'}
                     isDraggable={lane.id === 'queue'}
@@ -808,7 +895,7 @@ export function JobBoard({
                   />
                 )}
               />
-            )
+            );
           })}
         </div>
       </div>
@@ -816,7 +903,11 @@ export function JobBoard({
         {activeJob ? (
           <div className="rotate-2 scale-105 [&_*]:!shadow-none">
             <SortableContext items={[activeJob.id]}>
-              <JobCard job={activeJob} isClickable={false} isDraggable={false} />
+              <JobCard
+                job={activeJob}
+                isClickable={false}
+                isDraggable={false}
+              />
             </SortableContext>
           </div>
         ) : null}
@@ -835,11 +926,10 @@ export function JobBoard({
         pendingQueueMove={pendingQueueMove}
         onSelect={handleQueueSelection}
         onClose={() => {
-          setIsQueueSelectionOpen(false)
-          setPendingQueueMove(null)
+          setIsQueueSelectionOpen(false);
+          setPendingQueueMove(null);
         }}
       />
     </DndContext>
-  )
+  );
 }
-

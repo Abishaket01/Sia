@@ -80,7 +80,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Body: StoreIntegrationSecretRequestType }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Body: StoreIntegrationSecretRequestType }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { providerType, name, apiKey } = request.body;
@@ -95,7 +98,9 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         const validProviderTypes = ['cursor', 'claude-code', 'kiro-cli'];
         if (!validProviderTypes.includes(providerType)) {
           return reply.code(400).send({
-            error: `Invalid providerType. Must be one of: ${validProviderTypes.join(', ')}`,
+            error: `Invalid providerType. Must be one of: ${validProviderTypes.join(
+              ', '
+            )}`,
           });
         }
 
@@ -103,7 +108,8 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         const secretId = uuidv4();
 
         // Store the secret using the secret storage service
-        const { storedValue, storageType } = await secretStorageService.storeSecret(secretId, apiKey);
+        const { storedValue, storageType } =
+          await secretStorageService.storeSecret(secretId, apiKey);
 
         // Create integration record in database
         const integrationId = uuidv4();
@@ -124,7 +130,9 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
           .values(newIntegration)
           .returning();
 
-        fastify.log.info(`Stored secret for integration ${integrationId} using ${storageType}`);
+        fastify.log.info(
+          `Stored secret for integration ${integrationId} using ${storageType}`
+        );
 
         const response: StoreIntegrationSecretResponseType = {
           id: integration.id,
@@ -138,7 +146,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error storing integration secret');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to store integration secret',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to store integration secret',
         });
       }
     }
@@ -149,13 +160,15 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
     {
       schema: {
         tags: ['integrations'],
-        description: 'List all integration secrets for the current organization',
+        description:
+          'List all integration secrets for the current organization',
         querystring: {
           type: 'object',
           properties: {
             providerType: {
               type: 'string',
-              description: 'Filter by provider type (e.g., cursor, claude-code, kiro-cli)',
+              description:
+                'Filter by provider type (e.g., cursor, claude-code, kiro-cli)',
             },
           },
         },
@@ -200,7 +213,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Querystring: { providerType?: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Querystring: { providerType?: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { providerType } = request.query;
@@ -218,8 +234,14 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         const results: GetIntegrationSecretResponseType[] = [];
 
         for (const integration of integrationList) {
-          const metadata = integration.metadata as Record<string, unknown> | null;
-          const storageType = metadata?.secretStorageType as 'gcp' | 'encrypted_local' | undefined;
+          const metadata = integration.metadata as Record<
+            string,
+            unknown
+          > | null;
+          const storageType = metadata?.secretStorageType as
+            | 'gcp'
+            | 'encrypted_local'
+            | undefined;
 
           if (storageType && integration.accessToken) {
             results.push({
@@ -237,7 +259,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error listing integration secrets');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to list integration secrets',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to list integration secrets',
         });
       }
     }
@@ -307,7 +332,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -316,7 +344,9 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         const [integration] = await db
           .select()
           .from(integrations)
-          .where(and(eq(integrations.id, id), eq(integrations.orgId, user.orgId)))
+          .where(
+            and(eq(integrations.id, id), eq(integrations.orgId, user.orgId))
+          )
           .limit(1);
 
         if (!integration) {
@@ -327,7 +357,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
 
         // Get storage type from metadata
         const metadata = integration.metadata as Record<string, unknown> | null;
-        const storageType = metadata?.secretStorageType as 'gcp' | 'encrypted_local' | undefined;
+        const storageType = metadata?.secretStorageType as
+          | 'gcp'
+          | 'encrypted_local'
+          | undefined;
 
         if (!storageType || !integration.accessToken) {
           return reply.code(500).send({
@@ -339,7 +372,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         // This endpoint is mainly for verifying the secret exists and getting metadata
         // For encrypted_local: accessToken contains the encrypted value
         // For GCP: accessToken contains the full secret name
-        await secretStorageService.retrieveSecret(integration.accessToken, storageType);
+        await secretStorageService.retrieveSecret(
+          integration.accessToken,
+          storageType
+        );
 
         const response: GetIntegrationSecretResponseType = {
           id: integration.id,
@@ -354,7 +390,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error retrieving integration secret');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to retrieve integration secret',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to retrieve integration secret',
         });
       }
     }
@@ -366,7 +405,8 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
     {
       schema: {
         tags: ['integrations'],
-        description: 'Retrieve the plaintext API key for an integration (use with caution)',
+        description:
+          'Retrieve the plaintext API key for an integration (use with caution)',
         params: {
           type: 'object',
           required: ['id'],
@@ -425,7 +465,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -434,7 +477,9 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         const [integration] = await db
           .select()
           .from(integrations)
-          .where(and(eq(integrations.id, id), eq(integrations.orgId, user.orgId)))
+          .where(
+            and(eq(integrations.id, id), eq(integrations.orgId, user.orgId))
+          )
           .limit(1);
 
         if (!integration) {
@@ -445,7 +490,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
 
         // Get storage type from metadata
         const metadata = integration.metadata as Record<string, unknown> | null;
-        const storageType = metadata?.secretStorageType as 'gcp' | 'encrypted_local' | undefined;
+        const storageType = metadata?.secretStorageType as
+          | 'gcp'
+          | 'encrypted_local'
+          | undefined;
 
         if (!storageType || !integration.accessToken) {
           return reply.code(500).send({
@@ -456,7 +504,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         // Retrieve the plaintext secret
         // For encrypted_local: accessToken contains the encrypted value
         // For GCP: accessToken contains the full secret name
-        const plaintext = await secretStorageService.retrieveSecret(integration.accessToken, storageType);
+        const plaintext = await secretStorageService.retrieveSecret(
+          integration.accessToken,
+          storageType
+        );
 
         return reply.code(200).send({
           apiKey: plaintext,
@@ -464,7 +515,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error retrieving plaintext secret');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to retrieve plaintext secret',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to retrieve plaintext secret',
         });
       }
     }
@@ -534,7 +588,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         request.user = user;
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const user = request.user!;
         const { id } = request.params;
@@ -542,7 +599,9 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         const [integration] = await db
           .select()
           .from(integrations)
-          .where(and(eq(integrations.id, id), eq(integrations.orgId, user.orgId)))
+          .where(
+            and(eq(integrations.id, id), eq(integrations.orgId, user.orgId))
+          )
           .limit(1);
 
         if (!integration) {
@@ -552,7 +611,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
         }
 
         const metadata = integration.metadata as Record<string, unknown> | null;
-        const storageType = metadata?.secretStorageType as 'gcp' | 'encrypted_local' | undefined;
+        const storageType = metadata?.secretStorageType as
+          | 'gcp'
+          | 'encrypted_local'
+          | undefined;
         const secretId = metadata?.secretId as string | undefined;
 
         if (storageType && secretId) {
@@ -561,7 +623,9 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
 
         await db
           .delete(integrations)
-          .where(and(eq(integrations.id, id), eq(integrations.orgId, user.orgId)));
+          .where(
+            and(eq(integrations.id, id), eq(integrations.orgId, user.orgId))
+          );
 
         return reply.code(200).send({
           message: 'Integration secret deleted successfully',
@@ -569,7 +633,10 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
       } catch (error) {
         fastify.log.error({ error }, 'Error deleting integration secret');
         return reply.code(500).send({
-          error: error instanceof Error ? error.message : 'Failed to delete integration secret',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to delete integration secret',
         });
       }
     }
@@ -577,4 +644,3 @@ async function integrationSecretsRoutes(fastify: FastifyInstance) {
 }
 
 export default integrationSecretsRoutes;
-

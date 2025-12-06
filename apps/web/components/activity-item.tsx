@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import { Clock } from "lucide-react"
+import { Clock } from 'lucide-react';
 
 interface ActivityItemProps {
-  message: string
-  time: string
+  message: string;
+  time: string;
 }
 
 export function ActivityItem({ message, time }: ActivityItemProps) {
@@ -18,6 +18,5 @@ export function ActivityItem({ message, time }: ActivityItemProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,29 +1,29 @@
-"use client"
+'use client';
 
-import { useMemo } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useJob } from '@/hooks/use-jobs'
-import { JobDetail } from '@/components/jobs/job-detail'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useJob } from '@/hooks/use-jobs';
+import { JobDetail } from '@/components/jobs/job-detail';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function JobDetailPage() {
-  const params = useParams<{ id: string }>()
-  const router = useRouter()
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
 
   const jobId = useMemo(() => {
-    if (!params?.id) return ''
-    return Array.isArray(params.id) ? params.id[0] : params.id
-  }, [params])
+    if (!params?.id) return '';
+    return Array.isArray(params.id) ? params.id[0] : params.id;
+  }, [params]);
 
-  const { data: job, isLoading, isError } = useJob(jobId)
+  const { data: job, isLoading, isError } = useJob(jobId);
 
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <p className="text-muted-foreground">Loading job details…</p>
       </div>
-    )
+    );
   }
 
   if (isError || !job) {
@@ -39,9 +39,8 @@ export default function JobDetailPage() {
           Back to Home
         </Button>
       </div>
-    )
+    );
   }
 
-  return <JobDetail job={job} isLoading={isLoading} />
+  return <JobDetail job={job} isLoading={isLoading} />;
 }
-

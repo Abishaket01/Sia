@@ -16,54 +16,54 @@ flowchart TB
             DETAIL[Job Detail Page]
             SETTINGS[Settings Page]
         end
-        
+
         subgraph "Components"
             QUEUE_COMP[Queue Components]
             JOB_COMP[Job Components]
             LOG_COMP[Log Components]
             UI_COMP[UI Components<br/>shadcn/ui]
         end
-        
+
         subgraph "Hooks"
             USE_JOBS[useJobs]
             USE_QUEUE[useQueue]
             USE_WS[useWebSocket]
             USE_AUTH[useAuth]
         end
-        
+
         subgraph "Providers"
             AUTH_PROV[Auth Provider]
             QUERY_PROV[Query Provider]
             THEME_PROV[Theme Provider]
         end
-        
+
         subgraph "API Layer"
             API_CLIENT[OpenAPI Client]
             WS_CLIENT[WebSocket Client]
         end
     end
-    
+
     subgraph "External"
         API[Backend API]
         PROPEL[PropelAuth]
     end
-    
+
     LAYOUT --> AUTH_PROV
     AUTH_PROV --> QUERY_PROV
-    
+
     DASH --> QUEUE_COMP
     JOBS --> JOB_COMP
     DETAIL --> LOG_COMP
-    
+
     QUEUE_COMP --> USE_QUEUE
     JOB_COMP --> USE_JOBS
     LOG_COMP --> USE_WS
-    
+
     USE_JOBS --> API_CLIENT
     USE_QUEUE --> API_CLIENT
     USE_WS --> WS_CLIENT
     USE_AUTH --> PROPEL
-    
+
     API_CLIENT --> API
     WS_CLIENT --> API
 ```
@@ -105,17 +105,20 @@ apps/web/
 ## Key Components
 
 ### Job Detail Modal
+
 - Displays job information
 - Real-time log streaming
 - PR link when complete
 - Cancel/retry actions
 
 ### Queue View
+
 - Drag-and-drop reordering
 - Pause/resume controls
 - Job status indicators
 
 ### Log Viewer
+
 - Auto-scrolling log display
 - Level filtering (info, warn, error)
 - Stage filtering
@@ -130,15 +133,18 @@ apps/web/
 ## Correctness Properties
 
 ### Property 1: Authentication Guard
-*For any* protected route, the system SHALL redirect unauthenticated users to login.
+
+_For any_ protected route, the system SHALL redirect unauthenticated users to login.
 **Validates: Requirements 5.1**
 
 ### Property 2: Real-time Log Delivery
-*For any* log message from the backend, the log viewer SHALL display it within 100ms.
+
+_For any_ log message from the backend, the log viewer SHALL display it within 100ms.
 **Validates: Requirements 3.1**
 
 ### Property 3: Queue Order Consistency
-*For any* queue display, jobs SHALL be shown in the same order as the backend queue.
+
+_For any_ queue display, jobs SHALL be shown in the same order as the backend queue.
 **Validates: Requirements 4.1**
 
 ## Testing Strategy
