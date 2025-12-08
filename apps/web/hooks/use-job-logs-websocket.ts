@@ -332,8 +332,22 @@ export function useJobLogsWebSocket({
               break;
 
             case 'error': {
-              const error = new Error(message.message || 'WebSocket error');
+              const errorMessage = message.message || 'WebSocket error';
+              const error = new Error(errorMessage);
               console.error('[WebSocket] Error:', error);
+
+              // If it's a version mismatch error, disconnect to allow reconnection with correct version
+              if (errorMessage.includes('Version mismatch')) {
+                console.log(
+                  '[WebSocket] Version mismatch detected, disconnecting to reconnect with correct version'
+                );
+                const ws = wsRef.current;
+                if (ws && ws === wsRef.current) {
+                  // Close the connection - the useEffect will reconnect with the updated version
+                  ws.close();
+                }
+              }
+
               setError(error);
               onErrorRef.current?.(error);
               break;

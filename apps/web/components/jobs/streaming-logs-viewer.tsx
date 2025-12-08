@@ -81,6 +81,35 @@ export function StreamingLogsViewer({
   const initialLogsLoadedRef = useRef(false);
   const logsFetchedRef = useRef(false);
 
+  const previousVersionRef = useRef<number | null | undefined>(jobVersion);
+  const isInitialMountRef = useRef(true);
+
+  // Clear logs when version changes (new version = new execution)
+  // Only clear if version actually changed (not on initial mount)
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      previousVersionRef.current = jobVersion;
+      return;
+    }
+
+    if (
+      previousVersionRef.current !== undefined &&
+      previousVersionRef.current !== null &&
+      jobVersion !== undefined &&
+      jobVersion !== null &&
+      previousVersionRef.current !== jobVersion
+    ) {
+      console.log(
+        `[StreamingLogsViewer] Version changed from ${previousVersionRef.current} to ${jobVersion}, clearing logs`
+      );
+      setLogs([]);
+      logsFetchedRef.current = false;
+      initialLogsLoadedRef.current = false;
+    }
+    previousVersionRef.current = jobVersion;
+  }, [jobVersion]);
+
   const { logs: streamedLogs, isConnected } = useJobLogsWebSocket({
     jobId: enabled && useWebSocket ? jobId : null,
     jobVersion: enabled && useWebSocket ? jobVersion : null,

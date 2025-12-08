@@ -30,7 +30,7 @@ export async function createTemporalWorker() {
   const worker = await Worker.create({
     connection,
     namespace,
-    taskQueue: 'job-queue',
+    taskQueue: process.env.TEMPORAL_TASK_QUEUE || 'job-queue',
     workflowsPath,
     activities,
     maxConcurrentActivityTaskExecutions: 1, // Sequential execution
