@@ -3,11 +3,11 @@
 import { useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LayoutGrid, GripVertical, Trash2, Info } from 'lucide-react';
+import { LayoutGrid, GripVertical } from 'lucide-react';
 import type { JobResponse } from '@/types';
-import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -216,7 +216,7 @@ export function JobCard({
       style={style}
       {...(isDraggable ? { ...attributes, ...listeners } : {})}
       className={cn(
-        'bg-card rounded-lg shadow-small p-4',
+        'bg-card rounded-lg shadow-medium p-4',
         isDragging && 'opacity-0 pointer-events-none',
         interactive && !isDraggable && 'cursor-pointer',
         isDraggable && 'cursor-grab active:cursor-grabbing',
@@ -254,13 +254,20 @@ export function JobCard({
         {job.status !== 'failed' &&
           job.status !== 'in-review' &&
           job.status !== 'completed' && (
-            <Badge variant="secondary" className="text-sm flex-shrink-0">
-              {job.order_in_queue || 0}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="text-xs flex-shrink-0">
+                  {job.order_in_queue || 0}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Current Queue Position: {job.order_in_queue || 0}</p>
+              </TooltipContent>
+            </Tooltip>
           )}
       </div>
 
-      <div className="flex items-center gap-3 text-sm text-muted-foreground ">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground ">
         <span className="flex items-center gap-1.5">
           <LayoutGrid className="h-3 w-3 flex-shrink-0" />
           <Link
@@ -277,16 +284,16 @@ export function JobCard({
       </div>
 
       {(job.generated_description || job.user_input?.prompt) && (
-        <p className="text-sm text-muted-foreground mt-2 line-clamp-1 leading-relaxed">
+        <p className="text-xs text-muted-foreground mt-1 line-clamp-1 leading-relaxed">
           {job.generated_description || job.user_input?.prompt}
         </p>
       )}
 
       <div className="flex items-center justify-between gap-2 mt-4">
-        <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
           Created {formatTime(job.created_at)}
         </span>
-        <div className="flex items-center gap-0.5">
+        {/* <div className="flex items-center gap-0.5">
           {onDelete && (
             <Button
               size="sm"
@@ -313,7 +320,7 @@ export function JobCard({
           >
             <Info className="h-4 w-4 text-muted-foreground" />
           </Button>
-        </div>
+        </div> */}
       </div>
       <JobDetailModal
         jobId={job.id}

@@ -35,12 +35,12 @@ export function Sidebar() {
       variant="sidebar"
       className="border-r border-border bg-sidebar backdrop-blur"
     >
-      <SidebarHeader className="flex flex-col items-center justify-center p-4">
+      <SidebarHeader className="flex flex-col items-center justify-center p-4 border-b border-border  ">
+        <span className="text-base font-bold text-foreground">Sia</span>
         <div className="mb-1 flex h-10 w-10 items-center justify-center">
           <Image src={logoSrc} alt={logoAlt} width={40} height={40} />
         </div>
-        <span className="text-base font-bold text-foreground">Sia</span>
-        {/* <div className='mt-2 w-18 h-1 bg-gradient-to-r from-transparent via-[#d1d5db] to-transparent'/> */}
+        {/* <div className='mt-2 w-18 h-1 border-b border-border'/> */}
       </SidebarHeader>
       <SidebarContent className="py-2">
         <SidebarMenu className="space-y-1 px-2">

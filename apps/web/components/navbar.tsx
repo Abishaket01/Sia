@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Bell, Search, Keyboard, Plus, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Bell, Search, Plus, Loader2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { ProfileAvatar } from './profileavatar';
-import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { mockAgents } from '@/lib/mockData';
-import { useJobs } from '@/hooks/use-jobs';
+import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
+import { Kbd } from './ui/kbd';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -25,12 +24,6 @@ import { ThemeToggle } from './theme-toggle';
 
 export function Navbar() {
   const { toast } = useToast();
-  const { data: jobs = [] } = useJobs();
-  const jobCount = jobs?.length ?? 0;
-  const activeAgent = useMemo(
-    () => mockAgents.find(agent => agent.status === 'active'),
-    []
-  );
   const queryClient = useQueryClient();
   const authInfo = useAuthInfo();
 
@@ -39,6 +32,21 @@ export function Navbar() {
   const [selectedRepoId, setSelectedRepoId] = useState<string>('');
   const [availableRepos, setAvailableRepos] = useState<Repo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [isMac, setIsMac] = useState(false);
+
+  // Detect OS for keyboard shortcut display
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const platform = window.navigator.platform.toLowerCase();
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      setIsMac(
+        platform.includes('mac') ||
+          platform.includes('iphone') ||
+          platform.includes('ipad') ||
+          userAgent.includes('mac')
+      );
+    }
+  }, []);
 
   const handleAddTaskClick = () => {
     setIsModalOpen(true);
@@ -111,17 +119,16 @@ export function Navbar() {
   return (
     <header className="sticky rounded-full m-4 top-0 z-30 bg-sidebar border border-border">
       <div className="flex h-20 w-full justify-between items-center gap-4 px-4 sm:px-6">
-        <div className="flex items-center justify-start gap-10">
+        <div className="flex items-center justify-start gap-10 w-1/2">
           <div className="flex flex-col gap-1 ">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-foreground">
                 Jobs Overview
               </h2>
             </div>
-            <p className="text-xs text-muted-foreground">Async job pipeline</p>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"
                 className="hidden sm:inline-flex items-center gap-2  bg-secondary text-muted-foreground text-xs"
@@ -139,39 +146,56 @@ export function Navbar() {
                   </span>
                 </Badge>
               )}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-              <span className="flex items-center gap-2">
+            </div> */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge
+                variant="secondary"
+                className="hidden sm:inline-flex items-center gap-1.5 bg-secondary text-muted-foreground text-xs"
+              >
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 System healthy
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-blue-500" />2 agents ·
-                3 webhooks connected
-              </span>
+              </Badge>
+              <Badge
+                variant="secondary"
+                className="hidden sm:inline-flex items-center gap-1.5 bg-secondary text-muted-foreground text-xs"
+              >
+                <span className="h-2 w-2 rounded-full bg-blue-500" />1 agent
+              </Badge>
+              <Badge
+                variant="secondary"
+                className="hidden sm:inline-flex items-center gap-1.5 bg-secondary text-muted-foreground text-xs"
+              >
+                <span className="h-2 w-2 rounded-full bg-blue-500" />2 vibe
+                coding platforms connected
+              </Badge>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2">
-          <div className="flex flex-1 max-w-xl items-center gap-3">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground text-sm" />
-              <Input
-                placeholder="Search jobs, IDs, owners"
-                className="h-10 w-96 rounded-full bg-input pl-9 pr-4 shadow-sm"
-              />
-            </div>
+        <div className="flex items-center w-1/2s justify-end gap-2">
+          <div className="flex flex-1  items-center gap-3">
+            <InputGroup className="w-96 h-12  border border-border rounded-full">
+              <InputGroupAddon>
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </InputGroupAddon>
+              <InputGroupInput placeholder="Search jobs" />
+              <InputGroupAddon align="inline-end">
+                {isMac ? (
+                  <>
+                    <Kbd>⌘</Kbd>
+                    <Kbd>K</Kbd>
+                  </>
+                ) : (
+                  <>
+                    <Kbd>Ctrl</Kbd>
+                    <Kbd>K</Kbd>
+                  </>
+                )}
+              </InputGroupAddon>
+            </InputGroup>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Keyboard shortcuts"
-            >
-              <Keyboard className="h-5 w-5 text-muted-foreground" />
-            </Button>
             <Button variant="outline" size="icon" aria-label="Notifications">
               <Bell className="h-5 w-5 text-muted-foreground" />
             </Button>
@@ -198,7 +222,7 @@ export function Navbar() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="prompt-input" className="text-sm font-medium">
+              <label htmlFor="prompt-input" className="text-xs font-medium">
                 Prompt
               </label>
               <Textarea
@@ -210,7 +234,7 @@ export function Navbar() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="repo-select" className="text-sm font-medium">
+              <label htmlFor="repo-select" className="text-xs font-medium">
                 Repository (Optional)
               </label>
               <select
@@ -218,7 +242,7 @@ export function Navbar() {
                 value={selectedRepoId}
                 onChange={e => setSelectedRepoId(e.target.value)}
                 disabled={isLoadingRepos}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isLoadingRepos ? (
                   <option value="">Loading repositories...</option>

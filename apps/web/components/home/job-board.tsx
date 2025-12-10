@@ -24,7 +24,6 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { toast } from '@/hooks/use-toast';
-import { ArrowUpDown, Filter, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import {
   useReorderJob,
@@ -34,7 +33,6 @@ import {
 } from '@/hooks/use-jobs';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
-import { Button } from '@/components/ui/button';
 import { LaneColumn } from './lane-column';
 import { LANE_DEFINITIONS } from './type';
 import { PrLinkDialog } from './pr-link-dialog';
@@ -127,7 +125,6 @@ const groupJobsByLane = (
 
 export type JobBoardProps = {
   jobs: JobResponse[];
-  onJobsChange: (jobs: JobResponse[]) => void;
   onStartJob?: (id: string) => void;
   onCancelJob?: (id: string) => void;
   onSelectReviewJob?: (job: JobResponse) => void;
@@ -136,7 +133,6 @@ export type JobBoardProps = {
 
 export function JobBoard({
   jobs,
-  onJobsChange,
   onStartJob,
   onCancelJob,
   onSelectReviewJob,
@@ -606,7 +602,6 @@ export function JobBoard({
           // Update query cache and state immediately for smooth transitions
           // dnd-kit will handle the visual transitions automatically
           queryClient.setQueryData<JobResponse[]>(['jobs'], reorderedJobs);
-          onJobsChange(reorderedJobs);
           setReworkJobIds(updatedReworkJobIds);
 
           // Clear active job after a brief delay to allow transition to complete
@@ -654,7 +649,6 @@ export function JobBoard({
 
       // Update query cache and parent state immediately
       queryClient.setQueryData<JobResponse[]>(['jobs'], updatedJobs);
-      onJobsChange(updatedJobs);
       setReworkJobIds(updatedReworkJobIds);
       setActiveJobId(null);
 
@@ -691,7 +685,6 @@ export function JobBoard({
         console.error('Failed to update job status:', error);
         // Rollback on error - revert to original state
         queryClient.setQueryData<JobResponse[]>(['jobs'], jobs);
-        onJobsChange(jobs);
         setReworkJobIds(reworkJobIds);
         // Show error toast based on API response (failure)
         toast({
@@ -706,7 +699,6 @@ export function JobBoard({
       reworkJobIds,
       reorderJobMutation,
       onJobMoved,
-      onJobsChange,
       queryClient,
       showRework,
     ]
@@ -859,93 +851,6 @@ export function JobBoard({
     setPendingDeleteJob(null);
   }, []);
 
-  const getLaneControls = (laneId: LaneId) => {
-    switch (laneId) {
-      case 'queue':
-        return (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-muted-foreground"
-            >
-              <Filter className="h-3.5 w-3.5 mr-1" />
-              <span className="text-xs text-muted-foreground">All types</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </>
-        );
-      case 'in-progress':
-        return (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-muted-foreground"
-            >
-              <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
-              <span className="text-xs text-muted-foreground">Sort</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </>
-        );
-      case 'in-review':
-        return (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-muted-foreground"
-            >
-              <Filter className="h-3.5 w-3.5 mr-1" />
-              <span className="text-xs text-muted-foreground">Filters</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </>
-        );
-      case 'completed':
-        return (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-muted-foreground"
-            >
-              <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
-              <span className="text-xs text-muted-foreground">Sort</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <DndContext
       sensors={sensors}
@@ -1017,7 +922,6 @@ export function JobBoard({
                 theme={resolvedTheme}
                 dropIndicator={lane.id === 'queue' ? dropIndicator : null}
                 activeJobId={activeJobId}
-                controls={getLaneControls(lane.id)}
                 renderJob={(job, helpers) => (
                   <JobCard
                     key={`${lane.id}-${job.id}`}

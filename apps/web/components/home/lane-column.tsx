@@ -11,7 +11,6 @@ import {
 import { CircleDashed, Pause, PlayCircle } from 'lucide-react';
 import type { JobResponse } from '@/types';
 import type { Agent } from '@/types';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
@@ -23,6 +22,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import type { LaneDefinition } from './type';
+import { Badge } from '../ui/badge';
 
 type LaneRenderHelpers = {
   disableAnimatedBorder: () => void;
@@ -62,7 +62,6 @@ export type LaneColumnProps = {
   onToggleBacklogQueue?: () => void;
   dropIndicator?: { containerId: string; index: number } | null;
   activeJobId?: string | null;
-  controls?: ReactNode;
 };
 
 export function LaneColumn({
@@ -84,7 +83,6 @@ export function LaneColumn({
   onToggleBacklogQueue,
   dropIndicator,
   activeJobId,
-  controls,
 }: LaneColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `lane-${lane.id}`,
@@ -155,15 +153,13 @@ export function LaneColumn({
             <h3 className="text-base font-bold text-foreground">
               {lane.title}
             </h3>
-            <Badge variant="secondary" className="rounded-full px-2">
+            <Badge variant="secondary" className="text-xs rounded-full px-2">
               {jobs.length}
             </Badge>
           </div>
-          <p className="text-xs uppercase text-muted-foreground">
-            {lane.subtitle}
-          </p>
+          <p className="text-xs  text-muted-foreground">{lane.subtitle}</p>
         </div>
-        <div className="flex items-center space-x-2">{controls}</div>
+        {/* <div className="flex items-center space-x-2">{controls}</div> */}
       </div>
       <div className="space-y-3 min-h-[64px] flex-1 overflow-y-auto overflow-x-hidden pr-1">
         {isInProgressLane && activeAgent && !isAnimationDisabled && (
@@ -216,10 +212,9 @@ export function LaneColumn({
               <Card className="space-y-3 p-2 bg-card-sublane">
                 <div className="mb-2 flex items-center justify-between px-2">
                   <div className="flex items-center gap-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Rework
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Rework Queue
                     </p>
-                    <Badge variant="outline">{queueReworkJobs.length}</Badge>
                   </div>
                   <div className="flex items-center gap-0">
                     {onToggleReworkQueue && (
@@ -336,9 +331,8 @@ export function LaneColumn({
               <div className="mb-2 flex items-center justify-between px-2">
                 <div className="flex items-center gap-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Backlog
+                    Backlog Queue
                   </p>
-                  <Badge variant="outline">{queueBacklogJobs.length}</Badge>
                 </div>
                 <div className="flex items-center gap-0">
                   {onToggleBacklogQueue && (
@@ -381,7 +375,7 @@ export function LaneColumn({
                         >
                           <div
                             className={cn(
-                              'h-4 w-4 [&_canvas]:drop-shadow-[0_0_1px_currentColor,0_0_1px_currentColor,0_0_1px_currentColor] [&_canvas]:filter',
+                              'h-5 w-5 [&_canvas]:drop-shadow-[0_0_1px_currentColor,0_0_1px_currentColor,0_0_1px_currentColor] [&_canvas]:filter',
                               theme === 'dark'
                                 ? 'brightness-0 invert'
                                 : 'brightness-0'

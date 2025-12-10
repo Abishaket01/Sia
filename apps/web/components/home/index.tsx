@@ -102,10 +102,6 @@ export default function Index() {
       <div className="flex-1 min-h-0 overflow-hidden mx-auto">
         <JobBoard
           jobs={jobs}
-          onJobsChange={() => {
-            // TODO: Implement API mutation for job updates
-            // For now, the jobs will be updated via refetch
-          }}
           onStartJob={handleStartJob}
           onCancelJob={handleCancelJob}
           onSelectReviewJob={handleSelectReviewJob}
