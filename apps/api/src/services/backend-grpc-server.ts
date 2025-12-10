@@ -17,7 +17,6 @@ import { eq } from 'drizzle-orm';
 import { logStorage } from './log-storage';
 import { websocketManager } from './websocket-manager';
 import { queueWorkflowService } from './queue-workflow-service';
-import { initializeScheduleForAgent } from './queue-initialization';
 
 export class BackendGrpcServer {
   private server: grpc.Server;
@@ -50,11 +49,10 @@ export class BackendGrpcServer {
         }
 
         try {
-          await queueWorkflowService.startAgentSchedules(result.agentId);
-          await initializeScheduleForAgent(result.agentId, result.orgId);
+          await queueWorkflowService.ensureScheduleActive(result.agentId);
         } catch (error) {
           console.warn(
-            `Failed to start schedule for agent ${result.agentId}:`,
+            `Failed to ensure schedule is active for agent ${result.agentId}:`,
             error
           );
         }
@@ -151,6 +149,16 @@ export class BackendGrpcServer {
                   updatedAt: new Date(),
                 })
                 .where(eq(schema.agents.id, agentId));
+
+              // Ensure schedule is active when agent connects
+              try {
+                await queueWorkflowService.ensureScheduleActive(agentId);
+              } catch (error) {
+                console.warn(
+                  `Failed to ensure schedule is active for agent ${agentId}:`,
+                  error
+                );
+              }
             }
           }
 

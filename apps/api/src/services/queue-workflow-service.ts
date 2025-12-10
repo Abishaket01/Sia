@@ -174,6 +174,57 @@ export class QueueWorkflowService {
       console.error(`Failed to start schedule for agent ${agentId}:`, error);
     }
   }
+
+  /**
+   * Ensure schedule is active for an agent
+   * Checks if schedule exists, creates it if it doesn't, and unpauses it if paused
+   * This is called when an agent connects to ensure the schedule is active
+   */
+  async ensureScheduleActive(agentId: string): Promise<void> {
+    const client = await createTemporalClient();
+    const scheduleId = `queue-schedule-${agentId}`;
+
+    try {
+      const handle = client.schedule.getHandle(scheduleId);
+      const description = await handle.describe();
+
+      // Check if schedule is paused
+      if (description.state.paused) {
+        console.log(`   Schedule ${scheduleId} is paused, unpausing...`);
+        await handle.unpause();
+        console.log(`   ✅ Schedule ${scheduleId} is now active`);
+      } else {
+        console.log(`   Schedule ${scheduleId} is already active`);
+      }
+    } catch (error) {
+      // Schedule doesn't exist, create it
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes('not found') ||
+        errorMessage.includes('NotFound')
+      ) {
+        console.log(`   Schedule ${scheduleId} doesn't exist, creating...`);
+        try {
+          await this.startQueueSchedule(agentId);
+          console.log(`   ✅ Created and activated schedule ${scheduleId}`);
+        } catch (createError) {
+          console.error(
+            `Failed to create schedule for agent ${agentId}:`,
+            createError
+          );
+          throw createError;
+        }
+      } else {
+        // Re-throw other errors
+        console.error(
+          `Failed to check schedule state for agent ${agentId}:`,
+          errorMessage
+        );
+        throw error;
+      }
+    }
+  }
 }
 
 export const queueWorkflowService = new QueueWorkflowService();

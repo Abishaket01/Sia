@@ -25,15 +25,25 @@ type PRRequest = {
 type CleanupRequest = { jobId: string };
 import type { VibeCodingPlatform } from './vibe/vibe-coding-platform.js';
 import { JobVibePlatform } from './vibe/job-vibe-platform.js';
+import type { BackendGrpcClient } from './api/backend-grpc-client.js';
 
 class AgentServer {
   private server: grpc.Server;
   private vibePlatform: VibeCodingPlatform;
+  private backendClient: BackendGrpcClient | null = null;
 
-  constructor(vibePlatform?: VibeCodingPlatform) {
+  constructor(
+    vibePlatform?: VibeCodingPlatform,
+    backendClient?: BackendGrpcClient
+  ) {
     this.server = new grpc.Server();
     this.vibePlatform = vibePlatform || new JobVibePlatform();
+    this.backendClient = backendClient || null;
     this.setupService();
+  }
+
+  setBackendClient(backendClient: BackendGrpcClient): void {
+    this.backendClient = backendClient;
   }
 
   private setupService(): void {
@@ -161,7 +171,13 @@ class AgentServer {
       HealthCheckResponse
     > = async (call, callback) => {
       try {
-        const request = call.request;
+        if (this.backendClient) {
+          this.backendClient.sendHeartbeat();
+          console.log(
+            'Heartbeat successfully sent in response to health check API call'
+          );
+        }
+
         const response: HealthCheckResponse = {
           success: true,
           timestamp: Date.now(),

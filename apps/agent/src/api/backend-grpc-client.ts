@@ -26,6 +26,15 @@ export class BackendGrpcClient {
   > | null = null;
   private streamListeners: Map<string, (message: AgentStreamMessage) => void> =
     new Map();
+  private agentId: string | null = null;
+  private onMessageCallback: ((message: AgentStreamMessage) => void) | null =
+    null;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = Infinity;
+  private baseReconnectDelay = 1000;
+  private maxReconnectDelay = 30000;
+  private shouldReconnect = true;
 
   constructor(options: BackendGrpcClientOptions) {
     this.backendUrl = options.backendUrl;
@@ -78,37 +87,96 @@ export class BackendGrpcClient {
     agentId: string,
     onMessage: (message: AgentStreamMessage) => void
   ): void {
-    if (this.stream) {
-      this.stream.end();
+    this.agentId = agentId;
+    this.onMessageCallback = onMessage;
+    this.shouldReconnect = true;
+    this.reconnectAttempts = 0;
+    this.connectStream();
+  }
+
+  private connectStream(): void {
+    if (!this.shouldReconnect || !this.agentId || !this.onMessageCallback) {
+      return;
     }
 
-    this.stream = this.client.agentStream();
-    this.streamListeners.set('default', onMessage);
+    if (this.stream) {
+      this.stream.end();
+      this.stream = null;
+    }
 
-    this.stream.on('data', (message: AgentStreamMessage) => {
-      const listener = this.streamListeners.get('default');
-      if (listener) {
-        listener(message);
+    try {
+      this.stream = this.client.agentStream();
+      this.streamListeners.set('default', this.onMessageCallback);
+
+      this.stream.on('data', (message: AgentStreamMessage) => {
+        const listener = this.streamListeners.get('default');
+        if (listener) {
+          listener(message);
+        }
+        this.reconnectAttempts = 0;
+      });
+
+      this.stream.on('error', error => {
+        console.error('Stream error:', error);
+        this.stream = null;
+        this.scheduleReconnect();
+      });
+
+      this.stream.on('end', () => {
+        console.log('Stream ended');
+        this.stream = null;
+        this.scheduleReconnect();
+      });
+
+      const initialRequest: AgentStreamRequest = {
+        agentId: this.agentId,
+        messageType: AgentStreamMessageType.STATUS_UPDATE,
+        payload: Buffer.from(JSON.stringify({ status: 'connected' })),
+      };
+
+      this.stream.write(initialRequest);
+      this.reconnectAttempts = 0;
+      console.log('Stream connected successfully');
+    } catch (error) {
+      console.error('Failed to create stream:', error);
+      this.stream = null;
+      this.scheduleReconnect();
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (!this.shouldReconnect) {
+      return;
+    }
+
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+    }
+
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error(
+        `Max reconnection attempts (${this.maxReconnectAttempts}) reached. Stopping reconnection.`
+      );
+      return;
+    }
+
+    this.reconnectAttempts++;
+    const delay = Math.min(
+      this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+      this.maxReconnectDelay
+    );
+
+    console.log(
+      `Scheduling stream reconnection in ${delay}ms (attempt ${this.reconnectAttempts})`
+    );
+
+    this.reconnectTimeout = setTimeout(() => {
+      this.reconnectTimeout = null;
+      if (this.shouldReconnect) {
+        console.log('Attempting to reconnect stream...');
+        this.connectStream();
       }
-    });
-
-    this.stream.on('error', error => {
-      console.error('Stream error:', error);
-      this.stream = null;
-    });
-
-    this.stream.on('end', () => {
-      console.log('Stream ended');
-      this.stream = null;
-    });
-
-    const initialRequest: AgentStreamRequest = {
-      agentId,
-      messageType: AgentStreamMessageType.STATUS_UPDATE,
-      payload: Buffer.from(JSON.stringify({ status: 'connected' })),
-    };
-
-    this.stream.write(initialRequest);
+    }, delay);
   }
 
   sendLogMessage(
@@ -154,6 +222,11 @@ export class BackendGrpcClient {
   }
 
   close(): void {
+    this.shouldReconnect = false;
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
     if (this.stream) {
       this.stream.end();
       this.stream = null;

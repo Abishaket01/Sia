@@ -1983,6 +1983,47 @@ export type PutAgentsByIdResponses = {
 export type PutAgentsByIdResponse =
   PutAgentsByIdResponses[keyof PutAgentsByIdResponses];
 
+export type PostAgentsByIdReconnectData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/agents/{id}/reconnect';
+};
+
+export type PostAgentsByIdReconnectErrors = {
+  /**
+   * Unauthorized
+   */
+  401: ErrorResponse;
+  /**
+   * Agent not found
+   */
+  404: ErrorResponse;
+  /**
+   * Internal Server Error
+   */
+  500: ErrorResponse;
+};
+
+export type PostAgentsByIdReconnectError =
+  PostAgentsByIdReconnectErrors[keyof PostAgentsByIdReconnectErrors];
+
+export type PostAgentsByIdReconnectResponses = {
+  /**
+   * Reconnection attempt completed
+   */
+  200: {
+    success?: boolean;
+    message?: string;
+    agent?: Agent;
+  };
+};
+
+export type PostAgentsByIdReconnectResponse =
+  PostAgentsByIdReconnectResponses[keyof PostAgentsByIdReconnectResponses];
+
 export type GetIntegrationsSecretsData = {
   body?: never;
   path?: never;

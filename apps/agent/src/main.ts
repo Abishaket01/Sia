@@ -46,15 +46,15 @@ async function main() {
   const { apiKey, port, backendUrl } = parseArgs();
 
   console.log(`Starting agent on port ${port}...`);
-  const server = new AgentServer();
-  server.start(port, '0.0.0.0');
-
   console.log(`Connecting to backend at ${backendUrl}...`);
   const backendClient = new BackendGrpcClient({
     backendUrl,
     apiKey,
     port,
   });
+
+  const server = new AgentServer(undefined, backendClient);
+  server.start(port, '0.0.0.0');
 
   try {
     const registrationResult = await backendClient.register();

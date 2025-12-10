@@ -64,7 +64,6 @@ export async function registerAgent(
   if (existingAgents.length > 0) {
     // Agent exists - update it with current connection info
     const agent = existingAgents[0];
-    const previousStatus = agent.status;
 
     await db
       .update(schema.agents)
@@ -79,16 +78,15 @@ export async function registerAgent(
       })
       .where(eq(schema.agents.id, agent.id));
 
-    // If agent was not active before, start/resume the schedule
-    if (previousStatus !== 'active') {
-      try {
-        await queueWorkflowService.startAgentSchedules(agent.id);
-      } catch (error) {
-        console.warn(
-          `Failed to start schedule for agent ${agent.id} during registration:`,
-          error
-        );
-      }
+    // Ensure schedule is active when agent registers (regardless of previous status)
+    // This handles cases where schedule might be paused or doesn't exist
+    try {
+      await queueWorkflowService.ensureScheduleActive(agent.id);
+    } catch (error) {
+      console.warn(
+        `Failed to ensure schedule is active for agent ${agent.id} during registration:`,
+        error
+      );
     }
 
     return {
@@ -116,12 +114,12 @@ export async function registerAgent(
 
     await db.insert(schema.agents).values(newAgent);
 
-    // Create schedule for the new agent
+    // Ensure schedule is active for the new agent
     try {
-      await queueWorkflowService.startAgentSchedules(agentId);
+      await queueWorkflowService.ensureScheduleActive(agentId);
     } catch (error) {
       console.warn(
-        `Failed to start schedule for new agent ${agentId} during registration:`,
+        `Failed to ensure schedule is active for new agent ${agentId} during registration:`,
         error
       );
     }

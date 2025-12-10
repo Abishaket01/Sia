@@ -102,6 +102,9 @@ import type {
   PostActivitiesData,
   PostActivitiesErrors,
   PostActivitiesResponses,
+  PostAgentsByIdReconnectData,
+  PostAgentsByIdReconnectErrors,
+  PostAgentsByIdReconnectResponses,
   PostAgentsData,
   PostAgentsErrors,
   PostAgentsResponses,
@@ -884,6 +887,22 @@ export const putAgentsById = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Reconnect an offline agent - attempts to ping the agent and resume schedule if successful
+ */
+export const postAgentsByIdReconnect = <ThrowOnError extends boolean = false>(
+  options: Options<PostAgentsByIdReconnectData, ThrowOnError>
+) => {
+  return (options.client ?? client).post<
+    PostAgentsByIdReconnectResponses,
+    PostAgentsByIdReconnectErrors,
+    ThrowOnError
+  >({
+    url: '/agents/{id}/reconnect',
+    ...options,
   });
 };
 

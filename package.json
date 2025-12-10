@@ -6,7 +6,7 @@
     "build:web": "nx build @sia/web",
     "build:api": "nx build @sia/api",
     "build:landing-page": "nx build @sia/landing-page",
-    "build:all": "nx run-many --target=build --all",
+    "build:all": "nx build @sia/api && npm run generate -w @sia/models && nx run-many --target=build --all",
     "prepare": "husky",
     "commit": "git-cz",
     "release": "standard-version",
