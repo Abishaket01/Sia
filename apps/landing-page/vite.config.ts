@@ -11,12 +11,10 @@ export default defineConfig({
   server: {
     port: 4200,
     host: 'localhost',
-    historyApiFallback: true,
   },
   preview: {
     port: 4200,
     host: 'localhost',
-    historyApiFallback: true,
   },
   define: {
     // Inject environment variables for client-side access
