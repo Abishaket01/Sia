@@ -18,13 +18,13 @@ export default function Footer() {
             <h4 className="text-base font-medium text-text mb-3">Legal</h4>
             <div className="space-y-2">
               <Link
-                to="/privacy"
+                to="/privacy-policy"
                 className="block text-base font-extralight text-text/70 hover:text-text transition-colors"
               >
                 Privacy Policy
               </Link>
               <Link
-                to="/terms"
+                to="/terms-of-service"
                 className="block text-base font-extralight text-text/70 hover:text-text transition-colors"
               >
                 Terms of Service

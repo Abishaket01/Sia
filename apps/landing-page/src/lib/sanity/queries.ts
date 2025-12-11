@@ -11,6 +11,13 @@ export const postsQuery = groq`*[_type == "post"] | order(publishedAt desc, _cre
   "imageURL": mainImage.asset->url,
   publishedAt,
   "authorName": author->name,
+  "author": author->{
+    name,
+    bio,
+    image,
+    "imageURL": image.asset->url,
+    "xLink": twitterUrl
+  },
   body
 }`;
 
@@ -24,5 +31,12 @@ export const postQuery = groq`*[_type == "post" && slug.current == $slug][0]{
   "imageURL": mainImage.asset->url,
   publishedAt,
   "authorName": author->name,
+  "author": author->{
+    name,
+    bio,
+    image,
+    "imageURL": image.asset->url,
+    "xLink": twitterUrl
+  },
   body
 }`;

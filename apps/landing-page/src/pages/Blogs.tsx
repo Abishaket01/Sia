@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EngineeringBlogCard from '../components/blog/EngineeringBlogCard';
+import SEOHead from '../components/SEOHead';
 import {
   getEngineeringBlogPosts,
   EngineeringBlogPost,
@@ -28,6 +29,13 @@ export default function Blogs() {
 
   return (
     <>
+      <SEOHead
+        title="Sia Blogs - Technical Insights & AI Development"
+        description="Deep technical insights into building Sia, conversation intelligence, and real-time systems from the Sia engineering team."
+        keywords="AI development blog, technical insights, engineering blog, Sia development, AI coding tools, software engineering"
+        url="https://getpullrequest.com/blogs"
+        type="website"
+      />
       <Navbar />
       <div className="min-h-screen bg-background">
         <section className="py-20 sm:py-20 md:py-28 relative flex justify-center w-full">

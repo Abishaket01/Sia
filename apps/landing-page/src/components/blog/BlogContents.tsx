@@ -212,7 +212,7 @@ const BlogContents: React.FC<BlogContentsProps> = ({
   }
 
   return (
-    <div className="fixed right-32 top-24 w-64 bg-card rounded-lg shadow-lg  p-4 pt-8 max-h-[calc(100vh-8rem)] overflow-y-auto z-50">
+    <div className="fixed right-4 xl:right-32 top-24 w-56 xl:w-64 bg-card rounded-lg shadow-lg p-4 pt-8 max-h-[calc(100vh-8rem)] overflow-y-auto z-50">
       <h3 className="text-base font-semibold text-text mb-2">Contents</h3>
       <nav className="space-y-0.5">
         {outline.map(item => (

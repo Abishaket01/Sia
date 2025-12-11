@@ -1,5 +1,6 @@
 'use client';
 import { lazy, Suspense, type ReactNode } from 'react';
+import SEOHead from '../components/SEOHead';
 
 const Navbar = lazy(() => import('../components/Navbar'));
 const Hero = lazy(() => import('../components/Hero'));
@@ -23,6 +24,13 @@ const SuspendedSection = ({
 export default function Home() {
   return (
     <>
+      <SEOHead
+        title="Sia - Wake Up To Ready Pull Requests"
+        description="Delegate coding tasks to Sia through Slack or Discord. It queues them, executes via AI coding tools, and creates pull requests while you sleep."
+        keywords="AI coding assistant, automated pull requests, Slack bot, Discord bot, code automation, AI developer tools, GitHub automation"
+        url="https://getpullrequest.com"
+        type="website"
+      />
       <div className="min-h-screen bg-background max-w-screen overflow-x-hidden">
         <SuspendedSection label="Navbar">
           <Navbar />

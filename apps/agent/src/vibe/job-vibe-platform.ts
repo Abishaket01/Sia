@@ -36,10 +36,14 @@ export class JobVibePlatform implements VibeCodingPlatform {
         prompt = `${prompt}\n\nAdditional hints:\n${allHints}`;
       }
 
+      const repos = repoId
+        ? [{ repoId, name: repoId.split('/').pop() || repoId }]
+        : undefined;
+
       const logStream = this.executor.executeJob(
         jobId,
         prompt,
-        repoId,
+        repos,
         jobDetails
       );
 
@@ -96,7 +100,7 @@ export class JobVibePlatform implements VibeCodingPlatform {
   ): Promise<{ success: boolean; message: string; errors?: string[] }> {
     try {
       // Get workspace path from executor
-      const workspacePath = this.executor.getWorkspacePath(jobId, 1); // Default to attempt 1
+      const workspacePath = this.executor.getWorkspacePath(jobId);
       const { BuildService } = await import('../build/build-service.js');
       const buildService = new BuildService(workspacePath);
 
@@ -126,7 +130,7 @@ export class JobVibePlatform implements VibeCodingPlatform {
     body: string
   ): Promise<{ success: boolean; prLink: string; message: string }> {
     try {
-      const workspacePath = this.executor.getWorkspacePath(jobId, 1);
+      const workspacePath = this.executor.getWorkspacePath(jobId);
       const { GitService } = await import('../git/git-service.js');
       const gitService = new GitService(workspacePath);
 

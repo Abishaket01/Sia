@@ -31,9 +31,9 @@ const EngineeringBlogCard: React.FC<EngineeringBlogCardProps> = ({ post }) => {
       </div>
 
       {/* Content Section */}
-      <div className="p-4 bg-card rounded-lg">
-        {/* Date and Reading Time */}
-        <div className="flex items-center justify-between text-sm text-text/70 mb-2">
+      <div className="p-4 bg-card rounded-lg text-center">
+        {/* Date and Author */}
+        <div className="flex items-center justify-center gap-4 text-sm text-text/70 mb-2">
           <span>
             {new Date(post.publishedAt).toLocaleDateString('en-US', {
               month: 'short',
@@ -41,28 +41,26 @@ const EngineeringBlogCard: React.FC<EngineeringBlogCardProps> = ({ post }) => {
               year: 'numeric',
             })}
           </span>
-          <span>{post.readingTime} min read</span>
+          {post.author?.name && (
+            <>
+              <span>•</span>
+              <span>{post.author.name}</span>
+            </>
+          )}
         </div>
 
         {/* Title */}
         <Link
           to={`/blogs/${post.slug}`}
-          className="block mb-3 text-lg font-semibold text-text hover:text-blue-600 transition-colors line-clamp-2"
+          className="block mb-3 text-lg font-semibold text-text hover:text-blue-600 transition-colors line-clamp-2 text-center"
         >
           {post.title}
         </Link>
 
         {/* Description */}
-        <p className="text-text/70 text-sm line-clamp-3 mb-3">
+        <p className="text-text/70 text-sm line-clamp-3 mb-3 text-center">
           {post.description}
         </p>
-
-        {/* Category Tag */}
-        <div className="mt-auto">
-          <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide">
-            Engineering
-          </span>
-        </div>
       </div>
     </div>
   );

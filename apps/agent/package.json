@@ -18,11 +18,13 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.10.9",
     "@sia/models": "*",
+    "dockerode": "^4.0.2",
     "execa": "^8.0.1",
     "simple-git": "^3.20.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@types/dockerode": "^3.3.31",
     "@types/node": "^20.19.9"
   }
 }

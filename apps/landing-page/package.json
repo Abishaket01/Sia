@@ -2,6 +2,11 @@
   "name": "@sia/landing-page",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "generate-sitemap": "node scripts/generate-sitemap.js",
+    "build:ssg": "vite-ssg build",
+    "preview:ssg": "vite preview"
+  },
   "dependencies": {
     "@portabletext/react": "^5.0.0",
     "@sanity/image-url": "^2.0.1",
@@ -17,6 +22,9 @@
     "@types/marked": "^5.0.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "vite-plugin-prerender": "^1.0.8",
+    "vite-plugin-sitemap": "^0.8.2",
+    "vite-plugin-ssr": "^0.4.142"
   }
 }

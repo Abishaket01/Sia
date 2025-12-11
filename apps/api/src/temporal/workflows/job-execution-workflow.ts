@@ -18,13 +18,20 @@ const {
   },
 });
 
+export interface RepoConfig {
+  repoId: string;
+  name: string;
+  branch?: string;
+}
+
 export async function jobExecutionWorkflow(params: {
   jobId: string;
   orgId: string;
   queueType: 'rework' | 'backlog';
   agentId?: string;
+  repos?: RepoConfig[]; // NEW: Support multi-repo
 }): Promise<{ prLink?: string; status: string }> {
-  const { jobId, orgId, agentId } = params;
+  const { jobId, orgId, agentId, repos } = params;
 
   try {
     // Get job details
@@ -46,13 +53,24 @@ export async function jobExecutionWorkflow(params: {
       stage: 'workflow',
     });
 
+    // Prepare repos array (backward compatible with single repoId)
+    const reposToUse: RepoConfig[] = repos
+      ? repos
+      : job.repoId
+      ? [{ repoId: job.repoId, name: job.repoId.split('/')[1] || 'repo' }]
+      : [];
+
     await logToJobActivity({
       jobId,
       orgId,
       level: 'info',
       message: `Job details: prompt="${job.prompt?.substring(0, 100)}${
         job.prompt && job.prompt.length > 100 ? '...' : ''
-      }", repoId=${job.repoId || 'none'}, agentId=${agentId || 'default'}`,
+      }", repos=${
+        reposToUse.length > 0
+          ? reposToUse.map(r => r.repoId).join(', ')
+          : 'none'
+      }, agentId=${agentId || 'default'}`,
       stage: 'workflow',
     });
 
@@ -135,7 +153,7 @@ export async function jobExecutionWorkflow(params: {
     }
 
     // Step 3-5: Send command to agent to start execution
-    // Agent will: clone repo, start cursor, execute task
+    // Agent will: clone repos, start cursor, execute task
     await logToJobActivity({
       jobId,
       orgId,
@@ -149,8 +167,10 @@ export async function jobExecutionWorkflow(params: {
       jobId,
       orgId,
       level: 'info',
-      message: `Sending startExecution command to agent with repoId=${
-        job.repoId || 'none'
+      message: `Sending startExecution command to agent with repos: ${
+        reposToUse.length > 0
+          ? reposToUse.map(r => r.repoId).join(', ')
+          : 'none'
       }`,
       stage: 'workflow',
     });
@@ -162,7 +182,8 @@ export async function jobExecutionWorkflow(params: {
         gitCredentials,
         vibeCoderCredentials,
         prompt: job.prompt,
-        repoId: job.repoId,
+        repos: reposToUse, // NEW: Pass repos array instead of single repoId
+        repoId: job.repoId, // Keep for backward compatibility
         agentId, // Pass agentId to activity
       },
     });
@@ -220,47 +241,68 @@ export async function jobExecutionWorkflow(params: {
       stage: 'workflow',
     });
 
-    // Step 8-9: Automatically create PR (if repoId exists)
+    // Step 8-9: Automatically create PRs (if repos exist)
     let prResult = null;
-    if (job.repoId) {
+    const prLinks: string[] = [];
+
+    if (reposToUse.length > 0) {
       await logToJobActivity({
         jobId,
         orgId,
         level: 'info',
-        message: `Starting: Create pull request for repoId=${job.repoId}, branch=${jobId}`,
+        message: `Starting: Create pull requests for ${reposToUse.length} repo(s)`,
         stage: 'workflow',
       });
-      prResult = await sendCommandToAgent({
-        jobId,
-        orgId,
-        command: 'createPR',
-        payload: {
-          repoId: job.repoId,
-          branchName: jobId, // Using jobId as branch name
-          agentId, // Pass agentId to activity
-        },
-      });
-      await logToJobActivity({
-        jobId,
-        orgId,
-        level: 'info',
-        message: `Completed: Create pull request - PR link: ${prResult.prLink}`,
-        stage: 'workflow',
-      });
+
+      // Create PR for each repo
+      for (const repo of reposToUse) {
+        await logToJobActivity({
+          jobId,
+          orgId,
+          level: 'info',
+          message: `Creating PR for ${repo.repoId}, branch=${jobId}-${repo.name}`,
+          stage: 'workflow',
+        });
+
+        const repoPrResult = await sendCommandToAgent({
+          jobId,
+          orgId,
+          command: 'createPR',
+          payload: {
+            repoId: repo.repoId,
+            branchName: `${jobId}-${repo.name}`, // Unique branch per repo
+            agentId,
+          },
+        });
+
+        if (repoPrResult.prLink) {
+          prLinks.push(repoPrResult.prLink);
+          await logToJobActivity({
+            jobId,
+            orgId,
+            level: 'info',
+            message: `Completed: PR created for ${repo.repoId} - ${repoPrResult.prLink}`,
+            stage: 'workflow',
+          });
+        }
+      }
+
+      // Use first PR link for backward compatibility
+      prResult = { prLink: prLinks[0] };
 
       // Step 12: Backend updates PR in job and marks as in-review
       await logToJobActivity({
         jobId,
         orgId,
         level: 'info',
-        message: `Starting: Update job status to in-review with PR link`,
+        message: `Starting: Update job status to in-review with ${prLinks.length} PR link(s)`,
         stage: 'workflow',
       });
       await updateJobStatus({
         jobId,
         orgId,
         status: 'in-review',
-        prLink: prResult.prLink,
+        prLink: prLinks[0], // Store first PR link (can extend to support multiple in future)
       });
       await logToJobActivity({
         jobId,
@@ -274,7 +316,7 @@ export async function jobExecutionWorkflow(params: {
         jobId,
         orgId,
         level: 'info',
-        message: `Skipping PR creation - no repoId configured for this job`,
+        message: `Skipping PR creation - no repos configured for this job`,
         stage: 'workflow',
       });
     }
@@ -314,9 +356,9 @@ export async function jobExecutionWorkflow(params: {
       orgId,
       level: 'info',
       message: `Final status: ${
-        prResult?.prLink
-          ? `PR created at ${prResult.prLink}`
-          : 'No PR created (no repo configured)'
+        prLinks.length > 0
+          ? `${prLinks.length} PR(s) created: ${prLinks.join(', ')}`
+          : 'No PRs created (no repos configured)'
       }`,
       stage: 'workflow',
     });

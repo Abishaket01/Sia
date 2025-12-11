@@ -1,8 +1,9 @@
 /// <reference types='vitest' />
-import { defineConfig, type UserConfig } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+import { generateStaticFiles } from './src/utils/ssg';
 
 export default defineConfig({
   root: __dirname,
@@ -10,16 +11,43 @@ export default defineConfig({
   server: {
     port: 4200,
     host: 'localhost',
+    historyApiFallback: true,
   },
   preview: {
     port: 4200,
     host: 'localhost',
+    historyApiFallback: true,
   },
-  plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md', '*.json'])],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [ nxViteTsPaths() ],
-  // },
+  define: {
+    // Inject environment variables for client-side access
+    __VITE_SANITY_API_VERSION__: JSON.stringify(
+      process.env.VITE_SANITY_API_VERSION || '2024-01-22'
+    ),
+    __VITE_SANITY_DATASET__: JSON.stringify(
+      process.env.VITE_SANITY_DATASET || 'production'
+    ),
+    __VITE_SANITY_PROJECT_ID__: JSON.stringify(
+      process.env.VITE_SANITY_PROJECT_ID || '4cam5qzc'
+    ),
+  },
+  plugins: [
+    react(),
+    nxViteTsPaths(),
+    nxCopyAssetsPlugin(['*.md', '*.json']),
+    // Custom plugin to generate SEO files
+    {
+      name: 'generate-seo-files',
+      writeBundle: async options => {
+        if (options.dir) {
+          try {
+            await generateStaticFiles(options.dir);
+          } catch (error) {
+            console.error('Failed to generate SEO files:', error);
+          }
+        }
+      },
+    },
+  ],
   build: {
     outDir: '../../dist/apps/landing-page',
     emptyOutDir: true,

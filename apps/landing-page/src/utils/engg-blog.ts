@@ -3,10 +3,23 @@ import { postsQuery, postQuery } from '../lib/sanity/queries';
 import { urlForImage } from '../lib/sanity/image';
 import {
   portableTextToHtml,
+  addHeadingIds as addHeadingIdsPortable,
+  calculateReadingTime as calculateReadingTimePortable,
+} from '../lib/sanity/portableTextToHtml';
+import {
+  markdownToHtml,
   addHeadingIds,
   calculateReadingTime,
-} from '../lib/sanity/portableTextToHtml';
+} from '../lib/sanity/markdownToHtml';
 import type { PortableTextBlock } from '@portabletext/types';
+
+export interface Author {
+  name: string;
+  bio?: string | any[]; // Can be string or Portable Text blocks
+  image?: any;
+  imageURL?: string;
+  xLink?: string;
+}
 
 export interface EngineeringBlogPost {
   id: string;
@@ -21,6 +34,7 @@ export interface EngineeringBlogPost {
   body?: PortableTextBlock[]; // Portable Text blocks for PortableText component
   mainImage?: any; // Raw mainImage for image URL builder
   authorName?: string;
+  author?: Author;
 }
 
 interface SanityPost {
@@ -42,7 +56,14 @@ interface SanityPost {
   imageURL?: string;
   publishedAt?: string;
   authorName?: string;
-  body?: PortableTextBlock[];
+  author?: {
+    name: string;
+    bio?: string;
+    image?: any;
+    imageURL?: string;
+    xLink?: string;
+  };
+  body?: string | PortableTextBlock[]; // Can be markdown string or Portable Text blocks
 }
 
 // Function to convert Sanity post to EngineeringBlogPost
@@ -52,14 +73,26 @@ function convertSanityPostToBlogPost(
   const slug = sanityPost.slug?.current || '';
   const publishedAt = sanityPost.publishedAt || sanityPost._createdAt;
 
-  // Convert Portable Text body to HTML
-  let htmlContent = portableTextToHtml(sanityPost.body || []);
+  let htmlContent = '';
+  let readingTime = 0;
+  let originalContent = '';
+  let portableTextBody: PortableTextBlock[] | undefined;
 
-  // Add IDs to headings for table of contents
-  htmlContent = addHeadingIds(htmlContent);
-
-  // Calculate reading time
-  const readingTime = calculateReadingTime(htmlContent);
+  // Check if body is markdown string or Portable Text blocks
+  if (typeof sanityPost.body === 'string') {
+    // Process markdown content
+    htmlContent = markdownToHtml(sanityPost.body);
+    htmlContent = addHeadingIds(htmlContent);
+    readingTime = calculateReadingTime(sanityPost.body);
+    originalContent = sanityPost.body;
+  } else if (Array.isArray(sanityPost.body)) {
+    // Fallback to Portable Text processing
+    htmlContent = portableTextToHtml(sanityPost.body);
+    htmlContent = addHeadingIdsPortable(htmlContent);
+    readingTime = calculateReadingTimePortable(htmlContent);
+    originalContent = JSON.stringify(sanityPost.body);
+    portableTextBody = sanityPost.body;
+  }
 
   // Get image URL
   let imageUrl = '';
@@ -75,11 +108,31 @@ function convertSanityPostToBlogPost(
     }
   }
 
+  // Process author data
+  let author: Author | undefined;
+  if (sanityPost.author) {
+    let authorImageUrl = '';
+    if (sanityPost.author.imageURL) {
+      authorImageUrl = sanityPost.author.imageURL;
+    } else if (sanityPost.author.image) {
+      try {
+        authorImageUrl = urlForImage(sanityPost.author.image as any) || '';
+      } catch (error) {
+        console.warn('Error generating author image URL:', error);
+      }
+    }
+
+    author = {
+      name: sanityPost.author.name,
+      bio: sanityPost.author.bio,
+      image: sanityPost.author.image,
+      imageURL: authorImageUrl,
+      xLink: sanityPost.author.xLink,
+    };
+  }
+
   // Get description
   const description = sanityPost.description || '';
-
-  // Create original content representation (JSON string of Portable Text)
-  const originalContent = JSON.stringify(sanityPost.body || []);
 
   return {
     id: sanityPost._id,
@@ -91,9 +144,10 @@ function convertSanityPostToBlogPost(
     readingTime,
     content: htmlContent,
     originalContent,
-    body: sanityPost.body, // Include Portable Text blocks
+    body: portableTextBody, // Include Portable Text blocks for backward compatibility
     mainImage: sanityPost.mainImage, // Include raw mainImage
     authorName: sanityPost.authorName,
+    author,
   };
 }
 
