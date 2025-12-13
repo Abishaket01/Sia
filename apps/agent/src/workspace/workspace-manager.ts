@@ -4,7 +4,7 @@ import type { LogMessage } from '@sia/models';
  * WorkspaceManager handles workspace structure for git worktrees.
  *
  * Structure:
- * /workspace/
+ * /workspace/ (container) or ~/.sia/workspace (local)
  * ├── .bare-repos/           # Bare git repositories (shared across jobs)
  * │   ├── frontend.git/
  * │   └── backend.git/
@@ -18,10 +18,21 @@ import type { LogMessage } from '@sia/models';
 export class WorkspaceManager {
   private bareReposPath: string;
   private jobsPath: string;
+  private basePath: string;
 
-  constructor(basePath = '/workspace') {
-    this.bareReposPath = `${basePath}/.bare-repos`;
-    this.jobsPath = `${basePath}/jobs`;
+  constructor(basePath?: string) {
+    // Default to /workspace for container mode
+    // In local mode, this should be passed from the execution manager
+    this.basePath = basePath || '/workspace';
+    this.bareReposPath = `${this.basePath}/.bare-repos`;
+    this.jobsPath = `${this.basePath}/jobs`;
+  }
+
+  /**
+   * Get the base workspace path
+   */
+  getBasePath(): string {
+    return this.basePath;
   }
 
   /**

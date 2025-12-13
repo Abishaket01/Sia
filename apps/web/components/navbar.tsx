@@ -22,7 +22,11 @@ import { api, type Repo } from '@/lib/api';
 import { useAuthInfo } from '@propelauth/react';
 import { ThemeToggle } from './theme-toggle';
 
-export function Navbar() {
+interface NavbarProps {
+  onSearchClick?: () => void;
+}
+
+export function Navbar({ onSearchClick }: NavbarProps = {}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const authInfo = useAuthInfo();
@@ -174,11 +178,18 @@ export function Navbar() {
 
         <div className="flex items-center w-1/2s justify-end gap-2">
           <div className="flex flex-1  items-center gap-3">
-            <InputGroup className="w-96 h-12  border border-border rounded-full">
+            <InputGroup
+              className="w-96 h-12  border border-border rounded-full cursor-pointer"
+              onClick={onSearchClick}
+            >
               <InputGroupAddon>
                 <Search className="h-4 w-4 text-muted-foreground" />
               </InputGroupAddon>
-              <InputGroupInput placeholder="Search jobs" />
+              <InputGroupInput
+                placeholder="Search jobs"
+                className="cursor-pointer"
+                readOnly
+              />
               <InputGroupAddon align="inline-end">
                 {isMac ? (
                   <>

@@ -75,12 +75,17 @@ export class ContainerManager {
    */
   private async createAndStartContainer(): Promise<void> {
     try {
-      // Check if image exists, pull if not
+      // Check if image exists, build if not
       try {
         await this.docker.getImage(this.config.image).inspect();
       } catch {
-        console.log(`Image ${this.config.image} not found, pulling...`);
-        await this.pullImage(this.config.image);
+        console.log(`Image ${this.config.image} not found locally.`);
+        console.log(`Please build the image first by running:`);
+        console.log(`  cd apps/agent && ./build-dev-container.sh`);
+        console.log(
+          `Or run: docker build -f apps/agent/Dockerfile.dev-env -t sia-dev-env:latest apps/agent`
+        );
+        throw new Error('Docker image not found. Please build it first.');
       }
 
       // Create container
@@ -114,36 +119,6 @@ export class ContainerManager {
         }`
       );
     }
-  }
-
-  /**
-   * Pull Docker image
-   */
-  private async pullImage(image: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.docker.pull(image, (err: Error | null, stream: Readable) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        this.docker.modem.followProgress(
-          stream,
-          (err: Error | null) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
-          },
-          (event: { status?: string; progress?: string }) => {
-            if (event.status) {
-              console.log(`${event.status} ${event.progress || ''}`);
-            }
-          }
-        );
-      });
-    });
   }
 
   /**

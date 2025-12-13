@@ -2,18 +2,24 @@ import { AgentServer } from './server.js';
 import { BackendGrpcClient } from './api/backend-grpc-client.js';
 import { BackendStreamMessageType } from '@sia/models/proto';
 import { ContainerManager } from './container/container-manager.js';
+import { LocalExecutionManager } from './container/local-execution-manager.js';
+import type { IExecutionManager } from './container/execution-manager.interface.js';
 
 function parseArgs(): {
   apiKey: string;
   port: number;
   backendUrl: string;
   containerImage?: string;
+  local: boolean;
+  workspaceDir?: string;
 } {
   const args = process.argv.slice(2);
   let apiKey = '';
   let port = 50051;
   let backendUrl = '';
   let containerImage: string | undefined;
+  let local = false;
+  let workspaceDir: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--api-key' && args[i + 1]) {
@@ -28,6 +34,11 @@ function parseArgs(): {
     } else if (args[i] === '--container-image' && args[i + 1]) {
       containerImage = args[i + 1];
       i++;
+    } else if (args[i] === '--local') {
+      local = true;
+    } else if (args[i] === '--workspace-dir' && args[i + 1]) {
+      workspaceDir = args[i + 1];
+      i++;
     }
   }
 
@@ -40,6 +51,9 @@ function parseArgs(): {
   if (!containerImage) {
     containerImage = process.env.SIA_CONTAINER_IMAGE || 'sia-dev-env:latest';
   }
+  if (!workspaceDir) {
+    workspaceDir = process.env.SIA_WORKSPACE_DIR;
+  }
 
   if (!apiKey) {
     console.error(
@@ -48,31 +62,57 @@ function parseArgs(): {
     process.exit(1);
   }
 
-  return { apiKey, port, backendUrl, containerImage };
+  return { apiKey, port, backendUrl, containerImage, local, workspaceDir };
 }
 
 async function main() {
-  const { apiKey, port, backendUrl, containerImage } = parseArgs();
+  const { apiKey, port, backendUrl, containerImage, local, workspaceDir } =
+    parseArgs();
 
   console.log(`Starting SIA Agent on port ${port}...`);
   console.log(`Connecting to backend at ${backendUrl}...`);
-  console.log(`Using container image: ${containerImage}`);
 
-  // Initialize ContainerManager
-  const containerManager = new ContainerManager({
-    image: containerImage,
-  });
+  let executionManager: IExecutionManager;
 
-  console.log('Ensuring dev container is ready...');
-  try {
-    await containerManager.ensureContainerRunning();
-    console.log('Dev container is ready');
-  } catch (error) {
-    console.error('Failed to start dev container:', error);
-    console.error(
-      'Please ensure Docker is running and the container image is available'
-    );
-    process.exit(1);
+  if (local) {
+    console.log('Running in LOCAL mode (no Docker)');
+    if (workspaceDir) {
+      console.log(`Using workspace directory: ${workspaceDir}`);
+    }
+
+    // Initialize LocalExecutionManager
+    executionManager = new LocalExecutionManager({
+      workspaceDir,
+    });
+
+    console.log('Ensuring local workspace is ready...');
+    try {
+      await executionManager.ensureWorkspaceReady();
+      console.log('Local workspace is ready');
+    } catch (error) {
+      console.error('Failed to setup local workspace:', error);
+      process.exit(1);
+    }
+  } else {
+    console.log('Running in CONTAINER mode');
+    console.log(`Using container image: ${containerImage}`);
+
+    // Initialize ContainerManager
+    executionManager = new ContainerManager({
+      image: containerImage,
+    });
+
+    console.log('Ensuring dev container is ready...');
+    try {
+      await executionManager.ensureContainerRunning();
+      console.log('Dev container is ready');
+    } catch (error) {
+      console.error('Failed to start dev container:', error);
+      console.error(
+        'Please ensure Docker is running and the container image is available'
+      );
+      process.exit(1);
+    }
   }
 
   const backendClient = new BackendGrpcClient({
@@ -111,8 +151,8 @@ async function main() {
 
     process.on('SIGINT', async () => {
       console.log('\nShutting down agent...');
-      console.log('Stopping container...');
-      await containerManager.stopContainer();
+      console.log('Stopping execution environment...');
+      await executionManager.stopContainer();
       backendClient.close();
       await server.stop();
       process.exit(0);
@@ -120,8 +160,8 @@ async function main() {
 
     process.on('SIGTERM', async () => {
       console.log('\nReceived SIGTERM, shutting down agent...');
-      console.log('Stopping container...');
-      await containerManager.stopContainer();
+      console.log('Stopping execution environment...');
+      await executionManager.stopContainer();
       backendClient.close();
       await server.stop();
       process.exit(0);
